@@ -10,8 +10,8 @@ Requirements for initial consolidated release. Each maps to roadmap phases.
 ### Foundation
 
 - [x] **FOUND-01**: Unified Prisma schema merges both repos (customer/clients, booking/appointments, tattoo_design/tattoo_designs, sessions, artists, auth, analytics, settings, payments, audit_logs)
-- [ ] **FOUND-02**: Data Access Layer (DAL) with server-only auth checks on every database query (not middleware-only)
-- [ ] **FOUND-03**: Better Auth configured with unified RBAC supporting admin roles (USER, STAFF, MANAGER, ADMIN, SUPER_ADMIN) and future client accounts
+- [x] **FOUND-02**: Data Access Layer (DAL) with server-only auth checks on every database query (not middleware-only)
+- [x] **FOUND-03**: Better Auth configured with unified RBAC supporting admin roles (USER, STAFF, MANAGER, ADMIN, SUPER_ADMIN) and future client accounts
 - [x] **FOUND-04**: Next.js 16 App Router with route groups: (public), (auth), (dashboard), (portal), (store)
 - [x] **FOUND-05**: Shared UI component library (deduplicated Shadcn/Radix primitives)
 - [x] **FOUND-06**: Unified state management (TanStack Query for server state, Zustand for client state)
@@ -113,8 +113,8 @@ Deferred to future release. Tracked but not in current roadmap.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | FOUND-01 | Phase 1 | Complete |
-| FOUND-02 | Phase 1 | Pending |
-| FOUND-03 | Phase 1 | Pending |
+| FOUND-02 | Phase 1 | Complete |
+| FOUND-03 | Phase 1 | Complete |
 | FOUND-04 | Phase 1 | Complete |
 | FOUND-05 | Phase 1 | Complete |
 | FOUND-06 | Phase 1 | Complete |
