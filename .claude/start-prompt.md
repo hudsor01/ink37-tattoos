@@ -1,0 +1,1 @@
+Read CLAUDE.md and .planning/STATE.md to understand where this project stands, then run /gsd:progress to pick up where we left off. Use max agents on every task. Run /gsd:autonomous if the next step is phase planning or execution.
