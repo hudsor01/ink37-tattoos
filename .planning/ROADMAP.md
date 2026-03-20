@@ -30,12 +30,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. An admin user can log in via Better Auth with their existing credentials and be assigned the correct RBAC role
   4. The app starts with route groups `(public)`, `(auth)`, `(dashboard)`, `(portal)`, `(store)` each rendering a placeholder page
   5. `next build` completes with zero errors on Next.js 16, React 19.2, Prisma 7, Zod 4, and Tailwind CSS 4
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
-- [ ] 01-03: TBD
+- [ ] 01-01-PLAN.md — Project scaffold, Prisma 7 unified schema, env validation, package alignment
+- [ ] 01-02-PLAN.md — Better Auth with RBAC, Data Access Layer with server-only auth checks
+- [ ] 01-03-PLAN.md — Route groups, shared UI components, TanStack Query + Zustand providers
 
 ### Phase 2: Public Site + Admin Dashboard
 **Goal**: Both existing applications fully reconstructed within the unified codebase -- the public site serves all pages with SEO and performance parity, the admin dashboard provides full business management, and security infrastructure protects all endpoints
