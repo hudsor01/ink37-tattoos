@@ -1,0 +1,343 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+// ============================================================================
+// BETTER AUTH MODELS
+// ============================================================================
+
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  role          String    @default("user")
+  banned        Boolean   @default(false)
+  banReason     String?
+  banExpires    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts  Account[]
+  sessions  Session[]
+  auditLogs AuditLog[]
+  customer  Customer?
+
+  @@index([email])
+  @@index([role])
+  @@map("user")
+}
+
+model Session {
+  id             String   @id @default(uuid())
+  userId         String
+  token          String   @unique
+  expiresAt      DateTime
+  ipAddress      String?
+  userAgent      String?
+  impersonatedBy String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id @default(uuid())
+  userId                String
+  accountId             String
+  providerId            String
+  type                  String    @default("credential")
+  accessToken           String?
+  refreshToken          String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  idToken               String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id @default(uuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier, value])
+  @@index([identifier])
+  @@index([expiresAt])
+  @@map("verification")
+}
+
+// ============================================================================
+// DOMAIN MODELS
+// ============================================================================
+
+model Customer {
+  id                String    @id @default(uuid())
+  firstName         String
+  lastName          String
+  email             String?   @unique
+  phone             String?
+  userId            String?   @unique
+  dateOfBirth       DateTime?
+  address           String?
+  city              String?
+  state             String?
+  postalCode        String?
+  country           String?
+  emergencyName     String?
+  emergencyPhone    String?
+  emergencyRel      String?
+  allergies         String[]
+  medicalConditions String[]
+  preferredArtist   String?
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user           User?          @relation(fields: [userId], references: [id])
+  appointments   Appointment[]
+  tattooSessions TattooSession[]
+  designs        TattooDesign[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([firstName, lastName])
+  @@index([createdAt])
+  @@map("customer")
+}
+
+model Appointment {
+  id              String            @id @default(uuid())
+  customerId      String
+  artistId        String?
+  scheduledDate   DateTime
+  duration        Int?
+  status          AppointmentStatus @default(PENDING)
+  type            AppointmentType   @default(CONSULTATION)
+  calBookingUid   String?           @unique
+  calEventTypeId  Int?
+  calStatus       String?
+  calMeetingUrl   String?
+  firstName       String
+  lastName        String
+  email           String
+  phone           String?
+  tattooType      String?
+  size            String?
+  placement       String?
+  description     String?
+  source          String            @default("website")
+  notes           String?
+  reminderSent    Boolean           @default(false)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  customer Customer      @relation(fields: [customerId], references: [id])
+  artist   TattooArtist? @relation(fields: [artistId], references: [id])
+  session  TattooSession?
+
+  @@index([scheduledDate])
+  @@index([status])
+  @@index([email])
+  @@index([customerId, scheduledDate])
+  @@index([scheduledDate, status])
+  @@index([createdAt])
+  @@map("appointment")
+}
+
+model TattooSession {
+  id                String        @id @default(uuid())
+  customerId        String
+  artistId          String
+  appointmentId     String?       @unique
+  appointmentDate   DateTime
+  duration          Int
+  status            SessionStatus @default(SCHEDULED)
+  designDescription String
+  placement         String
+  size              String
+  style             String
+  referenceImages   String[]
+  hourlyRate        Decimal
+  estimatedHours    Decimal
+  depositAmount     Decimal       @default(0)
+  totalCost         Decimal
+  paidAmount        Decimal       @default(0)
+  notes             String?
+  aftercareProvided Boolean       @default(false)
+  consentSigned     Boolean       @default(false)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  customer    Customer     @relation(fields: [customerId], references: [id])
+  artist      TattooArtist @relation(fields: [artistId], references: [id])
+  appointment Appointment? @relation(fields: [appointmentId], references: [id])
+
+  @@index([appointmentDate])
+  @@index([status])
+  @@index([appointmentDate, status])
+  @@index([appointmentDate, totalCost])
+  @@map("tattoo_session")
+}
+
+model TattooDesign {
+  id             String   @id @default(uuid())
+  name           String
+  description    String?
+  fileUrl        String
+  thumbnailUrl   String?
+  designType     String?
+  size           String?
+  style          String?
+  tags           String[]
+  isApproved     Boolean  @default(false)
+  isPublic       Boolean  @default(true)
+  estimatedHours Decimal?
+  popularity     Int      @default(0)
+  artistId       String
+  customerId     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  artist   TattooArtist @relation(fields: [artistId], references: [id])
+  customer Customer?    @relation(fields: [customerId], references: [id])
+
+  @@index([isApproved])
+  @@index([designType])
+  @@index([artistId])
+  @@index([createdAt])
+  @@index([isApproved, createdAt])
+  @@map("tattoo_design")
+}
+
+model TattooArtist {
+  id          String   @id @default(uuid())
+  name        String
+  email       String   @unique
+  phone       String?
+  specialties String[]
+  hourlyRate  Decimal
+  isActive    Boolean  @default(true)
+  portfolio   String[]
+  bio         String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  appointments Appointment[]
+  sessions     TattooSession[]
+  designs      TattooDesign[]
+
+  @@map("tattoo_artist")
+}
+
+model Contact {
+  id         String        @id @default(uuid())
+  name       String
+  email      String
+  phone      String?
+  message    String
+  status     ContactStatus @default(NEW)
+  adminNotes String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([createdAt])
+  @@map("contact")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String
+  resource   String
+  resourceId String?
+  ip         String
+  userAgent  String
+  timestamp  DateTime @default(now())
+  metadata   Json?
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([action])
+  @@index([resource])
+  @@index([timestamp])
+  @@index([userId])
+  @@map("audit_log")
+}
+
+model Settings {
+  id            String   @id @default(uuid())
+  key           String   @unique
+  value         Json
+  category      String
+  description   String?
+  isEnvironment Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([category])
+  @@index([key])
+  @@map("settings")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum AppointmentType {
+  CONSULTATION
+  DESIGN_REVIEW
+  TATTOO_SESSION
+  TOUCH_UP
+  REMOVAL
+}
+
+enum SessionStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum ContactStatus {
+  NEW
+  READ
+  REPLIED
+  RESOLVED
+}
