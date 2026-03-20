@@ -12,7 +12,7 @@ Consolidate two existing Next.js applications (public tattoo website + admin das
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - Unified schema, DAL, auth, route groups, shared UI, and package alignment
+- [x] **Phase 1: Foundation** - Unified schema, DAL, auth, route groups, shared UI, and package alignment
 - [ ] **Phase 2: Public Site + Admin Dashboard** - Reconstruct both existing apps in unified codebase with security hardening
 - [ ] **Phase 3: Payments** - Stripe integration for deposits, session payments, and invoicing
 - [ ] **Phase 4: Client Portal** - Client-facing authenticated experience for appointments, designs, and history
@@ -33,9 +33,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Project scaffold, Prisma 7 unified schema, env validation, package alignment
-- [ ] 01-02-PLAN.md — Better Auth with RBAC, Data Access Layer with server-only auth checks
-- [ ] 01-03-PLAN.md — Route groups, shared UI components, TanStack Query + Zustand providers
+- [x] 01-01-PLAN.md — Project scaffold, Prisma 7 unified schema, env validation, package alignment
+- [x] 01-02-PLAN.md — Better Auth with RBAC, Data Access Layer with server-only auth checks
+- [x] 01-03-PLAN.md — Route groups, shared UI components, TanStack Query + Zustand providers
 
 ### Phase 2: Public Site + Admin Dashboard
 **Goal**: Both existing applications fully reconstructed within the unified codebase -- the public site serves all pages with SEO and performance parity, the admin dashboard provides full business management, and security infrastructure protects all endpoints
@@ -103,7 +103,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/3 | Not started | - |
+| 1. Foundation | 3/3 | Complete | 2026-03-20 |
 | 2. Public Site + Admin Dashboard | 0/3 | Not started | - |
 | 3. Payments | 0/1 | Not started | - |
 | 4. Client Portal | 0/1 | Not started | - |
