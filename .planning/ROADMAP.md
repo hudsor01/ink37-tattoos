@@ -67,10 +67,12 @@ Plans:
   2. After a tattoo session, the admin can trigger a payment request for the remaining balance, and the client can pay via Stripe
   3. Stripe webhooks for payment success, failure, and refund events are processed idempotently (duplicate events do not create duplicate records)
   4. The admin can view a payment history table with status, amount, date, and a generated receipt/invoice for any completed payment
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: TBD
+- [ ] 03-01-PLAN.md — Payment/StripeEvent models, Stripe SDK, env validation, currency helpers, Zod schemas
+- [ ] 03-02-PLAN.md — Payment DAL, Server Actions (deposit + balance), webhook handler, email template
+- [ ] 03-03-PLAN.md — Admin payments page with DataTable, KPI cards, request payment dialog, unit tests
 
 ### Phase 4: Client Portal
 **Goal**: Clients have a self-service authenticated experience where they can view their tattoo journey -- appointments, designs, consent forms, payment history -- linked to their existing customer records in the admin system
@@ -109,6 +111,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete   | 2026-03-20 |
 | 2. Public Site + Admin Dashboard | 7/7 | Complete | 2026-03-21 |
-| 3. Payments | 0/1 | Not started | - |
+| 3. Payments | 0/3 | Not started | - |
 | 4. Client Portal | 0/1 | Not started | - |
 | 5. Online Store | 0/1 | Not started | - |
