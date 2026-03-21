@@ -125,3 +125,20 @@ export const UpdateSettingsSchema = z.object({
 });
 
 export type UpdateSettingsData = z.infer<typeof UpdateSettingsSchema>;
+
+// ============================================================================
+// PAYMENT MANAGEMENT
+// ============================================================================
+
+export const RequestDepositSchema = z.object({
+  sessionId: z.string().uuid('Invalid session ID'),
+  amount: z.number().positive('Amount must be positive').max(50000, 'Amount exceeds maximum'),
+});
+
+export type RequestDepositData = z.infer<typeof RequestDepositSchema>;
+
+export const RequestBalanceSchema = z.object({
+  sessionId: z.string().uuid('Invalid session ID'),
+});
+
+export type RequestBalanceData = z.infer<typeof RequestBalanceSchema>;
