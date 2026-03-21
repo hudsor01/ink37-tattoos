@@ -4,6 +4,7 @@ import { env } from '@/lib/env';
 import {
   contactAdminTemplate,
   contactConfirmationTemplate,
+  paymentRequestTemplate,
 } from './templates';
 
 const resend = new Resend(env.RESEND_API_KEY ?? '');
@@ -50,4 +51,28 @@ export async function sendContactNotification(data: {
     adminSent: adminResult.status === 'fulfilled',
     customerSent: customerResult.status === 'fulfilled',
   };
+}
+
+export async function sendPaymentRequestEmail(data: {
+  to: string;
+  customerName: string;
+  amount: number;
+  type: 'deposit' | 'balance';
+  paymentUrl: string;
+}): Promise<{ sent: boolean }> {
+  if (!env.RESEND_API_KEY) {
+    console.warn(
+      'RESEND_API_KEY not configured -- skipping payment request email'
+    );
+    return { sent: false };
+  }
+
+  const result = await resend.emails.send({
+    from: FROM_EMAIL,
+    to: data.to,
+    subject: `Payment Request - ${data.type === 'deposit' ? 'Deposit' : 'Session Balance'} - Ink 37 Tattoos`,
+    html: paymentRequestTemplate(data),
+  });
+
+  return { sent: !!result.data?.id };
 }

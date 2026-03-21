@@ -27,3 +27,34 @@ export function contactConfirmationTemplate(name: string): string {
     </div>
   `;
 }
+
+export function paymentRequestTemplate(data: {
+  customerName: string;
+  amount: number;
+  type: 'deposit' | 'balance';
+  paymentUrl: string;
+  studioName?: string;
+}): string {
+  const formattedAmount = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(data.amount);
+
+  const typeLabel = data.type === 'deposit' ? 'Deposit' : 'Session Balance';
+  const studio = data.studioName ?? 'Ink 37 Tattoos';
+
+  return `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #1a1a1a;">Payment Request - ${typeLabel}</h2>
+      <p>Hello ${data.customerName},</p>
+      <p>A ${typeLabel.toLowerCase()} payment of <strong>${formattedAmount}</strong> has been requested for your tattoo session at ${studio}.</p>
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="${data.paymentUrl}" style="background-color: #1a1a1a; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+          Pay ${formattedAmount}
+        </a>
+      </div>
+      <p style="color: #666; font-size: 14px;">This payment link will expire in 24 hours. If you have any questions, please contact us.</p>
+      <p>Best regards,<br>${studio}</p>
+    </div>
+  `;
+}
