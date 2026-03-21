@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Palette, PenTool, Clock } from "lucide-react";
 import { HeroSection } from "@/components/public/hero-section";
@@ -8,7 +9,7 @@ import {
   CardTitle,
   CardContent,
 } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { getPublicDesigns } from "@/lib/dal/designs";
 
 export const metadata: Metadata = {
   title: "Ink 37 Tattoos | Custom Tattoo Art by Fernando Govea",
@@ -43,7 +44,9 @@ const services = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const designs = await getPublicDesigns();
+  const previewDesigns = designs.slice(0, 6);
   return (
     <>
       {/* Hero */}
@@ -94,12 +97,26 @@ export default function HomePage() {
             </p>
           </div>
           <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton
-                key={i}
-                className="aspect-square w-full rounded-lg"
-              />
-            ))}
+            {previewDesigns.length > 0 ? (
+              previewDesigns.map((design) => (
+                <div
+                  key={design.id}
+                  className="relative aspect-square overflow-hidden rounded-lg bg-muted"
+                >
+                  <Image
+                    src={design.thumbnailUrl || design.fileUrl}
+                    alt={design.name}
+                    fill
+                    sizes="(max-width: 768px) 50vw, 33vw"
+                    className="object-cover"
+                  />
+                </div>
+              ))
+            ) : (
+              <p className="col-span-full py-8 text-center text-sm text-muted-foreground">
+                Gallery Coming Soon
+              </p>
+            )}
           </div>
           <div className="mt-8 text-center">
             <Link

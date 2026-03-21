@@ -13,7 +13,7 @@ Consolidate two existing Next.js applications (public tattoo website + admin das
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Unified schema, DAL, auth, route groups, shared UI, and package alignment
-- [ ] **Phase 2: Public Site + Admin Dashboard** - Reconstruct both existing apps in unified codebase with security hardening
+- [x] **Phase 2: Public Site + Admin Dashboard** - Reconstruct both existing apps in unified codebase with security hardening
 - [ ] **Phase 3: Payments** - Stripe integration for deposits, session payments, and invoicing
 - [ ] **Phase 4: Client Portal** - Client-facing authenticated experience for appointments, designs, and history
 - [ ] **Phase 5: Online Store** - E-commerce for merchandise, prints, and gift cards
@@ -108,7 +108,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete   | 2026-03-20 |
-| 2. Public Site + Admin Dashboard | 0/7 | Not started | - |
+| 2. Public Site + Admin Dashboard | 7/7 | Complete | 2026-03-21 |
 | 3. Payments | 0/1 | Not started | - |
 | 4. Client Portal | 0/1 | Not started | - |
 | 5. Online Store | 0/1 | Not started | - |

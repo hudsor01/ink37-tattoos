@@ -20,27 +20,27 @@ Requirements for initial consolidated release. Each maps to roadmap phases.
 
 ### Public Site
 
-- [ ] **PUB-01**: Home page with hero, services overview, gallery preview, booking CTA
-- [ ] **PUB-02**: Gallery with filtering by style, size, and placement (masonry layout, lightbox, social sharing)
-- [ ] **PUB-03**: Services page with service cards, process steps, pricing info
-- [ ] **PUB-04**: Booking flow via Cal.com embed (consultation, design review, tattoo session, touch-up)
-- [ ] **PUB-05**: Contact form with email notifications (admin + customer confirmation via Resend)
-- [ ] **PUB-06**: About page and FAQ page with accordion
-- [ ] **PUB-07**: SEO infrastructure (sitemaps, structured data, robots.txt, search console verification, Open Graph)
-- [ ] **PUB-08**: Mobile-responsive design with mobile-specific navigation
-- [ ] **PUB-09**: Performance optimization (code splitting, lazy loading, image optimization AVIF/WebP)
+- [x] **PUB-01**: Home page with hero, services overview, gallery preview, booking CTA
+- [x] **PUB-02**: Gallery with filtering by style, size, and placement (masonry layout, lightbox, social sharing)
+- [x] **PUB-03**: Services page with service cards, process steps, pricing info
+- [x] **PUB-04**: Booking flow via Cal.com embed (consultation, design review, tattoo session, touch-up)
+- [x] **PUB-05**: Contact form with email notifications (admin + customer confirmation via Resend)
+- [x] **PUB-06**: About page and FAQ page with accordion
+- [x] **PUB-07**: SEO infrastructure (sitemaps, structured data, robots.txt, search console verification, Open Graph)
+- [x] **PUB-08**: Mobile-responsive design with mobile-specific navigation
+- [x] **PUB-09**: Performance optimization (code splitting, lazy loading, image optimization AVIF/WebP)
 
 ### Admin Dashboard
 
-- [ ] **ADMIN-01**: Dashboard overview with KPIs (revenue, clients, bookings, completion rate, satisfaction)
-- [ ] **ADMIN-02**: Customer management (CRUD, medical info, emergency contacts, session history, search/filter)
-- [ ] **ADMIN-03**: Appointment management (scheduling, status tracking, types, stats, filtering)
-- [ ] **ADMIN-04**: Tattoo session tracking (pricing, design details, consent, aftercare, status)
-- [ ] **ADMIN-05**: Media/portfolio management (upload images/videos to Vercel Blob, gallery sync)
-- [ ] **ADMIN-06**: Analytics and reporting with charts (revenue trends, client acquisition, artist performance)
-- [ ] **ADMIN-07**: Settings management (studio info, Cal.com config, appearance, notifications)
-- [ ] **ADMIN-08**: Audit logging of all admin actions
-- [ ] **ADMIN-09**: Role-based access control enforced on all admin routes and API endpoints
+- [x] **ADMIN-01**: Dashboard overview with KPIs (revenue, clients, bookings, completion rate, satisfaction)
+- [x] **ADMIN-02**: Customer management (CRUD, medical info, emergency contacts, session history, search/filter)
+- [x] **ADMIN-03**: Appointment management (scheduling, status tracking, types, stats, filtering)
+- [x] **ADMIN-04**: Tattoo session tracking (pricing, design details, consent, aftercare, status)
+- [x] **ADMIN-05**: Media/portfolio management (upload images/videos to Vercel Blob, gallery sync)
+- [x] **ADMIN-06**: Analytics and reporting with charts (revenue trends, client acquisition, artist performance)
+- [x] **ADMIN-07**: Settings management (studio info, Cal.com config, appearance, notifications)
+- [x] **ADMIN-08**: Audit logging of all admin actions
+- [x] **ADMIN-09**: Role-based access control enforced on all admin routes and API endpoints
 
 ### Payments
 
@@ -69,12 +69,12 @@ Requirements for initial consolidated release. Each maps to roadmap phases.
 
 ### Security & Infrastructure
 
-- [ ] **SEC-01**: CSRF protection on all mutation endpoints (double-submit cookie pattern)
-- [ ] **SEC-02**: Rate limiting on public endpoints (contact, booking, auth)
-- [ ] **SEC-03**: Input sanitization and Zod validation on all API inputs
-- [ ] **SEC-04**: Security headers (CSP, HSTS, X-Frame-Options, Permissions-Policy)
+- [x] **SEC-01**: CSRF protection on all mutation endpoints (Next.js built-in origin verification for Server Actions)
+- [x] **SEC-02**: Rate limiting on public endpoints (contact, booking, auth)
+- [x] **SEC-03**: Input sanitization and Zod validation on all API inputs
+- [x] **SEC-04**: Security headers (CSP, HSTS, X-Frame-Options, Permissions-Policy)
 - [ ] **SEC-05**: Stripe webhook signature verification
-- [ ] **SEC-06**: Zero-downtime deployment migration from existing domain
+- [x] **SEC-06**: Deployment migration from existing domain with DNS cutover (brief downtime accepted)
 
 ## v2 Requirements
 
@@ -120,29 +120,29 @@ Deferred to future release. Tracked but not in current roadmap.
 | FOUND-06 | Phase 1 | Complete |
 | FOUND-07 | Phase 1 | Complete |
 | FOUND-08 | Phase 1 | Complete |
-| PUB-01 | Phase 2 | Pending |
-| PUB-02 | Phase 2 | Pending |
-| PUB-03 | Phase 2 | Pending |
-| PUB-04 | Phase 2 | Pending |
-| PUB-05 | Phase 2 | Pending |
-| PUB-06 | Phase 2 | Pending |
-| PUB-07 | Phase 2 | Pending |
-| PUB-08 | Phase 2 | Pending |
-| PUB-09 | Phase 2 | Pending |
-| ADMIN-01 | Phase 2 | Pending |
-| ADMIN-02 | Phase 2 | Pending |
-| ADMIN-03 | Phase 2 | Pending |
-| ADMIN-04 | Phase 2 | Pending |
-| ADMIN-05 | Phase 2 | Pending |
-| ADMIN-06 | Phase 2 | Pending |
-| ADMIN-07 | Phase 2 | Pending |
-| ADMIN-08 | Phase 2 | Pending |
-| ADMIN-09 | Phase 2 | Pending |
-| SEC-01 | Phase 2 | Pending |
-| SEC-02 | Phase 2 | Pending |
-| SEC-03 | Phase 2 | Pending |
-| SEC-04 | Phase 2 | Pending |
-| SEC-06 | Phase 2 | Pending |
+| PUB-01 | Phase 2 | Complete |
+| PUB-02 | Phase 2 | Complete |
+| PUB-03 | Phase 2 | Complete |
+| PUB-04 | Phase 2 | Complete |
+| PUB-05 | Phase 2 | Complete |
+| PUB-06 | Phase 2 | Complete |
+| PUB-07 | Phase 2 | Complete |
+| PUB-08 | Phase 2 | Complete |
+| PUB-09 | Phase 2 | Complete |
+| ADMIN-01 | Phase 2 | Complete |
+| ADMIN-02 | Phase 2 | Complete |
+| ADMIN-03 | Phase 2 | Complete |
+| ADMIN-04 | Phase 2 | Complete |
+| ADMIN-05 | Phase 2 | Complete |
+| ADMIN-06 | Phase 2 | Complete |
+| ADMIN-07 | Phase 2 | Complete |
+| ADMIN-08 | Phase 2 | Complete |
+| ADMIN-09 | Phase 2 | Complete |
+| SEC-01 | Phase 2 | Complete |
+| SEC-02 | Phase 2 | Complete |
+| SEC-03 | Phase 2 | Complete |
+| SEC-04 | Phase 2 | Complete |
+| SEC-06 | Phase 2 | Complete |
 | PAY-01 | Phase 3 | Pending |
 | PAY-02 | Phase 3 | Pending |
 | PAY-03 | Phase 3 | Pending |

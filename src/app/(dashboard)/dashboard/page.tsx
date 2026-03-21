@@ -1,5 +1,6 @@
 import { getDashboardStats, getRevenueData } from '@/lib/dal/analytics';
 import { KPICard } from '@/components/dashboard/kpi-card';
+import { RevenueChart } from '@/components/dashboard/analytics-chart';
 import { StatusBadge } from '@/components/dashboard/status-badge';
 import {
   Card,
@@ -125,9 +126,7 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             {revenueData.length > 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
-                Charts will be implemented with Recharts in the analytics plan.
-              </p>
+              <RevenueChart data={revenueData} />
             ) : (
               <p className="py-8 text-center text-sm text-muted-foreground">
                 Charts will appear once you have session data.
