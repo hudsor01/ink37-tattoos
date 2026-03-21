@@ -1,7 +1,7 @@
 ---
 phase: 2
 slug: public-site-admin-dashboard
-status: draft
+status: approved
 shadcn_initialized: true
 preset: base-nova
 created: 2026-03-21
@@ -233,6 +233,7 @@ Components to install via `npx shadcn add`:
 - Content max-width: 1280px (max-w-7xl)
 - Page sections separated by 48px (2xl) vertical spacing
 - Hero section is full-bleed (no max-width constraint)
+- Primary visual anchor: hero headline (Display 40px) + brand-accent "Book a Consultation" CTA
 
 ### Admin Dashboard Layout
 
@@ -334,11 +335,11 @@ Categories (based on tattoo industry standards):
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS (focal point added)
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved (2026-03-21)
