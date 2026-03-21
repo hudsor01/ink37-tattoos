@@ -9,6 +9,7 @@ const envSchema = z.object({
   CAL_API_KEY: z.string().optional(),
   NEXT_PUBLIC_CAL_USERNAME: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
+  ADMIN_EMAIL: z.string().email().optional(),
   VERCEL_BLOB_READ_WRITE_TOKEN: z.string().optional(),
 });
 
