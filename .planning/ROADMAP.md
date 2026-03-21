@@ -50,13 +50,13 @@ Plans:
 **Plans**: 7 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Dependencies, security headers, auth middleware, rate limiter, validation schemas, email service
-- [ ] 02-02-PLAN.md — Public site layout (nav + footer) and static pages (home, about, FAQ)
-- [ ] 02-03-PLAN.md — Gallery with masonry/filtering/lightbox, services page, Cal.com booking
-- [ ] 02-04-PLAN.md — Contact form with email, SEO infrastructure, 404 page, deployment docs
-- [ ] 02-05-PLAN.md — Admin layout with sidebar, DataTable, expanded DAL, Server Actions with audit logging
-- [ ] 02-06-PLAN.md — Dashboard overview KPIs, customer management CRUD, appointment management
-- [ ] 02-07-PLAN.md — Session tracking, media management with Vercel Blob, analytics charts, settings, audit log
+- [x] 02-01-PLAN.md — Dependencies, security headers, auth middleware, rate limiter, validation schemas, email service
+- [x] 02-02-PLAN.md — Public site layout (nav + footer) and static pages (home, about, FAQ)
+- [x] 02-03-PLAN.md — Gallery with masonry/filtering/lightbox, services page, Cal.com booking
+- [x] 02-04-PLAN.md — Contact form with email, SEO infrastructure, 404 page, deployment docs
+- [x] 02-05-PLAN.md — Admin layout with sidebar, DataTable, expanded DAL, Server Actions with audit logging
+- [x] 02-06-PLAN.md — Dashboard overview KPIs, customer management CRUD, appointment management
+- [x] 02-07-PLAN.md — Session tracking, media management with Vercel Blob, analytics charts, settings, audit log
 
 ### Phase 3: Payments
 **Goal**: Stripe handles the full payment lifecycle -- deposits collected at booking, session balances paid after appointments, webhooks process all payment events reliably, and the admin can view complete payment history with receipts
