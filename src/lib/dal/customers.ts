@@ -3,6 +3,7 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import type { CreateCustomerData, UpdateCustomerData } from '@/lib/security/validation';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
 
@@ -31,10 +32,55 @@ export const getCustomerById = cache(async (id: string) => {
   return db.customer.findUnique({ where: { id } });
 });
 
-export async function createCustomer(data: {
-  firstName: string; lastName: string;
-  email?: string; phone?: string;
-}) {
+export const getCustomerWithDetails = cache(async (id: string) => {
   await requireStaffRole();
-  return db.customer.create({ data });
+  return db.customer.findUnique({
+    where: { id },
+    include: {
+      appointments: true,
+      tattooSessions: true,
+      designs: true,
+    },
+  });
+});
+
+export async function createCustomer(data: CreateCustomerData) {
+  await requireStaffRole();
+  return db.customer.create({
+    data: {
+      ...data,
+      dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
+    },
+  });
 }
+
+export async function updateCustomer(id: string, data: UpdateCustomerData) {
+  await requireStaffRole();
+  return db.customer.update({
+    where: { id },
+    data,
+  });
+}
+
+export async function deleteCustomer(id: string) {
+  await requireStaffRole();
+  return db.customer.delete({ where: { id } });
+}
+
+export const searchCustomers = cache(async (query: string) => {
+  await requireStaffRole();
+  return db.customer.findMany({
+    where: {
+      OR: [
+        { firstName: { contains: query, mode: 'insensitive' } },
+        { lastName: { contains: query, mode: 'insensitive' } },
+        { email: { contains: query, mode: 'insensitive' } },
+      ],
+    },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true, firstName: true, lastName: true,
+      email: true, phone: true, createdAt: true,
+    },
+  });
+});
