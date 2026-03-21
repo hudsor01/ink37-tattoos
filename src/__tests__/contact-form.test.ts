@@ -103,53 +103,41 @@ describe('ContactFormSchema validation', () => {
 });
 
 describe('submitContactForm Server Action', () => {
-  let submitContactForm: (formData: FormData) => Promise<{
-    success: boolean;
-    error?: string;
-    errors?: Record<string, string[]>;
-  }>;
-
   beforeEach(async () => {
-    vi.resetModules();
+    vi.clearAllMocks();
 
-    // Re-mock all dependencies for fresh imports
-    vi.mock('server-only', () => ({}));
-    vi.mock('@/lib/db', () => ({
-      db: {
-        contact: {
-          create: vi.fn().mockResolvedValue({
-            id: 'test-id',
-            name: 'John Doe',
-            email: 'john@example.com',
-            message: 'Hello',
-            status: 'NEW',
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          }),
-          findMany: vi.fn().mockResolvedValue([]),
-        },
-      },
-    }));
-    vi.mock('@/lib/email/resend', () => ({
-      sendContactNotification: vi.fn().mockResolvedValue({
-        adminSent: true,
-        customerSent: true,
-      }),
-    }));
-    vi.mock('@/lib/security/rate-limiter', () => ({
-      rateLimit: vi.fn().mockReturnValue(true),
-    }));
-    vi.mock('next/headers', () => ({
-      headers: vi.fn().mockResolvedValue({
-        get: vi.fn().mockReturnValue('127.0.0.1'),
-      }),
-    }));
+    // Re-establish default mock return values after clearing
+    const rateLimiterMod = await import('@/lib/security/rate-limiter');
+    vi.mocked(rateLimiterMod.rateLimit).mockReturnValue(true);
 
-    const mod = await import('@/lib/actions/contact-actions');
-    submitContactForm = mod.submitContactForm;
+    const dbMod = await import('@/lib/db');
+    vi.mocked(dbMod.db.contact.create).mockResolvedValue({
+      id: 'test-id',
+      name: 'John Doe',
+      email: 'john@example.com',
+      message: 'Hello',
+      status: 'NEW',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    const emailMod = await import('@/lib/email/resend');
+    vi.mocked(emailMod.sendContactNotification).mockResolvedValue({
+      adminSent: true,
+      customerSent: true,
+    });
+
+    const headersMod = await import('next/headers');
+    vi.mocked(headersMod.headers).mockResolvedValue({
+      get: vi.fn().mockReturnValue('127.0.0.1'),
+    } as any);
   });
 
   it('returns success for valid submission', async () => {
+    const { submitContactForm } = await import(
+      '@/lib/actions/contact-actions'
+    );
+
     const formData = new FormData();
     formData.set('name', 'John Doe');
     formData.set('email', 'john@example.com');
@@ -160,6 +148,10 @@ describe('submitContactForm Server Action', () => {
   });
 
   it('returns errors for invalid email', async () => {
+    const { submitContactForm } = await import(
+      '@/lib/actions/contact-actions'
+    );
+
     const formData = new FormData();
     formData.set('name', 'John Doe');
     formData.set('email', 'not-an-email');
@@ -172,6 +164,10 @@ describe('submitContactForm Server Action', () => {
   });
 
   it('returns errors for empty name', async () => {
+    const { submitContactForm } = await import(
+      '@/lib/actions/contact-actions'
+    );
+
     const formData = new FormData();
     formData.set('name', '');
     formData.set('email', 'john@example.com');
@@ -184,6 +180,10 @@ describe('submitContactForm Server Action', () => {
   });
 
   it('returns errors for empty message', async () => {
+    const { submitContactForm } = await import(
+      '@/lib/actions/contact-actions'
+    );
+
     const formData = new FormData();
     formData.set('name', 'John');
     formData.set('email', 'john@example.com');
@@ -199,6 +199,10 @@ describe('submitContactForm Server Action', () => {
     const { rateLimit } = await import('@/lib/security/rate-limiter');
     vi.mocked(rateLimit).mockReturnValue(false);
 
+    const { submitContactForm } = await import(
+      '@/lib/actions/contact-actions'
+    );
+
     const formData = new FormData();
     formData.set('name', 'John Doe');
     formData.set('email', 'john@example.com');
@@ -209,8 +213,10 @@ describe('submitContactForm Server Action', () => {
     expect(result.error).toContain('Too many requests');
   });
 
-  it('calls createContact with valid data', async () => {
-    const { db } = await import('@/lib/db');
+  it('creates contact in database with valid data', async () => {
+    const { submitContactForm } = await import(
+      '@/lib/actions/contact-actions'
+    );
 
     const formData = new FormData();
     formData.set('name', 'John Doe');
@@ -218,37 +224,43 @@ describe('submitContactForm Server Action', () => {
     formData.set('phone', '555-1234');
     formData.set('message', 'I want a tattoo.');
 
-    await submitContactForm(formData);
+    const result = await submitContactForm(formData);
+    expect(result.success).toBe(true);
 
-    expect(db.contact.create).toHaveBeenCalledWith({
-      data: expect.objectContaining({
-        name: 'John Doe',
-        email: 'john@example.com',
-        phone: '555-1234',
-        message: 'I want a tattoo.',
-      }),
+    const { db } = await import('@/lib/db');
+    expect(db.contact.create).toHaveBeenCalled();
+    const callArgs = vi.mocked(db.contact.create).mock.calls[0][0];
+    expect(callArgs.data).toMatchObject({
+      name: 'John Doe',
+      email: 'john@example.com',
+      phone: '555-1234',
+      message: 'I want a tattoo.',
     });
   });
 
-  it('calls sendContactNotification with valid data', async () => {
-    const { sendContactNotification } = await import('@/lib/email/resend');
+  it('sends email notification on valid submission', async () => {
+    const { submitContactForm } = await import(
+      '@/lib/actions/contact-actions'
+    );
 
     const formData = new FormData();
     formData.set('name', 'John Doe');
     formData.set('email', 'john@example.com');
     formData.set('message', 'I want a tattoo.');
 
-    await submitContactForm(formData);
+    const result = await submitContactForm(formData);
+    expect(result.success).toBe(true);
 
     // Wait for the non-blocking email send
     await new Promise((resolve) => setTimeout(resolve, 50));
 
-    expect(sendContactNotification).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: 'John Doe',
-        email: 'john@example.com',
-        message: 'I want a tattoo.',
-      })
-    );
+    const { sendContactNotification } = await import('@/lib/email/resend');
+    expect(sendContactNotification).toHaveBeenCalled();
+    const callArgs = vi.mocked(sendContactNotification).mock.calls[0][0];
+    expect(callArgs).toMatchObject({
+      name: 'John Doe',
+      email: 'john@example.com',
+      message: 'I want a tattoo.',
+    });
   });
 });
