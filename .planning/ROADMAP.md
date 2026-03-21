@@ -47,12 +47,16 @@ Plans:
   3. An admin can log in, view KPI dashboard, manage customers (CRUD with medical info), manage appointments (schedule/status/filter), track tattoo sessions, upload media to Vercel Blob, and view analytics charts
   4. All admin routes enforce RBAC -- a USER role is denied access to /dashboard routes, and all admin mutations are audit-logged
   5. Security headers (CSP, HSTS, X-Frame-Options), CSRF protection, rate limiting on public endpoints, and Zod validation on all API inputs are active and verifiable
-**Plans**: TBD
+**Plans**: 7 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
-- [ ] 02-03: TBD
+- [ ] 02-01-PLAN.md — Dependencies, security headers, auth middleware, rate limiter, validation schemas, email service
+- [ ] 02-02-PLAN.md — Public site layout (nav + footer) and static pages (home, about, FAQ)
+- [ ] 02-03-PLAN.md — Gallery with masonry/filtering/lightbox, services page, Cal.com booking
+- [ ] 02-04-PLAN.md — Contact form with email, SEO infrastructure, 404 page, deployment docs
+- [ ] 02-05-PLAN.md — Admin layout with sidebar, DataTable, expanded DAL, Server Actions with audit logging
+- [ ] 02-06-PLAN.md — Dashboard overview KPIs, customer management CRUD, appointment management
+- [ ] 02-07-PLAN.md — Session tracking, media management with Vercel Blob, analytics charts, settings, audit log
 
 ### Phase 3: Payments
 **Goal**: Stripe handles the full payment lifecycle -- deposits collected at booking, session balances paid after appointments, webhooks process all payment events reliably, and the admin can view complete payment history with receipts
@@ -104,7 +108,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete   | 2026-03-20 |
-| 2. Public Site + Admin Dashboard | 0/3 | Not started | - |
+| 2. Public Site + Admin Dashboard | 0/7 | Not started | - |
 | 3. Payments | 0/1 | Not started | - |
 | 4. Client Portal | 0/1 | Not started | - |
 | 5. Online Store | 0/1 | Not started | - |
