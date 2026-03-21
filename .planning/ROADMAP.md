@@ -70,7 +70,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Payment/StripeEvent models, Stripe SDK, env validation, currency helpers, Zod schemas
+- [x] 03-01-PLAN.md — Payment/StripeEvent models, Stripe SDK, env validation, currency helpers, Zod schemas
 - [ ] 03-02-PLAN.md — Payment DAL, Server Actions (deposit + balance), webhook handler, email template
 - [ ] 03-03-PLAN.md — Admin payments page with DataTable, KPI cards, request payment dialog, unit tests
 

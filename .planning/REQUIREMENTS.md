@@ -44,10 +44,10 @@ Requirements for initial consolidated release. Each maps to roadmap phases.
 
 ### Payments
 
-- [ ] **PAY-01**: Stripe integration for deposit collection on booking confirmation
-- [ ] **PAY-02**: Session payment processing (full payment or remaining balance)
+- [x] **PAY-01**: Stripe integration for deposit collection on booking confirmation
+- [x] **PAY-02**: Session payment processing (full payment or remaining balance)
 - [ ] **PAY-03**: Payment history and status tracking in admin dashboard
-- [ ] **PAY-04**: Stripe webhook handling for payment events (success, failure, refund)
+- [x] **PAY-04**: Stripe webhook handling for payment events (success, failure, refund)
 - [ ] **PAY-05**: Receipt/invoice generation for completed payments
 
 ### Client Portal
@@ -143,10 +143,10 @@ Deferred to future release. Tracked but not in current roadmap.
 | SEC-03 | Phase 2 | Complete |
 | SEC-04 | Phase 2 | Complete |
 | SEC-06 | Phase 2 | Complete |
-| PAY-01 | Phase 3 | Pending |
-| PAY-02 | Phase 3 | Pending |
+| PAY-01 | Phase 3 | Complete |
+| PAY-02 | Phase 3 | Complete |
 | PAY-03 | Phase 3 | Pending |
-| PAY-04 | Phase 3 | Pending |
+| PAY-04 | Phase 3 | Complete |
 | PAY-05 | Phase 3 | Pending |
 | SEC-05 | Phase 3 | Pending |
 | PORT-01 | Phase 4 | Pending |
