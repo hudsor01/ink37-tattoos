@@ -114,6 +114,7 @@ model Customer {
   medicalConditions String[]
   preferredArtist   String?
   notes             String?
+  stripeCustomerId  String?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -121,6 +122,7 @@ model Customer {
   appointments   Appointment[]
   tattooSessions TattooSession[]
   designs        TattooDesign[]
+  payments       Payment[]
 
   @@index([email])
   @@index([phone])
@@ -195,6 +197,7 @@ model TattooSession {
   customer    Customer     @relation(fields: [customerId], references: [id])
   artist      TattooArtist @relation(fields: [artistId], references: [id])
   appointment Appointment? @relation(fields: [appointmentId], references: [id])
+  payments    Payment[]
 
   @@index([appointmentDate])
   @@index([status])
@@ -305,6 +308,43 @@ model Settings {
   @@map("settings")
 }
 
+model Payment {
+  id                       String        @id @default(uuid())
+  customerId               String
+  tattooSessionId          String
+  type                     PaymentType
+  status                   PaymentStatus @default(PENDING)
+  amount                   Decimal
+  stripeCheckoutSessionId  String?
+  stripePaymentIntentId    String?
+  receiptUrl               String?
+  notes                    String?
+  createdAt                DateTime      @default(now())
+  updatedAt                DateTime      @updatedAt
+  completedAt              DateTime?
+
+  customer      Customer     @relation(fields: [customerId], references: [id])
+  tattooSession TattooSession @relation(fields: [tattooSessionId], references: [id])
+
+  @@index([customerId])
+  @@index([tattooSessionId])
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+  @@index([stripePaymentIntentId])
+  @@map("payment")
+}
+
+model StripeEvent {
+  id            String   @id @default(uuid())
+  stripeEventId String   @unique
+  type          String
+  processedAt   DateTime @default(now())
+
+  @@index([stripeEventId])
+  @@map("stripe_event")
+}
+
 // ============================================================================
 // ENUMS
 // ============================================================================
@@ -340,4 +380,18 @@ enum ContactStatus {
   READ
   REPLIED
   RESOLVED
+}
+
+enum PaymentType {
+  DEPOSIT
+  SESSION_BALANCE
+  REFUND
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
 }
