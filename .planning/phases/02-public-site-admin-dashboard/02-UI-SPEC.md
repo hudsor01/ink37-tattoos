@@ -53,9 +53,9 @@ Exceptions:
 | Role | Size | Weight | Line Height | Usage |
 |------|------|--------|-------------|-------|
 | Body | 16px (1rem) | 400 (regular) | 1.5 | Paragraphs, descriptions, form labels |
-| Label | 14px (0.875rem) | 500 (medium) | 1.4 | Table headers, badges, meta text, nav items, small UI text |
+| Label | 14px (0.875rem) | 400 (regular) | 1.4 | Table headers, badges, meta text, nav items, small UI text |
 | Heading | 24px (1.5rem) | 600 (semibold) | 1.2 | Page titles, section headers, card titles |
-| Display | 40px (2.5rem) | 700 (bold) | 1.1 | Hero headline, public site section titles |
+| Display | 40px (2.5rem) | 600 (semibold) | 1.1 | Hero headline, public site section titles |
 
 Notes:
 - Admin dashboard uses Body, Label, and Heading only (no Display)
@@ -82,13 +82,13 @@ The project uses shadcn CSS variables with oklch color space. The default neutra
 
 | Token | oklch Value | Hex Approx | Reserved For |
 |-------|-------------|------------|--------------|
-| `--brand-accent` | oklch(0.637 0.237 25.331) | #dc2626 | Public site booking CTA, hero CTA button, gallery hover overlay, active filter pill |
+| `--brand-accent` | oklch(0.637 0.237 25.331) | #e8432b | Public site booking CTA, hero CTA button, gallery hover overlay, active filter pill |
 
 Accent reserved for (explicit list):
-1. "Book Now" CTA button on public pages (hero, nav, services)
+1. "Book a Consultation" CTA button on public pages (hero, nav, services)
 2. Gallery image hover overlay border/indicator
 3. Active state of gallery filter pills
-4. Contact form submit button
+4. "Send Message" contact form submit button
 5. Public site footer social media icon hover
 
 Admin dashboard does NOT use brand accent -- it uses the neutral `--primary` (dark) for all interactive elements, keeping the admin clean and professional.
@@ -115,6 +115,7 @@ Admin dashboard does NOT use brand accent -- it uses the neutral `--primary` (da
 | Hero headline | "Custom Tattoo Art by Fernando Govea" |
 | Hero subline | "Professional tattoo artistry in a clean, comfortable studio. Every piece is a collaboration." |
 | Empty gallery | Heading: "Gallery Coming Soon" / Body: "We're curating our portfolio. Check back soon or book a consultation to discuss your idea." |
+| Contact form submit | "Send Message" |
 | Contact form success | "Message sent! We'll get back to you within 24 hours." |
 | Contact form error | "Something went wrong sending your message. Please try again or call us directly." |
 | Booking CTA context | "Ready for your next piece? Start with a free consultation." |
