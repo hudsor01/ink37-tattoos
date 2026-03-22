@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn } from '@/lib/auth-client';
+import { signUp } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -26,17 +26,32 @@ export default function LoginPage() {
     setError(null);
 
     const formData = new FormData(e.currentTarget);
+    const name = formData.get('name') as string;
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
+    const confirmPassword = formData.get('confirmPassword') as string;
 
-    const { error: authError } = await signIn.email({
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.');
+      setLoading(false);
+      return;
+    }
+
+    const { error: authError } = await signUp.email({
+      name,
       email,
       password,
       callbackURL: '/portal',
     });
 
     if (authError) {
-      setError(authError.message ?? 'Invalid email or password. Please try again.');
+      setError(authError.message ?? 'Registration failed. Please try again.');
       setLoading(false);
       return;
     }
@@ -47,9 +62,9 @@ export default function LoginPage() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle className="text-2xl">Welcome back</CardTitle>
+        <CardTitle className="text-2xl">Create your account</CardTitle>
         <CardDescription>
-          Sign in to your account to access the client portal.
+          Sign up to access your client portal and manage your tattoo journey.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -59,6 +74,19 @@ export default function LoginPage() {
               {error}
             </div>
           )}
+
+          <div className="space-y-2">
+            <Label htmlFor="name">Full Name</Label>
+            <Input
+              id="name"
+              name="name"
+              type="text"
+              placeholder="Jane Doe"
+              required
+              autoComplete="name"
+              disabled={loading}
+            />
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -79,21 +107,36 @@ export default function LoginPage() {
               id="password"
               name="password"
               type="password"
-              placeholder="Enter your password"
+              placeholder="At least 8 characters"
               required
-              autoComplete="current-password"
+              minLength={8}
+              autoComplete="new-password"
+              disabled={loading}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              placeholder="Confirm your password"
+              required
+              minLength={8}
+              autoComplete="new-password"
               disabled={loading}
             />
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'Creating account...' : 'Create Account'}
           </Button>
 
           <p className="text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-primary underline-offset-4 hover:underline">
-              Register
+            Already have an account?{' '}
+            <Link href="/login" className="text-primary underline-offset-4 hover:underline">
+              Sign in
             </Link>
           </p>
         </form>

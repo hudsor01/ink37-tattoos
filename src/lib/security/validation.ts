@@ -142,3 +142,34 @@ export const RequestBalanceSchema = z.object({
 });
 
 export type RequestBalanceData = z.infer<typeof RequestBalanceSchema>;
+
+// ============================================================================
+// PORTAL: CONSENT SIGNING (D-06, D-07)
+// ============================================================================
+
+export const ConsentSignSchema = z.object({
+  sessionId: z.string().uuid('Invalid session ID'),
+  signedName: z.string().min(2, 'Please type your full name').max(200),
+  acknowledged: z.literal(true, {
+    message: 'You must acknowledge the consent terms',
+  }),
+});
+
+export type ConsentSignData = z.infer<typeof ConsentSignSchema>;
+
+// ============================================================================
+// PORTAL: PROFILE UPDATE (D-04 -- no medical fields)
+// ============================================================================
+
+export const UpdatePortalProfileSchema = z.object({
+  firstName: z.string().min(1, 'First name is required').max(100),
+  lastName: z.string().min(1, 'Last name is required').max(100),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  postalCode: z.string().optional(),
+  country: z.string().optional(),
+});
+
+export type UpdatePortalProfileData = z.infer<typeof UpdatePortalProfileSchema>;
