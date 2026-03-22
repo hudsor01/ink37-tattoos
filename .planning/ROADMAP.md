@@ -133,7 +133,10 @@ Plans:
   1. Order confirmation emails contain correct download URLs using `/api/store/download?token=TOKEN` format (not `/store/downloads/`)
   2. `storeCheckoutAction` returns a user-friendly error if any cart product lacks a `stripePriceId` instead of crashing
   3. Gift card purchasers receive a confirmation email acknowledging their purchase (separate from the recipient delivery email)
-**Plans**: 0 plans
+**Plans**: 1 plan
+
+Plans:
+- [ ] 07-01-PLAN.md — Fix download URLs, stripePriceId guard, and gift card purchaser confirmation email
 
 ## Progress
 
@@ -148,4 +151,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 4. Client Portal | 0/2 | Not started | - |
 | 5. Online Store | 5/5 | Complete   | 2026-03-22 |
 | 6. UI Stub Closure + UX Wiring | 0/0 | Not started | - |
-| 7. Store Integration Fixes | 0/0 | Not started | - |
+| 7. Store Integration Fixes | 0/1 | Not started | - |
