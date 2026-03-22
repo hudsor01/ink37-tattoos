@@ -58,3 +58,122 @@ export function paymentRequestTemplate(data: {
     </div>
   `;
 }
+
+export function orderConfirmationTemplate(data: {
+  email: string;
+  orderId: string;
+  items: Array<{ name: string; quantity: number; price: number }>;
+  subtotal: number;
+  shipping: number;
+  discount: number;
+  total: number;
+  hasDigitalItems: boolean;
+  downloadUrl?: string;
+}): string {
+  const fmt = (n: number) =>
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
+
+  const itemRows = data.items
+    .map(
+      (item) =>
+        `<tr>
+          <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${item.name}</td>
+          <td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
+          <td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">${fmt(item.price)}</td>
+        </tr>`
+    )
+    .join('');
+
+  const downloadSection = data.hasDigitalItems && data.downloadUrl
+    ? `<div style="background-color: #f0f9ff; padding: 16px; border-radius: 6px; margin: 24px 0;">
+        <p style="margin: 0 0 8px 0; font-weight: bold; color: #1a1a1a;">Digital Downloads</p>
+        <p style="margin: 0;">Your digital items are ready for download:</p>
+        <div style="text-align: center; margin: 12px 0;">
+          <a href="${data.downloadUrl}" style="background-color: #1a1a1a; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+            Download Files
+          </a>
+        </div>
+        <p style="color: #666; font-size: 12px; margin: 0;">Links expire in 72 hours. Max 5 downloads per item.</p>
+      </div>`
+    : '';
+
+  return `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #1a1a1a;">Order Confirmation</h2>
+      <p>Thank you for your order from Ink 37 Tattoos!</p>
+      <p style="color: #666; font-size: 14px;">Order ID: ${data.orderId}</p>
+
+      <table style="width: 100%; border-collapse: collapse; margin: 24px 0;">
+        <thead>
+          <tr>
+            <th style="text-align: left; padding: 8px 0; border-bottom: 2px solid #1a1a1a;">Item</th>
+            <th style="text-align: center; padding: 8px 0; border-bottom: 2px solid #1a1a1a;">Qty</th>
+            <th style="text-align: right; padding: 8px 0; border-bottom: 2px solid #1a1a1a;">Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemRows}
+        </tbody>
+      </table>
+
+      <table style="width: 100%; margin: 16px 0;">
+        <tr><td style="padding: 4px 0;">Subtotal:</td><td style="text-align: right;">${fmt(data.subtotal)}</td></tr>
+        ${data.shipping > 0 ? `<tr><td style="padding: 4px 0;">Shipping:</td><td style="text-align: right;">${fmt(data.shipping)}</td></tr>` : ''}
+        ${data.discount > 0 ? `<tr><td style="padding: 4px 0; color: #16a34a;">Discount:</td><td style="text-align: right; color: #16a34a;">-${fmt(data.discount)}</td></tr>` : ''}
+        <tr><td style="padding: 8px 0; font-weight: bold; border-top: 2px solid #1a1a1a;">Total:</td><td style="text-align: right; font-weight: bold; border-top: 2px solid #1a1a1a;">${fmt(data.total)}</td></tr>
+      </table>
+
+      ${downloadSection}
+
+      <p style="color: #666; font-size: 14px;">If you have any questions about your order, please don't hesitate to reach out.</p>
+      <p>Best regards,<br>Ink 37 Tattoos</p>
+    </div>
+  `;
+}
+
+export function giftCardDeliveryTemplate(data: {
+  recipientName: string;
+  senderName: string;
+  amount: number;
+  code: string;
+  personalMessage?: string;
+}): string {
+  const formattedAmount = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(data.amount);
+
+  const messageSection = data.personalMessage
+    ? `<div style="background-color: #f9fafb; padding: 16px; border-radius: 6px; margin: 16px 0; border-left: 4px solid #1a1a1a;">
+        <p style="margin: 0; font-style: italic;">"${data.personalMessage}"</p>
+        <p style="margin: 8px 0 0 0; color: #666; font-size: 14px;">- ${data.senderName}</p>
+      </div>`
+    : '';
+
+  return `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #1a1a1a;">You've received a gift card from ${data.senderName}!</h2>
+      <p>Hello ${data.recipientName},</p>
+      <p>${data.senderName} has sent you an Ink 37 Tattoos gift card worth <strong>${formattedAmount}</strong>.</p>
+
+      ${messageSection}
+
+      <div style="background-color: #1a1a1a; color: #ffffff; padding: 24px; border-radius: 8px; text-align: center; margin: 24px 0;">
+        <p style="margin: 0 0 8px 0; font-size: 14px; opacity: 0.8;">Your Gift Card Code</p>
+        <p style="margin: 0; font-size: 24px; font-weight: bold; letter-spacing: 2px; font-family: monospace;">${data.code}</p>
+        <p style="margin: 8px 0 0 0; font-size: 18px;">${formattedAmount}</p>
+      </div>
+
+      <p>Use this code at checkout in our online store or when booking a tattoo session.</p>
+      <p style="color: #666; font-size: 14px;">Gift cards never expire.</p>
+
+      <div style="text-align: center; margin: 24px 0;">
+        <a href="${process.env.NEXT_PUBLIC_APP_URL ?? 'https://ink37tattoos.com'}/store" style="background-color: #1a1a1a; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+          Visit Our Store
+        </a>
+      </div>
+
+      <p>Best regards,<br>Ink 37 Tattoos</p>
+    </div>
+  `;
+}

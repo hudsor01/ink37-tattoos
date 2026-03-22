@@ -13,6 +13,7 @@ import {
 } from '@/lib/security/validation';
 import { logAudit } from '@/lib/dal/audit';
 import { getCurrentSession } from '@/lib/auth';
+import { validateGiftCard } from '@/lib/dal/gift-cards';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { env } from '@/lib/env';
@@ -36,6 +37,25 @@ export async function requestDepositAction(formData: FormData) {
     throw new Error('Tattoo session not found');
   }
 
+  // D-09: Optional gift card redemption
+  const giftCardCode = formData.get('giftCardCode') as string | null;
+  let discountAmount = 0;
+  let giftCardCouponId: string | undefined;
+
+  if (giftCardCode) {
+    const giftCard = await validateGiftCard(giftCardCode);
+    if (giftCard && giftCard.valid) {
+      discountAmount = Math.min(giftCard.balance, validated.amount);
+      const coupon = await stripe.coupons.create({
+        amount_off: dollarsToStripeCents(discountAmount),
+        currency: 'usd',
+        duration: 'once',
+        name: `Gift Card ${giftCardCode}`,
+      });
+      giftCardCouponId = coupon.id;
+    }
+  }
+
   // D-03: Get or create Stripe customer
   const stripeCustomerId = await getOrCreateStripeCustomer(
     tattooSession.customer
@@ -57,6 +77,7 @@ export async function requestDepositAction(formData: FormData) {
         quantity: 1,
       },
     ],
+    ...(giftCardCouponId && { discounts: [{ coupon: giftCardCouponId }] }),
     payment_intent_data: {
       receipt_email: tattooSession.customer.email ?? undefined,
       metadata: {
@@ -69,6 +90,7 @@ export async function requestDepositAction(formData: FormData) {
       tattooSessionId: validated.sessionId,
       paymentType: 'DEPOSIT',
       customerId: tattooSession.customerId,
+      ...(giftCardCode && { giftCardCode, discountAmount: String(discountAmount) }),
     },
     success_url: `${env.NEXT_PUBLIC_APP_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${env.NEXT_PUBLIC_APP_URL}/payment/cancelled`,
@@ -142,6 +164,25 @@ export async function requestBalanceAction(formData: FormData) {
     throw new Error('No remaining balance -- session is fully paid');
   }
 
+  // D-09: Optional gift card redemption for balance payment
+  const balanceGiftCardCode = formData.get('giftCardCode') as string | null;
+  let balanceDiscountAmount = 0;
+  let balanceGiftCardCouponId: string | undefined;
+
+  if (balanceGiftCardCode) {
+    const giftCard = await validateGiftCard(balanceGiftCardCode);
+    if (giftCard && giftCard.valid) {
+      balanceDiscountAmount = Math.min(giftCard.balance, remainingBalance);
+      const coupon = await stripe.coupons.create({
+        amount_off: dollarsToStripeCents(balanceDiscountAmount),
+        currency: 'usd',
+        duration: 'once',
+        name: `Gift Card ${balanceGiftCardCode}`,
+      });
+      balanceGiftCardCouponId = coupon.id;
+    }
+  }
+
   // D-03: Get or create Stripe customer
   const stripeCustomerId = await getOrCreateStripeCustomer(
     tattooSession.customer
@@ -163,6 +204,7 @@ export async function requestBalanceAction(formData: FormData) {
         quantity: 1,
       },
     ],
+    ...(balanceGiftCardCouponId && { discounts: [{ coupon: balanceGiftCardCouponId }] }),
     payment_intent_data: {
       receipt_email: tattooSession.customer.email ?? undefined,
       metadata: {
@@ -175,6 +217,7 @@ export async function requestBalanceAction(formData: FormData) {
       tattooSessionId: validated.sessionId,
       paymentType: 'SESSION_BALANCE',
       customerId: tattooSession.customerId,
+      ...(balanceGiftCardCode && { giftCardCode: balanceGiftCardCode, discountAmount: String(balanceDiscountAmount) }),
     },
     success_url: `${env.NEXT_PUBLIC_APP_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${env.NEXT_PUBLIC_APP_URL}/payment/cancelled`,

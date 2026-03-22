@@ -13,6 +13,8 @@ import {
   FileText,
   LogOut,
   CreditCard,
+  Package,
+  ShoppingBag,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -34,6 +36,8 @@ const navItems = [
   { label: 'Appointments', href: '/dashboard/appointments', icon: Calendar },
   { label: 'Sessions', href: '/dashboard/sessions', icon: Clock },
   { label: 'Payments', href: '/dashboard/payments', icon: CreditCard },
+  { label: 'Products', href: '/dashboard/products', icon: Package },
+  { label: 'Orders', href: '/dashboard/orders', icon: ShoppingBag },
   { label: 'Media', href: '/dashboard/media', icon: Image },
   { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
