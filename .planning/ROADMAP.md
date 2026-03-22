@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Unified schema, DAL, auth, route groups, shared UI, and package alignment
 - [x] **Phase 2: Public Site + Admin Dashboard** - Reconstruct both existing apps in unified codebase with security hardening
-- [ ] **Phase 3: Payments** - Stripe integration for deposits, session payments, and invoicing
+- [x] **Phase 3: Payments** - Stripe integration for deposits, session payments, and invoicing
 - [ ] **Phase 4: Client Portal** - Client-facing authenticated experience for appointments, designs, and history
 - [ ] **Phase 5: Online Store** - E-commerce for merchandise, prints, and gift cards
 
@@ -71,8 +71,8 @@ Plans:
 
 Plans:
 - [x] 03-01-PLAN.md — Payment/StripeEvent models, Stripe SDK, env validation, currency helpers, Zod schemas
-- [ ] 03-02-PLAN.md — Payment DAL, Server Actions (deposit + balance), webhook handler, email template
-- [ ] 03-03-PLAN.md — Admin payments page with DataTable, KPI cards, request payment dialog, unit tests
+- [x] 03-02-PLAN.md — Payment DAL, Server Actions (deposit + balance), webhook handler, email template
+- [x] 03-03-PLAN.md — Admin payments page with DataTable, KPI cards, request payment dialog, unit tests
 
 ### Phase 4: Client Portal
 **Goal**: Clients have a self-service authenticated experience where they can view their tattoo journey -- appointments, designs, consent forms, payment history -- linked to their existing customer records in the admin system
@@ -111,6 +111,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete   | 2026-03-20 |
 | 2. Public Site + Admin Dashboard | 7/7 | Complete | 2026-03-21 |
-| 3. Payments | 0/3 | Not started | - |
+| 3. Payments | 3/3 | Complete | 2026-03-21 |
 | 4. Client Portal | 0/1 | Not started | - |
 | 5. Online Store | 0/1 | Not started | - |
