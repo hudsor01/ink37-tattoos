@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Public Site + Admin Dashboard** - Reconstruct both existing apps in unified codebase with security hardening
 - [x] **Phase 3: Payments** - Stripe integration for deposits, session payments, and invoicing
 - [ ] **Phase 4: Client Portal** - Client-facing authenticated experience for appointments, designs, and history
-- [ ] **Phase 5: Online Store** - E-commerce for merchandise, prints, and gift cards
+- [x] **Phase 5: Online Store** - E-commerce for merchandise, prints, and gift cards (completed 2026-03-22)
 
 ## Phase Details
 
@@ -104,8 +104,8 @@ Plans:
 - [x] 05-00-PLAN.md — Wave 0 test scaffolds (gift-card, validation, cart, checkout, order-status, download-token)
 - [x] 05-01-PLAN.md — Schema models (Product, Order, GiftCard, DownloadToken), Zod schemas, cart store, store helpers
 - [x] 05-02-PLAN.md — DAL modules, Server Actions, webhook extension, email templates, gift card at deposits (D-09), StatusBadge + AdminNav updates
-- [ ] 05-03-PLAN.md — Store public pages (catalog, detail, gift cards, cart, checkout, download route)
-- [ ] 05-04-PLAN.md — Admin product management CRUD and order management with fulfillment
+- [x] 05-03-PLAN.md — Store public pages (catalog, detail, gift cards, cart, checkout, download route)
+- [x] 05-04-PLAN.md — Admin product management CRUD and order management with fulfillment
 
 ## Progress
 
@@ -118,4 +118,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 2. Public Site + Admin Dashboard | 7/7 | Complete | 2026-03-21 |
 | 3. Payments | 3/3 | Complete | 2026-03-21 |
 | 4. Client Portal | 0/2 | Not started | - |
-| 5. Online Store | 0/5 | Not started | - |
+| 5. Online Store | 5/5 | Complete   | 2026-03-22 |
