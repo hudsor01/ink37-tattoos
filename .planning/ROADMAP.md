@@ -103,7 +103,7 @@ Plans:
 Plans:
 - [x] 05-00-PLAN.md — Wave 0 test scaffolds (gift-card, validation, cart, checkout, order-status, download-token)
 - [x] 05-01-PLAN.md — Schema models (Product, Order, GiftCard, DownloadToken), Zod schemas, cart store, store helpers
-- [ ] 05-02-PLAN.md — DAL modules, Server Actions, webhook extension, email templates, gift card at deposits (D-09), StatusBadge + AdminNav updates
+- [x] 05-02-PLAN.md — DAL modules, Server Actions, webhook extension, email templates, gift card at deposits (D-09), StatusBadge + AdminNav updates
 - [ ] 05-03-PLAN.md — Store public pages (catalog, detail, gift cards, cart, checkout, download route)
 - [ ] 05-04-PLAN.md — Admin product management CRUD and order management with fulfillment
 

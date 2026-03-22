@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 05-00-PLAN.md
-last_updated: "2026-03-22T06:12:12.455Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-03-22T06:24:38.599Z"
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 20
-  completed_plans: 17
+  completed_plans: 18
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-20)
 ## Current Position
 
 Phase: 05 (online-store) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 
 ## Performance Metrics
 
@@ -45,6 +45,7 @@ Plan: 3 of 5
 | Phase 04 P02 | 6min | 2 tasks | 8 files |
 | Phase 05 P01 | 3min | 2 tasks | 5 files |
 | Phase 05-online-store P00 | 3min | 2 tasks | 6 files |
+| Phase 05 P02 | 8min | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,8 @@ Recent decisions affecting current work:
 - [Phase 05]: Cart store uses Zustand persist with 'ink37-cart' localStorage key for guest checkout
 - [Phase 05]: Flat shipping .99 (799 cents), free over ; download links 72h expiry, max 5 downloads
 - [Phase 05-online-store]: All 6 Wave 0 test files pass immediately (51/51 GREEN) because production modules already exist from prior phase context
+- [Phase 05]: Gift card balance decrement happens in webhook handler for atomicity, not checkout action
+- [Phase 05]: Store checkout creates pending order before Stripe session, updates with session ID after
 
 ### Pending Todos
 
@@ -91,6 +94,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-22T06:12:12.453Z
-Stopped at: Completed 05-00-PLAN.md
+Last session: 2026-03-22T06:24:38.597Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
