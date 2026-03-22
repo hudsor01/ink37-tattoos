@@ -82,7 +82,7 @@ Each task was committed atomically:
 1. **Task 1: Schema migration + auth hooks + middleware + validation schemas** - (pre-existing) All artifacts already present in codebase from prior work
 2. **Task 2: Portal DAL + server actions + login/register pages** - `3f7dd08` (feat) New files created and Zod 4 fixes applied
 
-**Plan metadata:** (pending commit)
+**Plan metadata:** `461ee64` (docs: complete plan)
 
 ## Files Created/Modified
 - `src/lib/dal/portal.ts` - Portal DAL with requirePortalAuth, getPortalAppointments, getPortalSessions, getPortalPayments, getPortalDesigns, getPortalOverview, getPortalProfile

@@ -86,7 +86,7 @@ Each task was committed atomically:
 1. **Task 1: Portal layout, header, and tab navigation** - `2632c44` (feat)
 2. **Task 2: All 4 portal pages + consent form component** - `c4ce24a` (feat)
 
-**Plan metadata:** (pending final commit)
+**Plan metadata:** `b762341` (docs: complete plan)
 
 ## Files Created/Modified
 - `src/app/(portal)/layout.tsx` - Portal layout with PortalHeader + PortalNav + centered main content
