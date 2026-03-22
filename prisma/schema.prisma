@@ -191,6 +191,8 @@ model TattooSession {
   notes             String?
   aftercareProvided Boolean       @default(false)
   consentSigned     Boolean       @default(false)
+  consentSignedAt   DateTime?
+  consentSignedBy   String?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
@@ -346,8 +348,140 @@ model StripeEvent {
 }
 
 // ============================================================================
+// STORE MODELS
+// ============================================================================
+
+model Product {
+  id                    String      @id @default(uuid())
+  name                  String
+  description           String?
+  price                 Decimal
+  productType           ProductType
+  imageUrl              String?
+  digitalFilePathname   String?
+  digitalFileName       String?
+  stripeProductId       String?     @unique
+  stripePriceId         String?     @unique
+  isActive              Boolean     @default(true)
+  sortOrder             Int         @default(0)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  orderItems OrderItem[]
+
+  @@index([productType])
+  @@index([isActive])
+  @@index([isActive, productType])
+  @@map("product")
+}
+
+model Order {
+  id                      String      @id @default(uuid())
+  email                   String
+  status                  OrderStatus @default(PENDING)
+  subtotal                Decimal
+  shippingAmount          Decimal     @default(0)
+  discountAmount          Decimal     @default(0)
+  total                   Decimal
+  stripeCheckoutSessionId String?     @unique
+  stripePaymentIntentId   String?
+  shippingName            String?
+  shippingAddress         String?
+  shippingCity            String?
+  shippingState           String?
+  shippingPostalCode      String?
+  shippingCountry         String?
+  giftCardCode            String?
+  notes                   String?
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+
+  items          OrderItem[]
+  downloadTokens DownloadToken[]
+
+  @@index([email])
+  @@index([status])
+  @@index([createdAt])
+  @@index([stripeCheckoutSessionId])
+  @@map("order")
+}
+
+model OrderItem {
+  id          String  @id @default(uuid())
+  orderId     String
+  productId   String
+  productName String
+  quantity    Int
+  unitPrice   Decimal
+  totalPrice  Decimal
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  downloadTokens DownloadToken[]
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_item")
+}
+
+model GiftCard {
+  id              String    @id @default(uuid())
+  code            String    @unique
+  initialBalance  Decimal
+  balance         Decimal
+  purchaserEmail  String
+  recipientEmail  String
+  recipientName   String?
+  senderName      String?
+  personalMessage String?
+  orderId         String?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([code])
+  @@index([recipientEmail])
+  @@index([purchaserEmail])
+  @@map("gift_card")
+}
+
+model DownloadToken {
+  id            String   @id @default(uuid())
+  token         String   @unique
+  orderId       String
+  orderItemId   String
+  downloadCount Int      @default(0)
+  maxDownloads  Int      @default(5)
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+
+  order     Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([expiresAt])
+  @@map("download_token")
+}
+
+// ============================================================================
 // ENUMS
 // ============================================================================
+
+enum ProductType {
+  PHYSICAL
+  DIGITAL
+  GIFT_CARD
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
 
 enum AppointmentStatus {
   PENDING

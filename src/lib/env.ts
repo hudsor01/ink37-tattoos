@@ -11,6 +11,7 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string().optional(),
   ADMIN_EMAIL: z.string().email().optional(),
   VERCEL_BLOB_READ_WRITE_TOKEN: z.string().optional(),
+  BLOB_PRIVATE_READ_WRITE_TOKEN: z.string().optional(),
   STRIPE_SECRET_KEY: z.string().min(1),
   STRIPE_WEBHOOK_SECRET: z.string().min(1),
 });

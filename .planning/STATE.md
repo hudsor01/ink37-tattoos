@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 5 context gathered
-last_updated: "2026-03-22T05:02:04.064Z"
+stopped_at: Completed 05-00-PLAN.md
+last_updated: "2026-03-22T06:12:12.455Z"
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 15
-  completed_plans: 15
+  total_plans: 20
+  completed_plans: 17
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** The tattoo artist manages their entire business from one app while clients get a polished experience for discovering, booking, paying, and tracking their tattoo journey.
-**Current focus:** Phase 04 — client-portal
+**Current focus:** Phase 05 — online-store
 
 ## Current Position
 
-Phase: 5
-Plan: Not started
+Phase: 05 (online-store) — EXECUTING
+Plan: 3 of 5
 
 ## Performance Metrics
 
@@ -43,6 +43,8 @@ Plan: Not started
 | 03-payments | 3 | 15 min | 5 min |
 | Phase 04 P01 | 8min | 2 tasks | 5 files |
 | Phase 04 P02 | 6min | 2 tasks | 8 files |
+| Phase 05 P01 | 3min | 2 tasks | 5 files |
+| Phase 05-online-store P00 | 3min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -72,6 +74,10 @@ Recent decisions affecting current work:
 - [Phase 04]: Server actions return {success, error?} instead of throwing for portal mutations
 - [Phase 04]: Portal pages use server components calling cached DAL functions; consent form is client island embedded in server page
 - [Phase 04]: Payments page uses dual layout: hidden table on mobile + hidden cards on desktop for responsive UX
+- [Phase 05]: Gift card codes use INK37-XXXX-XXXX-XXXX format with crypto.randomBytes, excluding ambiguous chars
+- [Phase 05]: Cart store uses Zustand persist with 'ink37-cart' localStorage key for guest checkout
+- [Phase 05]: Flat shipping .99 (799 cents), free over ; download links 72h expiry, max 5 downloads
+- [Phase 05-online-store]: All 6 Wave 0 test files pass immediately (51/51 GREEN) because production modules already exist from prior phase context
 
 ### Pending Todos
 
@@ -85,6 +91,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-22T05:02:04.062Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-online-store/05-CONTEXT.md
+Last session: 2026-03-22T06:12:12.453Z
+Stopped at: Completed 05-00-PLAN.md
+Resume file: None

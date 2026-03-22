@@ -173,3 +173,87 @@ export const UpdatePortalProfileSchema = z.object({
 });
 
 export type UpdatePortalProfileData = z.infer<typeof UpdatePortalProfileSchema>;
+
+// ============================================================================
+// STORE: PRODUCT MANAGEMENT (D-01, D-02)
+// ============================================================================
+
+export const CreateProductSchema = z.object({
+  name: z.string().min(1, 'Product name is required').max(200),
+  description: z.string().max(2000).optional(),
+  price: z.number().positive('Price must be positive').max(50000),
+  productType: z.enum(['PHYSICAL', 'DIGITAL', 'GIFT_CARD']),
+  imageUrl: z.string().url().optional(),
+  digitalFilePathname: z.string().optional(),
+  digitalFileName: z.string().optional(),
+  isActive: z.boolean().optional().default(true),
+  sortOrder: z.number().int().nonnegative().optional().default(0),
+});
+
+export type CreateProductData = z.infer<typeof CreateProductSchema>;
+
+export const UpdateProductSchema = CreateProductSchema.partial().extend({
+  id: z.string().uuid(),
+});
+
+export type UpdateProductData = z.infer<typeof UpdateProductSchema>;
+
+// ============================================================================
+// STORE: GIFT CARD PURCHASE (D-10, D-11, D-13)
+// ============================================================================
+
+export const PurchaseGiftCardSchema = z.object({
+  denomination: z.enum(['25', '50', '100', '200', '500'], {
+    required_error: 'Please select a denomination',
+  }),
+  recipientName: z.string().min(1, 'Recipient name is required').max(100),
+  recipientEmail: z.string().email('Invalid recipient email'),
+  senderName: z.string().min(1, 'Your name is required').max(100),
+  personalMessage: z.string().max(500).optional(),
+});
+
+export type PurchaseGiftCardData = z.infer<typeof PurchaseGiftCardSchema>;
+
+// ============================================================================
+// STORE: GIFT CARD REDEMPTION (D-09, D-14)
+// ============================================================================
+
+export const RedeemGiftCardSchema = z.object({
+  code: z
+    .string()
+    .min(1, 'Gift card code is required')
+    .regex(
+      /^INK37-[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/,
+      'Invalid gift card code format. Expected: INK37-XXXX-XXXX-XXXX'
+    ),
+});
+
+export type RedeemGiftCardData = z.infer<typeof RedeemGiftCardSchema>;
+
+// ============================================================================
+// STORE: CHECKOUT (D-05, D-06, D-08)
+// ============================================================================
+
+export const StoreCheckoutSchema = z.object({
+  items: z.array(
+    z.object({
+      productId: z.string().uuid(),
+      quantity: z.number().int().positive().max(10),
+    })
+  ).min(1, 'Cart cannot be empty'),
+  giftCardCode: z.string().optional(),
+});
+
+export type StoreCheckoutData = z.infer<typeof StoreCheckoutSchema>;
+
+// ============================================================================
+// STORE: ORDER MANAGEMENT (D-19, D-20)
+// ============================================================================
+
+export const UpdateOrderStatusSchema = z.object({
+  orderId: z.string().uuid(),
+  status: z.enum(['PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED']),
+  notes: z.string().max(1000).optional(),
+});
+
+export type UpdateOrderStatusData = z.infer<typeof UpdateOrderStatusSchema>;

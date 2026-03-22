@@ -61,11 +61,11 @@ Requirements for initial consolidated release. Each maps to roadmap phases.
 
 ### Online Store
 
-- [ ] **STORE-01**: Gift card purchase and delivery (email delivery with unique code)
-- [ ] **STORE-02**: Product catalog for merchandise/prints (Stripe Products + custom UI)
-- [ ] **STORE-03**: Shopping cart and Stripe Checkout integration
-- [ ] **STORE-04**: Order management in admin dashboard
-- [ ] **STORE-05**: Digital product delivery (prints as downloadable files)
+- [x] **STORE-01**: Gift card purchase and delivery (email delivery with unique code)
+- [x] **STORE-02**: Product catalog for merchandise/prints (Stripe Products + custom UI)
+- [x] **STORE-03**: Shopping cart and Stripe Checkout integration
+- [x] **STORE-04**: Order management in admin dashboard
+- [x] **STORE-05**: Digital product delivery (prints as downloadable files)
 
 ### Security & Infrastructure
 
@@ -155,11 +155,11 @@ Deferred to future release. Tracked but not in current roadmap.
 | PORT-04 | Phase 4 | Complete |
 | PORT-05 | Phase 4 | Complete |
 | PORT-06 | Phase 4 | Complete |
-| STORE-01 | Phase 5 | Pending |
-| STORE-02 | Phase 5 | Pending |
-| STORE-03 | Phase 5 | Pending |
-| STORE-04 | Phase 5 | Pending |
-| STORE-05 | Phase 5 | Pending |
+| STORE-01 | Phase 5 | Complete |
+| STORE-02 | Phase 5 | Complete |
+| STORE-03 | Phase 5 | Complete |
+| STORE-04 | Phase 5 | Complete |
+| STORE-05 | Phase 5 | Complete |
 
 **Coverage:**
 - v1 requirements: 45 total
