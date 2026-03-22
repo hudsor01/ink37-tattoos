@@ -11,12 +11,8 @@ export default function NotFound() {
           gallery.
         </p>
         <div className="flex gap-4 justify-center">
-          <Button asChild>
-            <Link href="/">Go Home</Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="/gallery">View Gallery</Link>
-          </Button>
+          <Button render={<Link href="/" />}>Go Home</Button>
+          <Button variant="outline" render={<Link href="/gallery" />}>View Gallery</Button>
         </div>
       </div>
     </div>

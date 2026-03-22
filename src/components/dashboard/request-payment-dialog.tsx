@@ -75,7 +75,7 @@ export function RequestPaymentDialog({ sessions }: RequestPaymentDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+      <DialogTrigger>
         <Button>
           <CreditCard className="h-4 w-4 mr-2" />
           Request Payment

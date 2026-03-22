@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { env } from '@/lib/env';
 
 export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get('token');
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Check for blob token
-  const blobToken = process.env.BLOB_PRIVATE_READ_WRITE_TOKEN;
+  const blobToken = env.BLOB_PRIVATE_READ_WRITE_TOKEN;
   if (!blobToken) {
     return NextResponse.json(
       { error: 'Download service not configured' },

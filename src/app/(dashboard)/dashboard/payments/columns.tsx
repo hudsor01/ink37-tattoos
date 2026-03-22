@@ -69,11 +69,9 @@ export const columns: ColumnDef<PaymentRow, unknown>[] = [
     header: 'Receipt',
     cell: ({ row }) =>
       row.original.receiptUrl ? (
-        <Button variant="ghost" size="sm" asChild>
-          <a href={row.original.receiptUrl} target="_blank" rel="noopener noreferrer">
-            <ExternalLink className="h-4 w-4 mr-1" />
-            View
-          </a>
+        <Button variant="ghost" size="sm" render={<a href={row.original.receiptUrl} target="_blank" rel="noopener noreferrer" />}>
+          <ExternalLink className="h-4 w-4 mr-1" />
+          View
         </Button>
       ) : (
         <span className="text-xs text-muted-foreground">--</span>

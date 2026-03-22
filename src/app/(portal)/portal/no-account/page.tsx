@@ -23,12 +23,8 @@ export default function NoAccountPage() {
             consultation to get started.
           </p>
           <div className="flex flex-col gap-2 pt-2">
-            <Button asChild>
-              <Link href="/contact">Contact Us</Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href="/">Back to Home</Link>
-            </Button>
+            <Button render={<Link href="/contact" />}>Contact Us</Button>
+            <Button variant="outline" render={<Link href="/" />}>Back to Home</Button>
           </div>
         </CardContent>
       </Card>
