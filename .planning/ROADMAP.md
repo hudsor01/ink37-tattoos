@@ -122,7 +122,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 06-01-PLAN.md — Fix admin sign-out and add payment success portal link
+- [x] 06-01-PLAN.md — Fix admin sign-out and add payment success portal link
 
 ### Phase 7: Store Integration Fixes
 **Goal**: Fix store integration wiring so order confirmation emails contain working download links, checkout handles products without Stripe price IDs gracefully, and gift card purchasers receive confirmation emails
