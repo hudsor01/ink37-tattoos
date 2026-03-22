@@ -1,4 +1,14 @@
-const store = new Map<string, { count: number; resetTime: number }>();
+// Use globalThis to persist rate limit state across module reloads in dev
+// and within the same serverless instance in production
+const globalStore = globalThis as typeof globalThis & {
+  __rateLimitStore?: Map<string, { count: number; resetTime: number }>;
+};
+
+if (!globalStore.__rateLimitStore) {
+  globalStore.__rateLimitStore = new Map();
+}
+
+const store = globalStore.__rateLimitStore;
 
 export function rateLimit(
   identifier: string,
