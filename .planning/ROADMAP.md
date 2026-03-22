@@ -119,7 +119,10 @@ Plans:
   2. The dashboard overview Revenue Overview card renders `RevenueChart` with data from `getRevenueData` (not a text stub)
   3. Admin sign-out calls `signOut()` from auth-client via POST (matching the portal header pattern)
   4. The `/payment/success` page includes a link to `/portal/payments` for authenticated users
-**Plans**: 0 plans
+**Plans**: 1 plan
+
+Plans:
+- [ ] 06-01-PLAN.md — Fix admin sign-out and add payment success portal link
 
 ### Phase 7: Store Integration Fixes
 **Goal**: Fix store integration wiring so order confirmation emails contain working download links, checkout handles products without Stripe price IDs gracefully, and gift card purchasers receive confirmation emails
