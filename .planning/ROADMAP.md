@@ -83,10 +83,11 @@ Plans:
   2. A logged-in client can view their upcoming bookings, past appointment history, and tattoo session details including design images
   3. A client can access, review, and digitally sign consent forms through the portal before their appointment
   4. A client can view their complete payment history with receipts for all deposits and session payments
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: TBD
+- [ ] 04-01-PLAN.md — Schema migration, auth hooks, middleware, portal DAL, server actions, login/register pages
+- [ ] 04-02-PLAN.md — Portal layout with tab nav, overview/appointments/tattoos/payments pages, consent form
 
 ### Phase 5: Online Store
 **Goal**: The studio earns passive revenue through an online store offering merchandise, prints, and gift cards -- all powered by Stripe Products with order management in the admin dashboard
@@ -112,5 +113,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 1. Foundation | 3/3 | Complete   | 2026-03-20 |
 | 2. Public Site + Admin Dashboard | 7/7 | Complete | 2026-03-21 |
 | 3. Payments | 3/3 | Complete | 2026-03-21 |
-| 4. Client Portal | 0/1 | Not started | - |
+| 4. Client Portal | 0/2 | Not started | - |
 | 5. Online Store | 0/1 | Not started | - |
