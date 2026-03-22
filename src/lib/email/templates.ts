@@ -177,3 +177,38 @@ export function giftCardDeliveryTemplate(data: {
     </div>
   `;
 }
+
+export function giftCardPurchaseConfirmationTemplate(data: {
+  amount: number;
+  recipientName: string;
+}): string {
+  const formattedAmount = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(data.amount);
+
+  return `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #1a1a1a;">Gift Card Purchase Confirmation</h2>
+      <p>Thank you for your Ink 37 Tattoos gift card purchase!</p>
+
+      <div style="background-color: #f9fafb; padding: 16px; border-radius: 6px; margin: 24px 0;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Amount:</td>
+            <td style="text-align: right;">${formattedAmount}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Recipient:</td>
+            <td style="text-align: right;">${data.recipientName}</td>
+          </tr>
+        </table>
+      </div>
+
+      <p>The gift card has been sent to the recipient's email address. They will receive it shortly with their unique redemption code.</p>
+
+      <p style="color: #666; font-size: 14px;">If you have any questions, please don't hesitate to reach out.</p>
+      <p>Best regards,<br>Ink 37 Tattoos</p>
+    </div>
+  `;
+}

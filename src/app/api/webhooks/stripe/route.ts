@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import type Stripe from 'stripe';
 import { getOrderByCheckoutSessionId } from '@/lib/dal/orders';
 import { createGiftCard, redeemGiftCard } from '@/lib/dal/gift-cards';
-import { sendOrderConfirmationEmail, sendGiftCardEmail } from '@/lib/email/resend';
+import { sendOrderConfirmationEmail, sendGiftCardEmail, sendGiftCardPurchaseConfirmationEmail } from '@/lib/email/resend';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
@@ -276,6 +276,15 @@ async function handleGiftCardCheckoutCompleted(
     code: giftCard.code,
     personalMessage,
   });
+
+  // Send purchase confirmation to the purchaser (per D-11)
+  if (purchaserEmail) {
+    await sendGiftCardPurchaseConfirmationEmail({
+      to: purchaserEmail,
+      amount: denomination,
+      recipientName: recipientName || recipientEmail,
+    });
+  }
 }
 
 /**
