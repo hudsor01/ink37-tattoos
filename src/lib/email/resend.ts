@@ -88,7 +88,7 @@ export async function sendOrderConfirmationEmail(data: {
   discount: number;
   total: number;
   hasDigitalItems: boolean;
-  downloadUrl?: string;
+  downloadLinks?: Array<{ name: string; url: string }>;
 }): Promise<{ sent: boolean }> {
   if (!env.RESEND_API_KEY) {
     console.warn(

@@ -193,6 +193,6 @@ export const getOrderStats = cache(async () => {
 export async function getOrderByCheckoutSessionId(stripeCheckoutSessionId: string) {
   return db.order.findUnique({
     where: { stripeCheckoutSessionId },
-    include: { items: { include: { product: true } } },
+    include: { items: { include: { product: true, downloadTokens: true } } },
   });
 }

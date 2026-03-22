@@ -205,6 +205,21 @@ async function handleStoreCheckoutCompleted(
       (item) => item.product.productType === 'DIGITAL'
     );
 
+    // Build per-item download URLs from download tokens (per D-04)
+    const downloadLinks: Array<{ name: string; url: string }> = [];
+    if (hasDigitalItems) {
+      for (const item of order.items) {
+        if (item.product.productType === 'DIGITAL' && item.downloadTokens?.length > 0) {
+          for (const dt of item.downloadTokens) {
+            downloadLinks.push({
+              name: item.productName,
+              url: `${process.env.NEXT_PUBLIC_APP_URL}/api/store/download?token=${dt.token}`,
+            });
+          }
+        }
+      }
+    }
+
     await sendOrderConfirmationEmail({
       to: session.customer_details.email,
       orderId: order.id,
@@ -218,9 +233,7 @@ async function handleStoreCheckoutCompleted(
       discount: Number(order.discountAmount),
       total: Number(order.total),
       hasDigitalItems,
-      downloadUrl: hasDigitalItems
-        ? `${process.env.NEXT_PUBLIC_APP_URL}/store/downloads/${order.id}`
-        : undefined,
+      downloadLinks: downloadLinks.length > 0 ? downloadLinks : undefined,
     });
   }
 }

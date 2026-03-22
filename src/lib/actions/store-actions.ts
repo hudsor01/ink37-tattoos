@@ -44,6 +44,15 @@ export async function storeCheckoutAction(data: {
     totalPrice: number;
   }> = [];
 
+  // D-07: Guard against products without Stripe price IDs
+  const missingPriceProducts = products.filter((p) => !p.stripePriceId);
+  if (missingPriceProducts.length > 0) {
+    return {
+      success: false,
+      error: 'One or more products are not available for purchase. Please try again later.',
+    };
+  }
+
   for (const cartItem of validated.items) {
     const product = products.find((p) => p.id === cartItem.productId)!;
     const unitPrice = Number(product.price);

@@ -68,7 +68,7 @@ export function orderConfirmationTemplate(data: {
   discount: number;
   total: number;
   hasDigitalItems: boolean;
-  downloadUrl?: string;
+  downloadLinks?: Array<{ name: string; url: string }>;
 }): string {
   const fmt = (n: number) =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
@@ -84,16 +84,16 @@ export function orderConfirmationTemplate(data: {
     )
     .join('');
 
-  const downloadSection = data.hasDigitalItems && data.downloadUrl
+  const downloadSection = data.hasDigitalItems && data.downloadLinks && data.downloadLinks.length > 0
     ? `<div style="background-color: #f0f9ff; padding: 16px; border-radius: 6px; margin: 24px 0;">
         <p style="margin: 0 0 8px 0; font-weight: bold; color: #1a1a1a;">Digital Downloads</p>
-        <p style="margin: 0;">Your digital items are ready for download:</p>
-        <div style="text-align: center; margin: 12px 0;">
-          <a href="${data.downloadUrl}" style="background-color: #1a1a1a; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold;">
-            Download Files
-          </a>
-        </div>
-        <p style="color: #666; font-size: 12px; margin: 0;">Links expire in 72 hours. Max 5 downloads per item.</p>
+        <p style="margin: 0 0 12px 0;">Your digital items are ready for download:</p>
+        ${data.downloadLinks.map((link) =>
+          `<div style="margin: 8px 0;">
+            <a href="${link.url}" style="color: #1a1a1a; text-decoration: underline; font-weight: 500;">${link.name}</a>
+          </div>`
+        ).join('')}
+        <p style="color: #666; font-size: 12px; margin: 12px 0 0 0;">Links expire in 72 hours. Max 5 downloads per item.</p>
       </div>`
     : '';
 
