@@ -53,10 +53,10 @@ Requirements for initial consolidated release. Each maps to roadmap phases.
 ### Client Portal
 
 - [x] **PORT-01**: Client registration and login (Better Auth with email/password)
-- [ ] **PORT-02**: Client can view their appointment history and upcoming bookings
-- [ ] **PORT-03**: Client can view their tattoo designs and session details
+- [x] **PORT-02**: Client can view their appointment history and upcoming bookings
+- [x] **PORT-03**: Client can view their tattoo designs and session details
 - [x] **PORT-04**: Client can access and sign digital consent forms
-- [ ] **PORT-05**: Client can view payment history and receipts
+- [x] **PORT-05**: Client can view payment history and receipts
 - [x] **PORT-06**: Client account linked to existing Customer records in admin
 
 ### Online Store
@@ -150,10 +150,10 @@ Deferred to future release. Tracked but not in current roadmap.
 | PAY-05 | Phase 3 | Complete |
 | SEC-05 | Phase 3 | Complete |
 | PORT-01 | Phase 4 | Complete |
-| PORT-02 | Phase 4 | Pending |
-| PORT-03 | Phase 4 | Pending |
+| PORT-02 | Phase 4 | Complete |
+| PORT-03 | Phase 4 | Complete |
 | PORT-04 | Phase 4 | Complete |
-| PORT-05 | Phase 4 | Pending |
+| PORT-05 | Phase 4 | Complete |
 | PORT-06 | Phase 4 | Complete |
 | STORE-01 | Phase 5 | Pending |
 | STORE-02 | Phase 5 | Pending |

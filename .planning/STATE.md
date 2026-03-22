@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-03-22T04:22:27.670Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-03-22T04:39:03.599Z"
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 15
-  completed_plans: 14
+  completed_plans: 15
 ---
 
 # Project State
@@ -42,6 +42,7 @@ Plan: 2 of 2
 | 02-public-site-admin-dashboard | 7 | 40 min | 6 min |
 | 03-payments | 3 | 15 min | 5 min |
 | Phase 04 P01 | 8min | 2 tasks | 5 files |
+| Phase 04 P02 | 6min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,8 @@ Recent decisions affecting current work:
 - [Phase 03-payments]: Stripe API version pinned to 2025-12-18.acacia; both Stripe env vars required (fail-fast)
 - [Phase 04]: Portal DAL uses requirePortalAuth (internal, not exported) returning {session, customer} for scoped queries
 - [Phase 04]: Server actions return {success, error?} instead of throwing for portal mutations
+- [Phase 04]: Portal pages use server components calling cached DAL functions; consent form is client island embedded in server page
+- [Phase 04]: Payments page uses dual layout: hidden table on mobile + hidden cards on desktop for responsive UX
 
 ### Pending Todos
 
@@ -82,6 +85,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-22T04:22:27.667Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-03-22T04:39:03.597Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None

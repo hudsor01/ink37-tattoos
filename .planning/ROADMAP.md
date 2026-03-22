@@ -87,7 +87,7 @@ Plans:
 
 Plans:
 - [x] 04-01-PLAN.md — Schema migration, auth hooks, middleware, portal DAL, server actions, login/register pages
-- [ ] 04-02-PLAN.md — Portal layout with tab nav, overview/appointments/tattoos/payments pages, consent form
+- [x] 04-02-PLAN.md — Portal layout with tab nav, overview/appointments/tattoos/payments pages, consent form
 
 ### Phase 5: Online Store
 **Goal**: The studio earns passive revenue through an online store offering merchandise, prints, and gift cards -- all powered by Stripe Products with order management in the admin dashboard
