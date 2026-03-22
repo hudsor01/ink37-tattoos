@@ -98,11 +98,12 @@ Plans:
   2. A customer can purchase a gift card, receive it via email with a unique redemption code, and apply it during booking or store checkout
   3. After purchasing a digital product (print), the buyer receives a download link and can access the file
   4. The admin can manage products (add/edit/remove), view all orders with status, and fulfill/cancel orders from the dashboard
-**Plans**: 4 plans
+**Plans**: 5 plans
 
 Plans:
+- [ ] 05-00-PLAN.md — Wave 0 test scaffolds (gift-card, validation, cart, checkout, order-status, download-token)
 - [ ] 05-01-PLAN.md — Schema models (Product, Order, GiftCard, DownloadToken), Zod schemas, cart store, store helpers
-- [ ] 05-02-PLAN.md — DAL modules, Server Actions, webhook extension, email templates, StatusBadge + AdminNav updates
+- [ ] 05-02-PLAN.md — DAL modules, Server Actions, webhook extension, email templates, gift card at deposits (D-09), StatusBadge + AdminNav updates
 - [ ] 05-03-PLAN.md — Store public pages (catalog, detail, gift cards, cart, checkout, download route)
 - [ ] 05-04-PLAN.md — Admin product management CRUD and order management with fulfillment
 
@@ -117,4 +118,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 2. Public Site + Admin Dashboard | 7/7 | Complete | 2026-03-21 |
 | 3. Payments | 3/3 | Complete | 2026-03-21 |
 | 4. Client Portal | 0/2 | Not started | - |
-| 5. Online Store | 0/4 | Not started | - |
+| 5. Online Store | 0/5 | Not started | - |
