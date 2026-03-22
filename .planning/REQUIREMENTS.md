@@ -46,9 +46,9 @@ Requirements for initial consolidated release. Each maps to roadmap phases.
 
 - [x] **PAY-01**: Stripe integration for deposit collection on booking confirmation
 - [x] **PAY-02**: Session payment processing (full payment or remaining balance)
-- [ ] **PAY-03**: Payment history and status tracking in admin dashboard
+- [x] **PAY-03**: Payment history and status tracking in admin dashboard
 - [x] **PAY-04**: Stripe webhook handling for payment events (success, failure, refund)
-- [ ] **PAY-05**: Receipt/invoice generation for completed payments
+- [x] **PAY-05**: Receipt/invoice generation for completed payments
 
 ### Client Portal
 
@@ -73,7 +73,7 @@ Requirements for initial consolidated release. Each maps to roadmap phases.
 - [x] **SEC-02**: Rate limiting on public endpoints (contact, booking, auth)
 - [x] **SEC-03**: Input sanitization and Zod validation on all API inputs
 - [x] **SEC-04**: Security headers (CSP, HSTS, X-Frame-Options, Permissions-Policy)
-- [ ] **SEC-05**: Stripe webhook signature verification
+- [x] **SEC-05**: Stripe webhook signature verification
 - [x] **SEC-06**: Deployment migration from existing domain with DNS cutover (brief downtime accepted)
 
 ## v2 Requirements
@@ -145,10 +145,10 @@ Deferred to future release. Tracked but not in current roadmap.
 | SEC-06 | Phase 2 | Complete |
 | PAY-01 | Phase 3 | Complete |
 | PAY-02 | Phase 3 | Complete |
-| PAY-03 | Phase 3 | Pending |
+| PAY-03 | Phase 3 | Complete |
 | PAY-04 | Phase 3 | Complete |
-| PAY-05 | Phase 3 | Pending |
-| SEC-05 | Phase 3 | Pending |
+| PAY-05 | Phase 3 | Complete |
+| SEC-05 | Phase 3 | Complete |
 | PORT-01 | Phase 4 | Pending |
 | PORT-02 | Phase 4 | Pending |
 | PORT-03 | Phase 4 | Pending |
