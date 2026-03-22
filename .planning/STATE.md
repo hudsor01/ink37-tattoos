@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-03-22T18:22:23.276Z"
+stopped_at: Completed 07-01-PLAN.md
+last_updated: "2026-03-22T23:00:00.024Z"
 progress:
   total_phases: 7
-  completed_phases: 6
-  total_plans: 21
-  completed_plans: 21
+  completed_phases: 7
+  total_plans: 22
+  completed_plans: 22
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** The tattoo artist manages their entire business from one app while clients get a polished experience for discovering, booking, paying, and tracking their tattoo journey.
-**Current focus:** Phase 06 — ui-stub-closure-ux-wiring
+**Current focus:** Phase 07 — store-integration-fixes
 
 ## Current Position
 
-Phase: 07
-Plan: Not started
+Phase: 07 (store-integration-fixes) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -48,6 +48,7 @@ Plan: Not started
 | Phase 05 P02 | 8min | 2 tasks | 13 files |
 | Phase 05 P04 | 8min | 2 tasks | 9 files |
 | Phase 06 P01 | 3min | 2 tasks | 2 files |
+| Phase 07 P01 | 9min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,9 @@ Recent decisions affecting current work:
 - [Phase 05]: Used base-ui render prop pattern for polymorphic Button/Link rendering (not asChild)
 - [Phase 05]: Order status actions conditionally rendered: PENDING->Cancel, PAID->Ship/Cancel/Refund, SHIPPED->Deliver/Refund, DELIVERED->Refund
 - [Phase 06]: Admin sign-out uses onClick with signOut() + window.location redirect, not router.push
+- [Phase 07]: Download URLs use per-item tokens from downloadTokens relation, matching checkout success page pattern
+- [Phase 07]: stripePriceId guard returns user-friendly error before Stripe line item construction
+- [Phase 07]: Gift card purchaser confirmation is a separate email function/template from recipient delivery
 
 ### Pending Todos
 
@@ -99,6 +103,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-22T18:21:05.127Z
-Stopped at: Completed 06-01-PLAN.md
+Last session: 2026-03-22T23:00:00.021Z
+Stopped at: Completed 07-01-PLAN.md
 Resume file: None

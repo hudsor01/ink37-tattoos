@@ -136,7 +136,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 07-01-PLAN.md — Fix download URLs, stripePriceId guard, and gift card purchaser confirmation email
+- [x] 07-01-PLAN.md — Fix download URLs, stripePriceId guard, and gift card purchaser confirmation email
 
 ## Progress
 
