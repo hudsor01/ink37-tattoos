@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { signOut } from '@/lib/auth-client';
 import {
   LayoutDashboard,
   Users,
@@ -103,7 +104,10 @@ export function AdminNav() {
           <SidebarMenuItem>
             <SidebarMenuButton
               tooltip="Sign Out"
-              render={<Link href="/api/auth/sign-out" />}
+              onClick={async () => {
+                await signOut();
+                window.location.href = '/login';
+              }}
             >
               <LogOut />
               <span>Sign Out</span>
