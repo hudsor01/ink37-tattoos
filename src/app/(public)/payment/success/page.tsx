@@ -13,7 +13,12 @@ export default function PaymentSuccessPage() {
         Thank you for your payment. You will receive a receipt via email
         shortly. If you have any questions, please contact us.
       </p>
-      <Button render={<Link href="/" />}>Return to Home</Button>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <Button render={<Link href="/" />}>Return to Home</Button>
+        <Button variant="outline" render={<Link href="/portal/payments" />}>
+          View Payment History
+        </Button>
+      </div>
     </div>
   );
 }
