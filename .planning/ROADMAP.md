@@ -17,6 +17,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Payments** - Stripe integration for deposits, session payments, and invoicing
 - [ ] **Phase 4: Client Portal** - Client-facing authenticated experience for appointments, designs, and history
 - [x] **Phase 5: Online Store** - E-commerce for merchandise, prints, and gift cards (completed 2026-03-22)
+- [ ] **Phase 6: UI Stub Closure + UX Wiring** - Close Phase 2 UI stubs and fix cross-phase UX gaps (gap closure)
+- [ ] **Phase 7: Store Integration Fixes** - Fix store download URLs, checkout guards, and gift card email (gap closure)
 
 ## Phase Details
 
@@ -107,10 +109,33 @@ Plans:
 - [x] 05-03-PLAN.md — Store public pages (catalog, detail, gift cards, cart, checkout, download route)
 - [x] 05-04-PLAN.md — Admin product management CRUD and order management with fulfillment
 
+### Phase 6: UI Stub Closure + UX Wiring
+**Goal**: Close the 2 unsatisfied Phase 2 requirements (PUB-01 gallery preview, ADMIN-01 revenue chart) by wiring existing components, fix admin sign-out to use proper auth client, and add portal link to payment success page
+**Depends on**: Phase 5
+**Requirements**: PUB-01, ADMIN-01, SEC-03
+**Gap Closure**: Closes audit gaps PUB-01, ADMIN-01, INT-03, FLOW-01
+**Success Criteria** (what must be TRUE):
+  1. The home page gallery preview section renders up to 6 real portfolio designs from `getPublicDesigns` DAL (with Skeleton fallback only when no designs exist)
+  2. The dashboard overview Revenue Overview card renders `RevenueChart` with data from `getRevenueData` (not a text stub)
+  3. Admin sign-out calls `signOut()` from auth-client via POST (matching the portal header pattern)
+  4. The `/payment/success` page includes a link to `/portal/payments` for authenticated users
+**Plans**: 0 plans
+
+### Phase 7: Store Integration Fixes
+**Goal**: Fix store integration wiring so order confirmation emails contain working download links, checkout handles products without Stripe price IDs gracefully, and gift card purchasers receive confirmation emails
+**Depends on**: Phase 5
+**Requirements**: STORE-01, STORE-03, STORE-05
+**Gap Closure**: Closes audit gaps INT-01, INT-02, FLOW-02, FLOW-03
+**Success Criteria** (what must be TRUE):
+  1. Order confirmation emails contain correct download URLs using `/api/store/download?token=TOKEN` format (not `/store/downloads/`)
+  2. `storeCheckoutAction` returns a user-friendly error if any cart product lacks a `stripePriceId` instead of crashing
+  3. Gift card purchasers receive a confirmation email acknowledging their purchase (separate from the recipient delivery email)
+**Plans**: 0 plans
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -119,3 +144,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 3. Payments | 3/3 | Complete | 2026-03-21 |
 | 4. Client Portal | 0/2 | Not started | - |
 | 5. Online Store | 5/5 | Complete   | 2026-03-22 |
+| 6. UI Stub Closure + UX Wiring | 0/0 | Not started | - |
+| 7. Store Integration Fixes | 0/0 | Not started | - |

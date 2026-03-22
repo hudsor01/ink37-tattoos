@@ -20,7 +20,7 @@ Requirements for initial consolidated release. Each maps to roadmap phases.
 
 ### Public Site
 
-- [x] **PUB-01**: Home page with hero, services overview, gallery preview, booking CTA
+- [ ] **PUB-01**: Home page with hero, services overview, gallery preview, booking CTA
 - [x] **PUB-02**: Gallery with filtering by style, size, and placement (masonry layout, lightbox, social sharing)
 - [x] **PUB-03**: Services page with service cards, process steps, pricing info
 - [x] **PUB-04**: Booking flow via Cal.com embed (consultation, design review, tattoo session, touch-up)
@@ -32,7 +32,7 @@ Requirements for initial consolidated release. Each maps to roadmap phases.
 
 ### Admin Dashboard
 
-- [x] **ADMIN-01**: Dashboard overview with KPIs (revenue, clients, bookings, completion rate, satisfaction)
+- [ ] **ADMIN-01**: Dashboard overview with KPIs (revenue, clients, bookings, completion rate, satisfaction)
 - [x] **ADMIN-02**: Customer management (CRUD, medical info, emergency contacts, session history, search/filter)
 - [x] **ADMIN-03**: Appointment management (scheduling, status tracking, types, stats, filtering)
 - [x] **ADMIN-04**: Tattoo session tracking (pricing, design details, consent, aftercare, status)
@@ -120,7 +120,7 @@ Deferred to future release. Tracked but not in current roadmap.
 | FOUND-06 | Phase 1 | Complete |
 | FOUND-07 | Phase 1 | Complete |
 | FOUND-08 | Phase 1 | Complete |
-| PUB-01 | Phase 2 | Complete |
+| PUB-01 | Phase 6 | Pending |
 | PUB-02 | Phase 2 | Complete |
 | PUB-03 | Phase 2 | Complete |
 | PUB-04 | Phase 2 | Complete |
@@ -129,7 +129,7 @@ Deferred to future release. Tracked but not in current roadmap.
 | PUB-07 | Phase 2 | Complete |
 | PUB-08 | Phase 2 | Complete |
 | PUB-09 | Phase 2 | Complete |
-| ADMIN-01 | Phase 2 | Complete |
+| ADMIN-01 | Phase 6 | Pending |
 | ADMIN-02 | Phase 2 | Complete |
 | ADMIN-03 | Phase 2 | Complete |
 | ADMIN-04 | Phase 2 | Complete |
