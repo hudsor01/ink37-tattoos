@@ -12,6 +12,7 @@ import {
   Settings,
   FileText,
   LogOut,
+  CreditCard,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -32,6 +33,7 @@ const navItems = [
   { label: 'Customers', href: '/dashboard/customers', icon: Users },
   { label: 'Appointments', href: '/dashboard/appointments', icon: Calendar },
   { label: 'Sessions', href: '/dashboard/sessions', icon: Clock },
+  { label: 'Payments', href: '/dashboard/payments', icon: CreditCard },
   { label: 'Media', href: '/dashboard/media', icon: Image },
   { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
