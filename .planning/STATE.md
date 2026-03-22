@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 4 plans checked — 2 Nyquist blockers, fix then execute
-last_updated: "2026-03-22T04:07:29.228Z"
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-03-22T04:22:27.670Z"
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 15
-  completed_plans: 13
+  completed_plans: 14
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** The tattoo artist manages their entire business from one app while clients get a polished experience for discovering, booking, paying, and tracking their tattoo journey.
-**Current focus:** Phase 04 — client portal (auto-advancing)
+**Current focus:** Phase 04 — client-portal
 
 ## Current Position
 
-Phase: 03 (payments) — COMPLETE
-Next: Phase 04 (client portal)
+Phase: 04 (client-portal) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -41,6 +41,7 @@ Next: Phase 04 (client portal)
 | 01-foundation | 3 | 16 min | 5 min |
 | 02-public-site-admin-dashboard | 7 | 40 min | 6 min |
 | 03-payments | 3 | 15 min | 5 min |
+| Phase 04 P01 | 8min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -66,6 +67,8 @@ Recent decisions affecting current work:
 - [02-gap]: SEC-01 uses Next.js built-in CSRF (origin verification), not double-submit cookies
 - [02-gap]: SEC-06 accepts brief downtime for DNS cutover deployment
 - [Phase 03-payments]: Stripe API version pinned to 2025-12-18.acacia; both Stripe env vars required (fail-fast)
+- [Phase 04]: Portal DAL uses requirePortalAuth (internal, not exported) returning {session, customer} for scoped queries
+- [Phase 04]: Server actions return {success, error?} instead of throwing for portal mutations
 
 ### Pending Todos
 
@@ -79,6 +82,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-22T04:07:29.226Z
-Stopped at: Phase 4 plans checked — 2 Nyquist blockers, fix then execute
-Resume file: .planning/phases/04-client-portal/04-01-PLAN.md
+Last session: 2026-03-22T04:22:27.667Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: None

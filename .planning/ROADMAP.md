@@ -86,7 +86,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Schema migration, auth hooks, middleware, portal DAL, server actions, login/register pages
+- [x] 04-01-PLAN.md — Schema migration, auth hooks, middleware, portal DAL, server actions, login/register pages
 - [ ] 04-02-PLAN.md — Portal layout with tab nav, overview/appointments/tattoos/payments pages, consent form
 
 ### Phase 5: Online Store
