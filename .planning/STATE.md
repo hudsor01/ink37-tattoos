@@ -109,4 +109,4 @@ None yet.
 
 Last session: 2026-03-23T02:50:19.740Z
 Stopped at: Phase 8 context gathered
-Resume file: .planning/phases/08-prisma-to-drizzle-orm-migration-with-verification-audit-and-cleanup/08-CONTEXT.md
+Resume file: .planning/phases/08-drizzle-migration/08-CONTEXT.md

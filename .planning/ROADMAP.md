@@ -152,3 +152,13 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 5. Online Store | 5/5 | Complete   | 2026-03-22 |
 | 6. UI Stub Closure + UX Wiring | 0/0 | Not started | - |
 | 7. Store Integration Fixes | 0/1 | Not started | - |
+
+### Phase 8: Drizzle Migration
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 7
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 8 to break down)
