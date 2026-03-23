@@ -19,6 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: Online Store** - E-commerce for merchandise, prints, and gift cards (completed 2026-03-22)
 - [ ] **Phase 6: UI Stub Closure + UX Wiring** - Close Phase 2 UI stubs and fix cross-phase UX gaps (gap closure)
 - [ ] **Phase 7: Store Integration Fixes** - Fix store download URLs, checkout guards, and gift card email (gap closure)
+- [ ] **Phase 8: Drizzle Migration** - Replace Prisma ORM with Drizzle ORM, verify all functionality, clean up artifacts
 
 ## Phase Details
 
@@ -138,10 +139,30 @@ Plans:
 Plans:
 - [x] 07-01-PLAN.md — Fix download URLs, stripePriceId guard, and gift card purchaser confirmation email
 
+### Phase 8: Drizzle Migration
+**Goal:** Replace Prisma ORM with Drizzle ORM across the entire codebase -- schema, connection, DAL, auth adapter, server actions, API routes, and tests. Verify all existing functionality still works via build + type-check + existing test suite. Clean up all Prisma artifacts and update project documentation. The database (Neon PostgreSQL) stays unchanged -- only the ORM layer is swapped.
+**Depends on:** Phase 7
+**Requirements**: DRZ-01, DRZ-02, DRZ-03, DRZ-04, DRZ-05, DRZ-06, DRZ-07, DRZ-08, DRZ-09, DRZ-10, DRZ-11, DRZ-12, DRZ-13, DRZ-14
+**Success Criteria** (what must be TRUE):
+  1. Drizzle ORM schema.ts matches the live Neon database (drizzle-kit generate produces empty diff)
+  2. All 82 Prisma queries across 20 files are rewritten to Drizzle syntax
+  3. Better Auth uses raw pg.Pool with Drizzle queries in databaseHooks
+  4. `next build` completes with zero errors
+  5. `npm run test` passes all existing tests
+  6. `npm audit --audit-level=high` exits 0 (zero high/critical vulnerabilities)
+  7. Zero Prisma references remain in src/ or package.json
+  8. CLAUDE.md and PROJECT.md document Drizzle as the ORM
+**Plans**: 3 plans
+
+Plans:
+- [ ] 08-01-PLAN.md — Install Drizzle, introspect DB, build schema.ts, create db client, convert Better Auth
+- [ ] 08-02-PLAN.md — Rewrite all 82 Prisma queries across DAL, actions, routes, and tests to Drizzle
+- [ ] 08-03-PLAN.md — Delete Prisma artifacts, update scripts, verify build/test/audit, update documentation
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -152,13 +173,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 5. Online Store | 5/5 | Complete   | 2026-03-22 |
 | 6. UI Stub Closure + UX Wiring | 0/0 | Not started | - |
 | 7. Store Integration Fixes | 0/1 | Not started | - |
-
-### Phase 8: Drizzle Migration
-
-**Goal:** [To be planned]
-**Requirements**: TBD
-**Depends on:** Phase 7
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (run /gsd:plan-phase 8 to break down)
+| 8. Drizzle Migration | 0/3 | Not started | - |
