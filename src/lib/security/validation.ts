@@ -204,7 +204,7 @@ export type UpdateProductData = z.infer<typeof UpdateProductSchema>;
 
 export const PurchaseGiftCardSchema = z.object({
   denomination: z.enum(['25', '50', '100', '200', '500'], {
-    required_error: 'Please select a denomination',
+    message: 'Please select a denomination',
   }),
   recipientName: z.string().min(1, 'Recipient name is required').max(100),
   recipientEmail: z.string().email('Invalid recipient email'),
