@@ -1,9 +1,10 @@
 import 'server-only';
 import { cache } from 'react';
 import { db } from '@/lib/db';
-import { Prisma } from '@/generated/prisma/client';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { eq, and, desc } from 'drizzle-orm';
+import * as schema from '@/lib/db/schema';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
 
@@ -28,18 +29,14 @@ interface AuditEntry {
 
 export async function logAudit(entry: AuditEntry) {
   try {
-    await db.auditLog.create({
-      data: {
-        userId: entry.userId,
-        action: entry.action,
-        resource: entry.resource,
-        resourceId: entry.resourceId ?? null,
-        ip: entry.ip,
-        userAgent: entry.userAgent,
-        metadata: entry.metadata
-          ? (entry.metadata as Prisma.InputJsonValue)
-          : Prisma.DbNull,
-      },
+    await db.insert(schema.auditLog).values({
+      userId: entry.userId,
+      action: entry.action,
+      resource: entry.resource,
+      resourceId: entry.resourceId ?? null,
+      ip: entry.ip,
+      userAgent: entry.userAgent,
+      metadata: entry.metadata ?? null,
     });
   } catch (error) {
     console.error('Audit log write failed:', error);
@@ -55,16 +52,18 @@ export const getAuditLogs = cache(
     offset?: number;
   }) => {
     await requireStaffRole();
-    return db.auditLog.findMany({
-      where: {
-        ...(filters?.userId && { userId: filters.userId }),
-        ...(filters?.resource && { resource: filters.resource }),
-        ...(filters?.action && { action: filters.action }),
-      },
-      orderBy: { timestamp: 'desc' },
-      take: filters?.limit ?? 50,
-      skip: filters?.offset ?? 0,
-      include: { user: { select: { name: true, email: true } } },
+
+    const conditions = [];
+    if (filters?.userId) conditions.push(eq(schema.auditLog.userId, filters.userId));
+    if (filters?.resource) conditions.push(eq(schema.auditLog.resource, filters.resource));
+    if (filters?.action) conditions.push(eq(schema.auditLog.action, filters.action));
+
+    return db.query.auditLog.findMany({
+      where: conditions.length > 0 ? and(...conditions) : undefined,
+      orderBy: [desc(schema.auditLog.timestamp)],
+      limit: filters?.limit ?? 50,
+      offset: filters?.offset ?? 0,
+      with: { user: { columns: { name: true, email: true } } },
     });
   }
 );

@@ -1,5 +1,7 @@
 import 'server-only';
 import { db } from '@/lib/db';
+import { eq, and, gte, sql } from 'drizzle-orm';
+import * as schema from '@/lib/db/schema';
 import { generateGiftCardCode } from '@/lib/store-helpers';
 
 /**
@@ -15,19 +17,18 @@ export async function createGiftCard(data: {
   orderId?: string;
 }) {
   const code = generateGiftCardCode();
-  return db.giftCard.create({
-    data: {
-      code,
-      initialBalance: data.initialBalance,
-      balance: data.initialBalance,
-      purchaserEmail: data.purchaserEmail,
-      recipientEmail: data.recipientEmail,
-      recipientName: data.recipientName,
-      senderName: data.senderName,
-      personalMessage: data.personalMessage,
-      orderId: data.orderId,
-    },
-  });
+  const [result] = await db.insert(schema.giftCard).values({
+    code,
+    initialBalance: data.initialBalance,
+    balance: data.initialBalance,
+    purchaserEmail: data.purchaserEmail,
+    recipientEmail: data.recipientEmail,
+    recipientName: data.recipientName,
+    senderName: data.senderName,
+    personalMessage: data.personalMessage,
+    orderId: data.orderId,
+  }).returning();
+  return result;
 }
 
 /**
@@ -35,7 +36,9 @@ export async function createGiftCard(data: {
  * No auth -- called from checkout actions.
  */
 export async function validateGiftCard(code: string): Promise<{ valid: boolean; balance: number } | null> {
-  const giftCard = await db.giftCard.findUnique({ where: { code } });
+  const giftCard = await db.query.giftCard.findFirst({
+    where: eq(schema.giftCard.code, code),
+  });
   if (!giftCard) return null;
 
   return {
@@ -46,41 +49,36 @@ export async function validateGiftCard(code: string): Promise<{ valid: boolean; 
 
 /**
  * Redeem a gift card by atomically decrementing its balance.
- * Uses Prisma conditional update to prevent over-redemption.
+ * Uses conditional update to prevent over-redemption.
  * No auth -- called from webhook handler.
  */
 export async function redeemGiftCard(data: {
   code: string;
   amount: number;
 }): Promise<{ success: boolean; remainingBalance?: number; error?: string }> {
-  try {
-    const updated = await db.giftCard.update({
-      where: {
-        code: data.code,
-        balance: { gte: data.amount },
-      },
-      data: {
-        balance: { decrement: data.amount },
-      },
-    });
-    return { success: true, remainingBalance: Number(updated.balance) };
-  } catch (error: unknown) {
-    // Prisma P2025: record not found (balance insufficient or code invalid)
-    if (
-      error &&
-      typeof error === 'object' &&
-      'code' in error &&
-      (error as { code: string }).code === 'P2025'
-    ) {
-      return { success: false, error: 'Insufficient balance' };
-    }
-    throw error;
+  // Drizzle update returns empty array if no rows match the where condition
+  const [updated] = await db.update(schema.giftCard)
+    .set({
+      balance: sql`${schema.giftCard.balance} - ${data.amount}`,
+    })
+    .where(and(
+      eq(schema.giftCard.code, data.code),
+      gte(schema.giftCard.balance, data.amount),
+    ))
+    .returning();
+
+  if (!updated) {
+    return { success: false, error: 'Insufficient balance' };
   }
+
+  return { success: true, remainingBalance: Number(updated.balance) };
 }
 
 /**
  * Get a gift card by its code. No auth -- called from validation.
  */
 export async function getGiftCardByCode(code: string) {
-  return db.giftCard.findUnique({ where: { code } });
+  return db.query.giftCard.findFirst({
+    where: eq(schema.giftCard.code, code),
+  });
 }
