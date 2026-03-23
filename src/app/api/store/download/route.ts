@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { eq, sql } from 'drizzle-orm';
+import * as schema from '@/lib/db/schema';
 import { env } from '@/lib/env';
 
 export async function GET(request: NextRequest) {
@@ -9,22 +11,22 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Missing token' }, { status: 400 });
   }
 
-  // Look up the download token
-  const downloadToken = await db.downloadToken.findUnique({
-    where: { token },
-    include: {
+  // Look up the download token with related order item and product
+  const downloadTokenRecord = await db.query.downloadToken.findFirst({
+    where: eq(schema.downloadToken.token, token),
+    with: {
       orderItem: {
-        include: { product: true },
+        with: { product: true },
       },
     },
   });
 
-  if (!downloadToken) {
+  if (!downloadTokenRecord) {
     return NextResponse.json({ error: 'Invalid token' }, { status: 404 });
   }
 
   // Check expiration
-  if (downloadToken.expiresAt < new Date()) {
+  if (downloadTokenRecord.expiresAt < new Date()) {
     return NextResponse.json(
       { error: 'Download link expired', heading: 'Download Link Expired', body: 'This download link has expired. Check your email for the original order confirmation to request a new link.' },
       { status: 410 }
@@ -32,14 +34,14 @@ export async function GET(request: NextRequest) {
   }
 
   // Check download limit
-  if (downloadToken.downloadCount >= downloadToken.maxDownloads) {
+  if (downloadTokenRecord.downloadCount >= downloadTokenRecord.maxDownloads) {
     return NextResponse.json(
       { error: 'Download limit reached' },
       { status: 410 }
     );
   }
 
-  const product = downloadToken.orderItem.product;
+  const product = downloadTokenRecord.orderItem.product;
   const pathname = product.digitalFilePathname;
 
   if (!pathname) {
@@ -70,10 +72,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Increment download count
-    await db.downloadToken.update({
-      where: { token },
-      data: { downloadCount: { increment: 1 } },
-    });
+    await db.update(schema.downloadToken)
+      .set({ downloadCount: sql`${schema.downloadToken.downloadCount} + 1` })
+      .where(eq(schema.downloadToken.token, token));
 
     const fileName = product.digitalFileName ?? 'print.png';
     const blob = await response.blob();

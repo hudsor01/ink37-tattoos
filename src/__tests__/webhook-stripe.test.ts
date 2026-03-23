@@ -28,23 +28,50 @@ vi.mock('@/lib/stripe', () => ({
   stripeCentsToDollars: (cents: number) => cents / 100,
 }));
 
-// Mock the db module
+// Mock the db module with Drizzle API shape
+const mockFindFirst = vi.fn();
+const mockInsertValues = vi.fn().mockReturnThis();
+const mockInsertReturning = vi.fn();
+const mockInsert = vi.fn(() => ({
+  values: (...args: unknown[]) => {
+    mockInsertValues(...args);
+    return { returning: mockInsertReturning };
+  },
+}));
+
 vi.mock('@/lib/db', () => ({
   db: {
-    stripeEvent: {
-      findUnique: vi.fn(),
-      create: vi.fn(),
+    query: {
+      stripeEvent: {
+        findFirst: mockFindFirst,
+      },
+      payment: {
+        findFirst: vi.fn(),
+      },
     },
-    payment: {
-      updateMany: vi.fn(),
-      findFirst: vi.fn(),
-      update: vi.fn(),
-    },
-    tattooSession: {
-      update: vi.fn(),
-    },
-    $transaction: vi.fn((ops: unknown[]) => Promise.resolve(ops)),
+    insert: mockInsert,
+    update: vi.fn(() => ({
+      set: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+    })),
+    transaction: vi.fn((fn: (tx: unknown) => Promise<unknown>) => {
+      const tx = {
+        update: vi.fn(() => ({
+          set: vi.fn().mockReturnThis(),
+          where: vi.fn().mockResolvedValue(undefined),
+        })),
+      };
+      return fn(tx);
+    }),
   },
+}));
+
+// Mock the schema module (needed for Drizzle where clause references)
+vi.mock('@/lib/db/schema', () => ({
+  stripeEvent: { stripeEventId: 'stripeEventId', id: 'id', type: 'type', processedAt: 'processedAt' },
+  payment: { id: 'id', stripeCheckoutSessionId: 'stripeCheckoutSessionId', stripePaymentIntentId: 'stripePaymentIntentId', status: 'status', tattooSessionId: 'tattooSessionId', completedAt: 'completedAt', receiptUrl: 'receiptUrl' },
+  tattooSession: { id: 'id', paidAmount: 'paidAmount' },
+  order: { id: 'id', stripeCheckoutSessionId: 'stripeCheckoutSessionId', status: 'status' },
 }));
 
 import { stripe } from '@/lib/stripe';
@@ -99,12 +126,12 @@ describe('Stripe Webhook Security', () => {
     };
 
     vi.mocked(stripe.webhooks.constructEvent).mockReturnValue(mockEvent as never);
-    vi.mocked(db.stripeEvent.findUnique).mockResolvedValue({
+    mockFindFirst.mockResolvedValue({
       id: '1',
       stripeEventId: 'evt_123',
       type: 'checkout.session.completed',
       processedAt: new Date(),
-    } as never);
+    });
 
     const { POST } = await import('@/app/api/webhooks/stripe/route');
 
@@ -118,7 +145,7 @@ describe('Stripe Webhook Security', () => {
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.received).toBe(true);
-    // Should not create a new event record since it was already processed
-    expect(db.stripeEvent.create).not.toHaveBeenCalled();
+    // Should not insert a new event record since it was already processed
+    expect(mockInsert).not.toHaveBeenCalled();
   });
 });
