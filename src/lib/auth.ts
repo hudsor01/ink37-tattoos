@@ -1,13 +1,17 @@
 import 'server-only';
 import { betterAuth } from 'better-auth';
 import { nextCookies } from 'better-auth/next-js';
-import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { admin } from 'better-auth/plugins';
+import { Pool } from 'pg';
 import { db } from '@/lib/db';
+import * as schema from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 import { env } from '@/lib/env';
 
+const authPool = new Pool({ connectionString: process.env.DATABASE_URL });
+
 export const auth = betterAuth({
-  database: prismaAdapter(db, { provider: 'postgresql' }),
+  database: authPool,
   plugins: [
     nextCookies(),
     admin({ defaultRole: 'user' }),
@@ -19,27 +23,25 @@ export const auth = betterAuth({
         after: async (user) => {
           try {
             // D-01: Auto-link by email match
-            const existingCustomer = await db.customer.findUnique({
-              where: { email: user.email },
-            });
-            if (existingCustomer && !existingCustomer.userId) {
-              await db.customer.update({
-                where: { id: existingCustomer.id },
-                data: { userId: user.id },
-              });
-            } else if (!existingCustomer) {
+            const existing = await db.select()
+              .from(schema.customer)
+              .where(eq(schema.customer.email, user.email))
+              .limit(1);
+            if (existing[0] && !existing[0].userId) {
+              await db.update(schema.customer)
+                .set({ userId: user.id })
+                .where(eq(schema.customer.id, existing[0].id));
+            } else if (!existing[0]) {
               // D-02: No match -- create new Customer record
               const [firstName, ...rest] = (user.name || 'Client').split(' ');
-              await db.customer.create({
-                data: {
-                  firstName,
-                  lastName: rest.join(' ') || '',
-                  email: user.email,
-                  userId: user.id,
-                },
+              await db.insert(schema.customer).values({
+                firstName,
+                lastName: rest.join(' ') || '',
+                email: user.email,
+                userId: user.id,
               });
             }
-            // If existingCustomer already has a userId, do nothing (admin resolves)
+            // If existing customer already has a userId, do nothing (admin resolves)
           } catch (error) {
             // Never fail registration due to customer linking errors
             console.error('[Auth Hook] Customer auto-link failed:', error);
@@ -64,7 +66,7 @@ export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
   advanced: {
     database: {
-      generateId: false, // Use Prisma's default UUID generation
+      generateId: false, // Use database UUID generation
     },
   },
 });
