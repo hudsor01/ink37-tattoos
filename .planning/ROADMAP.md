@@ -155,7 +155,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — Install Drizzle, introspect DB, build schema.ts, create db client, convert Better Auth
+- [x] 08-01-PLAN.md — Install Drizzle, introspect DB, build schema.ts, create db client, convert Better Auth
 - [ ] 08-02-PLAN.md — Rewrite all 82 Prisma queries across DAL, actions, routes, and tests to Drizzle
 - [ ] 08-03-PLAN.md — Delete Prisma artifacts, update scripts, verify build/test/audit, update documentation
 
@@ -173,4 +173,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 5. Online Store | 5/5 | Complete   | 2026-03-22 |
 | 6. UI Stub Closure + UX Wiring | 0/0 | Not started | - |
 | 7. Store Integration Fixes | 0/1 | Not started | - |
-| 8. Drizzle Migration | 0/3 | Not started | - |
+| 8. Drizzle Migration | 1/3 | In Progress|  |

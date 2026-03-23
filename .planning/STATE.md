@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 8 context gathered
-last_updated: "2026-03-23T02:50:19.744Z"
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-03-23T03:49:27.611Z"
 progress:
   total_phases: 8
   completed_phases: 7
-  total_plans: 22
-  completed_plans: 22
+  total_plans: 25
+  completed_plans: 23
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** The tattoo artist manages their entire business from one app while clients get a polished experience for discovering, booking, paying, and tracking their tattoo journey.
-**Current focus:** Phase 07 — store-integration-fixes
+**Current focus:** Phase 08 — drizzle-migration
 
 ## Current Position
 
-Phase: 07
-Plan: Not started
+Phase: 08 (drizzle-migration) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -49,6 +49,7 @@ Plan: Not started
 | Phase 05 P04 | 8min | 2 tasks | 9 files |
 | Phase 06 P01 | 3min | 2 tasks | 2 files |
 | Phase 07 P01 | 9min | 2 tasks | 5 files |
+| Phase 08 P01 | 7min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,9 @@ Recent decisions affecting current work:
 - [Phase 07]: Download URLs use per-item tokens from downloadTokens relation, matching checkout success page pattern
 - [Phase 07]: stripePriceId guard returns user-friendly error before Stripe line item construction
 - [Phase 07]: Gift card purchaser confirmation is a separate email function/template from recipient delivery
+- [Phase 08]: Single neon-serverless driver for Drizzle (not dual-driver) for simplicity and transaction support
+- [Phase 08]: Better Auth uses raw pg.Pool (not drizzleAdapter) to decouple auth from Drizzle version
+- [Phase 08]: All 17 Decimal columns use numeric mode:number to prevent silent string-number conversion bugs
 
 ### Pending Todos
 
@@ -107,6 +111,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-23T02:50:19.740Z
-Stopped at: Phase 8 context gathered
-Resume file: .planning/phases/08-drizzle-migration/08-CONTEXT.md
+Last session: 2026-03-23T03:49:27.608Z
+Stopped at: Completed 08-01-PLAN.md
+Resume file: None
