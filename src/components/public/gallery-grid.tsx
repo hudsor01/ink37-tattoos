@@ -15,7 +15,7 @@ interface Design {
   designType: string | null;
   size: string | null;
   style: string | null;
-  tags: string[];
+  tags: string[] | null;
   popularity: number;
   createdAt: Date;
 }
@@ -46,7 +46,7 @@ function GalleryClientInner({ initialDesigns }: GalleryClientProps) {
 
       // Placement filter: checks tags array
       if (activeFilters.placement) {
-        const placementMatch = design.tags.some(
+        const placementMatch = (design.tags ?? []).some(
           (tag) => tag.toLowerCase() === activeFilters.placement!.toLowerCase()
         );
         if (!placementMatch) return false;

@@ -3,6 +3,8 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { eq, and, desc } from 'drizzle-orm';
+import * as schema from '@/lib/db/schema';
 import type { CreateSessionData } from '@/lib/security/validation';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
@@ -19,17 +21,21 @@ async function requireStaffRole() {
 export const getSessions = cache(
   async (filters?: { status?: string; limit?: number; offset?: number }) => {
     await requireStaffRole();
-    return db.tattooSession.findMany({
-      where: {
-        ...(filters?.status && { status: filters.status as 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW' }),
-      },
-      orderBy: { appointmentDate: 'desc' },
-      take: filters?.limit ?? 50,
-      skip: filters?.offset ?? 0,
-      include: {
-        customer: { select: { firstName: true, lastName: true, email: true } },
-        artist: { select: { name: true } },
-        appointment: { select: { id: true, type: true, status: true } },
+
+    const conditions = [];
+    if (filters?.status) {
+      conditions.push(eq(schema.tattooSession.status, filters.status as 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW'));
+    }
+
+    return db.query.tattooSession.findMany({
+      where: conditions.length > 0 ? and(...conditions) : undefined,
+      orderBy: [desc(schema.tattooSession.appointmentDate)],
+      limit: filters?.limit ?? 50,
+      offset: filters?.offset ?? 0,
+      with: {
+        customer: { columns: { firstName: true, lastName: true, email: true } },
+        artist: { columns: { name: true } },
+        appointment: { columns: { id: true, type: true, status: true } },
       },
     });
   }
@@ -37,9 +43,9 @@ export const getSessions = cache(
 
 export const getSessionById = cache(async (id: string) => {
   await requireStaffRole();
-  return db.tattooSession.findUnique({
-    where: { id },
-    include: {
+  return db.query.tattooSession.findFirst({
+    where: eq(schema.tattooSession.id, id),
+    with: {
       customer: true,
       artist: true,
       appointment: true,
@@ -49,26 +55,30 @@ export const getSessionById = cache(async (id: string) => {
 
 export async function createSession(data: CreateSessionData) {
   await requireStaffRole();
-  return db.tattooSession.create({
-    data: {
-      ...data,
-      appointmentDate: new Date(data.appointmentDate),
-    },
-  });
+  const [result] = await db.insert(schema.tattooSession).values({
+    ...data,
+    appointmentDate: new Date(data.appointmentDate),
+  }).returning();
+  return result;
 }
 
 export async function updateSession(id: string, data: Partial<CreateSessionData>) {
   await requireStaffRole();
-  return db.tattooSession.update({
-    where: { id },
-    data: {
-      ...data,
-      ...(data.appointmentDate && { appointmentDate: new Date(data.appointmentDate) }),
-    },
-  });
+  const setData: Record<string, unknown> = { ...data };
+  if (data.appointmentDate !== undefined) {
+    setData.appointmentDate = new Date(data.appointmentDate);
+  }
+  const [result] = await db.update(schema.tattooSession)
+    .set(setData)
+    .where(eq(schema.tattooSession.id, id))
+    .returning();
+  return result;
 }
 
 export async function deleteSession(id: string) {
   await requireStaffRole();
-  return db.tattooSession.delete({ where: { id } });
+  const [result] = await db.delete(schema.tattooSession)
+    .where(eq(schema.tattooSession.id, id))
+    .returning();
+  return result;
 }

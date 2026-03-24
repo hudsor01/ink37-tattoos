@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { stripe, stripeCentsToDollars } from '@/lib/stripe';
 import { db } from '@/lib/db';
+import { eq, and, or, sql } from 'drizzle-orm';
+import * as schema from '@/lib/db/schema';
 import type Stripe from 'stripe';
 import { getOrderByCheckoutSessionId } from '@/lib/dal/orders';
 import { createGiftCard, redeemGiftCard } from '@/lib/dal/gift-cards';
@@ -32,8 +34,8 @@ export async function POST(request: Request) {
   }
 
   // D-12: Idempotency -- check if event already processed
-  const existingEvent = await db.stripeEvent.findUnique({
-    where: { stripeEventId: event.id },
+  const existingEvent = await db.query.stripeEvent.findFirst({
+    where: eq(schema.stripeEvent.stripeEventId, event.id),
   });
   if (existingEvent) {
     return NextResponse.json({ received: true });
@@ -70,12 +72,10 @@ export async function POST(request: Request) {
     }
 
     // Mark event as processed (D-12)
-    await db.stripeEvent.create({
-      data: {
-        stripeEventId: event.id,
-        type: event.type,
-        processedAt: new Date(),
-      },
+    await db.insert(schema.stripeEvent).values({
+      stripeEventId: event.id,
+      type: event.type,
+      processedAt: new Date(),
     });
   } catch (err) {
     console.error(`Webhook handler error for ${event.type}:`, err);
@@ -123,23 +123,22 @@ async function handleCheckoutCompleted(
   const amountInDollars = stripeCentsToDollars(session.amount_total ?? 0);
 
   // D-15: Atomic transaction -- update Payment + TattooSession
-  await db.$transaction([
-    db.payment.updateMany({
-      where: { stripeCheckoutSessionId: session.id },
-      data: {
+  await db.transaction(async (tx) => {
+    await tx.update(schema.payment)
+      .set({
         status: 'COMPLETED',
         stripePaymentIntentId: stripePaymentIntentId ?? null,
         receiptUrl,
         completedAt: new Date(),
-      },
-    }),
-    db.tattooSession.update({
-      where: { id: tattooSessionId },
-      data: {
-        paidAmount: { increment: amountInDollars },
-      },
-    }),
-  ]);
+      })
+      .where(eq(schema.payment.stripeCheckoutSessionId, session.id));
+
+    await tx.update(schema.tattooSession)
+      .set({
+        paidAmount: sql`${schema.tattooSession.paidAmount} + ${amountInDollars}`,
+      })
+      .where(eq(schema.tattooSession.id, tattooSessionId));
+  });
 
   // D-09: Redeem gift card if used in this tattoo payment
   const giftCardCode = session.metadata?.giftCardCode;
@@ -170,9 +169,8 @@ async function handleStoreCheckoutCompleted(
 
   // Update order to PAID with shipping and email details
   const shippingDetails = session.collected_information?.shipping_details;
-  await db.order.update({
-    where: { id: orderId },
-    data: {
+  await db.update(schema.order)
+    .set({
       status: 'PAID',
       stripePaymentIntentId: stripePaymentIntentId ?? null,
       email: session.customer_details?.email ?? '',
@@ -186,8 +184,8 @@ async function handleStoreCheckoutCompleted(
       }),
       shippingAmount: stripeCentsToDollars(session.total_details?.amount_shipping ?? 0),
       total: stripeCentsToDollars(session.amount_total ?? 0),
-    },
-  });
+    })
+    .where(eq(schema.order.id, orderId));
 
   // Redeem gift card if used
   const giftCardCode = session.metadata?.giftCardCode;
@@ -294,21 +292,20 @@ async function handleGiftCardCheckoutCompleted(
 async function handlePaymentSucceeded(
   paymentIntent: Stripe.PaymentIntent
 ) {
-  const existingPayment = await db.payment.findFirst({
-    where: { stripePaymentIntentId: paymentIntent.id },
+  const existingPayment = await db.query.payment.findFirst({
+    where: eq(schema.payment.stripePaymentIntentId, paymentIntent.id),
   });
 
   if (!existingPayment || existingPayment.status === 'COMPLETED') {
     return; // Already handled or not our payment
   }
 
-  await db.payment.update({
-    where: { id: existingPayment.id },
-    data: {
+  await db.update(schema.payment)
+    .set({
       status: 'COMPLETED',
       completedAt: new Date(),
-    },
-  });
+    })
+    .where(eq(schema.payment.id, existingPayment.id));
 }
 
 /**
@@ -322,19 +319,18 @@ async function handlePaymentFailed(
 
   if (!tattooSessionId) return;
 
-  // Find by checkout session ID via metadata, or by payment intent ID
-  await db.payment.updateMany({
-    where: {
-      OR: [
-        { stripePaymentIntentId: paymentIntent.id },
-        {
-          tattooSessionId,
-          status: 'PENDING',
-        },
-      ],
-    },
-    data: { status: 'FAILED' },
-  });
+  // Find by payment intent ID, or by tattoo session with pending status
+  await db.update(schema.payment)
+    .set({ status: 'FAILED' })
+    .where(
+      or(
+        eq(schema.payment.stripePaymentIntentId, paymentIntent.id),
+        and(
+          eq(schema.payment.tattooSessionId, tattooSessionId),
+          eq(schema.payment.status, 'PENDING'),
+        ),
+      )
+    );
 }
 
 /**
@@ -349,24 +345,23 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
       ? charge.payment_intent
       : charge.payment_intent.id;
 
-  const payment = await db.payment.findFirst({
-    where: { stripePaymentIntentId: paymentIntentId },
+  const payment = await db.query.payment.findFirst({
+    where: eq(schema.payment.stripePaymentIntentId, paymentIntentId),
   });
 
   if (!payment) return;
 
   const refundedDollars = stripeCentsToDollars(charge.amount_refunded);
 
-  await db.$transaction([
-    db.payment.update({
-      where: { id: payment.id },
-      data: { status: 'REFUNDED' },
-    }),
-    db.tattooSession.update({
-      where: { id: payment.tattooSessionId },
-      data: {
-        paidAmount: { decrement: refundedDollars },
-      },
-    }),
-  ]);
+  await db.transaction(async (tx) => {
+    await tx.update(schema.payment)
+      .set({ status: 'REFUNDED' })
+      .where(eq(schema.payment.id, payment.id));
+
+    await tx.update(schema.tattooSession)
+      .set({
+        paidAmount: sql`${schema.tattooSession.paidAmount} - ${refundedDollars}`,
+      })
+      .where(eq(schema.tattooSession.id, payment.tattooSessionId));
+  });
 }

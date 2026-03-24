@@ -4,22 +4,19 @@ import { ContactFormSchema } from '@/lib/security/validation';
 // Mock server-only module
 vi.mock('server-only', () => ({}));
 
-// Mock the db module
-vi.mock('@/lib/db', () => ({
-  db: {
-    contact: {
-      create: vi.fn().mockResolvedValue({
-        id: 'test-id',
-        name: 'John Doe',
-        email: 'john@example.com',
-        message: 'Hello',
-        status: 'NEW',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }),
-      findMany: vi.fn().mockResolvedValue([]),
-    },
-  },
+// Mock the DAL contacts module (Drizzle-based)
+const mockCreateContact = vi.fn().mockResolvedValue({
+  id: 'test-id',
+  name: 'John Doe',
+  email: 'john@example.com',
+  message: 'Hello',
+  status: 'NEW',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+});
+
+vi.mock('@/lib/dal/contacts', () => ({
+  createContact: (...args: unknown[]) => mockCreateContact(...args),
 }));
 
 // Mock the email module
@@ -110,8 +107,7 @@ describe('submitContactForm Server Action', () => {
     const rateLimiterMod = await import('@/lib/security/rate-limiter');
     vi.mocked(rateLimiterMod.rateLimit).mockReturnValue(true);
 
-    const dbMod = await import('@/lib/db');
-    vi.mocked(dbMod.db.contact.create).mockResolvedValue({
+    mockCreateContact.mockResolvedValue({
       id: 'test-id',
       name: 'John Doe',
       email: 'john@example.com',
@@ -119,7 +115,7 @@ describe('submitContactForm Server Action', () => {
       status: 'NEW',
       createdAt: new Date(),
       updatedAt: new Date(),
-    } as any);
+    });
 
     const emailMod = await import('@/lib/email/resend');
     vi.mocked(emailMod.sendContactNotification).mockResolvedValue({
@@ -227,10 +223,8 @@ describe('submitContactForm Server Action', () => {
     const result = await submitContactForm(formData);
     expect(result.success).toBe(true);
 
-    const { db } = await import('@/lib/db');
-    expect(db.contact.create).toHaveBeenCalled();
-    const callArgs = vi.mocked(db.contact.create).mock.calls[0][0];
-    expect(callArgs.data).toMatchObject({
+    expect(mockCreateContact).toHaveBeenCalled();
+    expect(mockCreateContact).toHaveBeenCalledWith({
       name: 'John Doe',
       email: 'john@example.com',
       phone: '555-1234',

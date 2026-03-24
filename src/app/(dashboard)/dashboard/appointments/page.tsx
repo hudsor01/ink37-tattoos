@@ -5,7 +5,7 @@ export default async function AppointmentsPage() {
   const appointments = await getAppointments();
 
   // Serialize dates for client component
-  const serialized = appointments.map((a) => ({
+  const serialized = appointments.map((a: (typeof appointments)[number]) => ({
     ...a,
     scheduledDate: a.scheduledDate.toISOString(),
     createdAt: a.createdAt.toISOString(),

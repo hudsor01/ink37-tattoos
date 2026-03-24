@@ -3,6 +3,8 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { desc } from 'drizzle-orm';
+import * as schema from '@/lib/db/schema';
 
 const ADMIN_ROLES = ['admin', 'super_admin'];
 
@@ -17,8 +19,8 @@ async function requireAdminRole() {
 
 export const getUsers = cache(async () => {
   await requireAdminRole();
-  return db.user.findMany({
-    orderBy: { createdAt: 'desc' },
-    select: { id: true, name: true, email: true, role: true, banned: true, createdAt: true },
+  return db.query.user.findMany({
+    orderBy: [desc(schema.user.createdAt)],
+    columns: { id: true, name: true, email: true, role: true, banned: true, createdAt: true },
   });
 });

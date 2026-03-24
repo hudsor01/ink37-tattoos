@@ -3,6 +3,8 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { eq, desc } from 'drizzle-orm';
+import * as schema from '@/lib/db/schema';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
 
@@ -18,13 +20,13 @@ async function requireStaffRole() {
 export const getMediaItems = cache(
   async (filters?: { limit?: number; offset?: number }) => {
     await requireStaffRole();
-    return db.tattooDesign.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: filters?.limit ?? 50,
-      skip: filters?.offset ?? 0,
-      include: {
-        artist: { select: { name: true } },
-        customer: { select: { firstName: true, lastName: true } },
+    return db.query.tattooDesign.findMany({
+      orderBy: [desc(schema.tattooDesign.createdAt)],
+      limit: filters?.limit ?? 50,
+      offset: filters?.offset ?? 0,
+      with: {
+        artist: { columns: { name: true } },
+        customer: { columns: { firstName: true, lastName: true } },
       },
     });
   }
@@ -32,11 +34,11 @@ export const getMediaItems = cache(
 
 export const getMediaItemById = cache(async (id: string) => {
   await requireStaffRole();
-  return db.tattooDesign.findUnique({
-    where: { id },
-    include: {
-      artist: { select: { name: true } },
-      customer: { select: { firstName: true, lastName: true } },
+  return db.query.tattooDesign.findFirst({
+    where: eq(schema.tattooDesign.id, id),
+    with: {
+      artist: { columns: { name: true } },
+      customer: { columns: { firstName: true, lastName: true } },
     },
   });
 });
@@ -54,7 +56,8 @@ export async function createMediaItem(data: {
   description?: string;
 }) {
   await requireStaffRole();
-  return db.tattooDesign.create({ data });
+  const [result] = await db.insert(schema.tattooDesign).values(data).returning();
+  return result;
 }
 
 export async function updateMediaItem(
@@ -73,21 +76,26 @@ export async function updateMediaItem(
   }
 ) {
   await requireStaffRole();
-  return db.tattooDesign.update({
-    where: { id },
-    data,
-  });
+  const [result] = await db.update(schema.tattooDesign)
+    .set(data)
+    .where(eq(schema.tattooDesign.id, id))
+    .returning();
+  return result;
 }
 
 export async function deleteMediaItem(id: string) {
   await requireStaffRole();
-  return db.tattooDesign.delete({ where: { id } });
+  const [result] = await db.delete(schema.tattooDesign)
+    .where(eq(schema.tattooDesign.id, id))
+    .returning();
+  return result;
 }
 
 export async function togglePublicVisibility(id: string, isPublic: boolean) {
   await requireStaffRole();
-  return db.tattooDesign.update({
-    where: { id },
-    data: { isPublic },
-  });
+  const [result] = await db.update(schema.tattooDesign)
+    .set({ isPublic })
+    .where(eq(schema.tattooDesign.id, id))
+    .returning();
+  return result;
 }

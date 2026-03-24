@@ -3,6 +3,8 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { eq, asc } from 'drizzle-orm';
+import * as schema from '@/lib/db/schema';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
 const ADMIN_ROLES = ['admin', 'super_admin'];
@@ -27,17 +29,17 @@ async function requireAdminRole() {
 
 export const getSettings = cache(async (category?: string) => {
   await requireStaffRole();
-  return db.settings.findMany({
-    where: {
-      ...(category && { category }),
-    },
-    orderBy: { key: 'asc' },
+  return db.query.settings.findMany({
+    where: category ? eq(schema.settings.category, category) : undefined,
+    orderBy: [asc(schema.settings.key)],
   });
 });
 
 export const getSettingByKey = cache(async (key: string) => {
   await requireStaffRole();
-  return db.settings.findUnique({ where: { key } });
+  return db.query.settings.findFirst({
+    where: eq(schema.settings.key, key),
+  });
 });
 
 export async function upsertSetting(data: {
@@ -47,18 +49,18 @@ export async function upsertSetting(data: {
   description?: string;
 }) {
   await requireAdminRole();
-  return db.settings.upsert({
-    where: { key: data.key },
-    create: {
-      key: data.key,
+  const [result] = await db.insert(schema.settings).values({
+    key: data.key,
+    value: data.value as object,
+    category: data.category,
+    description: data.description,
+  }).onConflictDoUpdate({
+    target: schema.settings.key,
+    set: {
       value: data.value as object,
       category: data.category,
       description: data.description,
     },
-    update: {
-      value: data.value as object,
-      category: data.category,
-      description: data.description,
-    },
-  });
+  }).returning();
+  return result;
 }

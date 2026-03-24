@@ -1,6 +1,8 @@
 'use server';
 
 import { db } from '@/lib/db';
+import { eq, and } from 'drizzle-orm';
+import * as schema from '@/lib/db/schema';
 import { getCurrentSession } from '@/lib/auth';
 import { ConsentSignSchema, UpdatePortalProfileSchema } from '@/lib/security/validation';
 import { revalidatePath } from 'next/cache';
@@ -30,8 +32,8 @@ export async function signConsentAction(formData: FormData) {
   const validated = parseResult.data;
 
   // Verify the user has a linked Customer record
-  const customer = await db.customer.findUnique({
-    where: { userId: session.user.id },
+  const customer = await db.query.customer.findFirst({
+    where: eq(schema.customer.userId, session.user.id),
   });
 
   if (!customer) {
@@ -39,11 +41,11 @@ export async function signConsentAction(formData: FormData) {
   }
 
   // Find the tattoo session -- ownership check via customerId prevents IDOR
-  const tattooSession = await db.tattooSession.findFirst({
-    where: {
-      id: validated.sessionId,
-      customerId: customer.id,
-    },
+  const tattooSession = await db.query.tattooSession.findFirst({
+    where: and(
+      eq(schema.tattooSession.id, validated.sessionId),
+      eq(schema.tattooSession.customerId, customer.id),
+    ),
   });
 
   if (!tattooSession) {
@@ -56,14 +58,13 @@ export async function signConsentAction(formData: FormData) {
   }
 
   // Write the consent signature
-  await db.tattooSession.update({
-    where: { id: validated.sessionId },
-    data: {
+  await db.update(schema.tattooSession)
+    .set({
       consentSigned: true,
       consentSignedAt: new Date(),
       consentSignedBy: validated.signedName,
-    },
-  });
+    })
+    .where(eq(schema.tattooSession.id, validated.sessionId));
 
   revalidatePath('/portal/tattoos');
   return { success: true };
@@ -99,8 +100,8 @@ export async function updateProfileAction(formData: FormData) {
   const validated = parseResult.data;
 
   // Find customer by userId -- ownership guaranteed by session
-  const customer = await db.customer.findUnique({
-    where: { userId: session.user.id },
+  const customer = await db.query.customer.findFirst({
+    where: eq(schema.customer.userId, session.user.id),
   });
 
   if (!customer) {
@@ -108,10 +109,9 @@ export async function updateProfileAction(formData: FormData) {
   }
 
   // Update only allowed fields
-  await db.customer.update({
-    where: { id: customer.id },
-    data: validated,
-  });
+  await db.update(schema.customer)
+    .set(validated)
+    .where(eq(schema.customer.id, customer.id));
 
   revalidatePath('/portal');
   return { success: true };

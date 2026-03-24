@@ -21,7 +21,7 @@ interface Design {
   designType: string | null;
   size: string | null;
   style: string | null;
-  tags: string[];
+  tags: string[] | null;
 }
 
 interface GalleryLightboxProps {

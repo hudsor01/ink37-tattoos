@@ -1,7 +1,11 @@
+export const dynamic = 'force-dynamic';
+
 import Link from 'next/link';
 import { CheckCircle, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { db } from '@/lib/db';
+import { eq } from 'drizzle-orm';
+import * as schema from '@/lib/db/schema';
 import { ClearCartOnMount } from './clear-cart';
 import type { Metadata } from 'next';
 
@@ -28,23 +32,29 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
   let orderType: 'physical' | 'digital' | 'gift_card' | 'mixed' = 'physical';
 
   if (session_id) {
-    order = await db.order.findFirst({
-      where: { stripeCheckoutSessionId: session_id },
-      select: {
+    const result = await db.query.order.findFirst({
+      where: eq(schema.order.stripeCheckoutSessionId, session_id),
+      columns: {
         id: true,
+      },
+      with: {
         items: {
-          select: {
+          columns: {
             id: true,
             productName: true,
-            product: { select: { productType: true } },
-            downloadTokens: { select: { token: true } },
+          },
+          with: {
+            product: { columns: { productType: true } },
+            downloadTokens: { columns: { token: true } },
           },
         },
       },
     });
 
-    if (order) {
-      const types = new Set(order.items.map((i) => i.product.productType));
+    if (result) {
+      order = result;
+
+      const types = new Set(result.items.map((i) => i.product.productType));
       if (types.has('GIFT_CARD') && types.size === 1) orderType = 'gift_card';
       else if (types.has('DIGITAL') && !types.has('PHYSICAL')) orderType = 'digital';
       else if (types.has('PHYSICAL') && !types.has('DIGITAL')) orderType = 'physical';
