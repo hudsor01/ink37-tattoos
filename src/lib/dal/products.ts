@@ -3,6 +3,8 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { eq, asc, desc, sql } from 'drizzle-orm';
+import * as schema from '@/lib/db/schema';
 import type { CreateProductData, UpdateProductData } from '@/lib/security/validation';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
@@ -20,9 +22,9 @@ async function requireStaffRole() {
  * Get all active products for public store catalog. No auth required.
  */
 export const getActiveProducts = cache(async () => {
-  return db.product.findMany({
-    where: { isActive: true },
-    orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+  return db.query.product.findMany({
+    where: eq(schema.product.isActive, true),
+    orderBy: [asc(schema.product.sortOrder), desc(schema.product.createdAt)],
   });
 });
 
@@ -30,18 +32,38 @@ export const getActiveProducts = cache(async () => {
  * Get a single product by ID for product detail page. No auth required.
  */
 export const getProductById = cache(async (id: string) => {
-  return db.product.findUnique({ where: { id } });
+  return db.query.product.findFirst({
+    where: eq(schema.product.id, id),
+  });
 });
 
 /**
  * Get all products (including inactive) for admin product list. Requires staff role.
+ * Includes order item count via extras subquery.
  */
 export const getProducts = cache(async () => {
   await requireStaffRole();
-  return db.product.findMany({
-    orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
-    include: { _count: { select: { orderItems: true } } },
-  });
+  return db.select({
+    id: schema.product.id,
+    name: schema.product.name,
+    description: schema.product.description,
+    price: schema.product.price,
+    productType: schema.product.productType,
+    imageUrl: schema.product.imageUrl,
+    digitalFilePathname: schema.product.digitalFilePathname,
+    digitalFileName: schema.product.digitalFileName,
+    stripeProductId: schema.product.stripeProductId,
+    stripePriceId: schema.product.stripePriceId,
+    isActive: schema.product.isActive,
+    sortOrder: schema.product.sortOrder,
+    createdAt: schema.product.createdAt,
+    updatedAt: schema.product.updatedAt,
+    _count: {
+      orderItems: sql<number>`cast((select count(*) from order_item where order_item."productId" = ${schema.product.id}) as integer)`,
+    },
+  })
+    .from(schema.product)
+    .orderBy(asc(schema.product.sortOrder), desc(schema.product.createdAt));
 });
 
 /**
@@ -49,21 +71,20 @@ export const getProducts = cache(async () => {
  */
 export async function createProduct(data: CreateProductData & { stripeProductId?: string; stripePriceId?: string }) {
   await requireStaffRole();
-  return db.product.create({
-    data: {
-      name: data.name,
-      description: data.description,
-      price: data.price,
-      productType: data.productType,
-      imageUrl: data.imageUrl,
-      digitalFilePathname: data.digitalFilePathname,
-      digitalFileName: data.digitalFileName,
-      isActive: data.isActive ?? true,
-      sortOrder: data.sortOrder ?? 0,
-      stripeProductId: data.stripeProductId,
-      stripePriceId: data.stripePriceId,
-    },
-  });
+  const [result] = await db.insert(schema.product).values({
+    name: data.name,
+    description: data.description,
+    price: data.price,
+    productType: data.productType,
+    imageUrl: data.imageUrl,
+    digitalFilePathname: data.digitalFilePathname,
+    digitalFileName: data.digitalFileName,
+    isActive: data.isActive ?? true,
+    sortOrder: data.sortOrder ?? 0,
+    stripeProductId: data.stripeProductId,
+    stripePriceId: data.stripePriceId,
+  }).returning();
+  return result;
 }
 
 /**
@@ -72,10 +93,11 @@ export async function createProduct(data: CreateProductData & { stripeProductId?
 export async function updateProduct(data: UpdateProductData & { stripePriceId?: string }) {
   await requireStaffRole();
   const { id, ...updateData } = data;
-  return db.product.update({
-    where: { id },
-    data: updateData,
-  });
+  const [result] = await db.update(schema.product)
+    .set(updateData)
+    .where(eq(schema.product.id, id))
+    .returning();
+  return result;
 }
 
 /**
@@ -83,8 +105,9 @@ export async function updateProduct(data: UpdateProductData & { stripePriceId?: 
  */
 export async function deleteProduct(id: string) {
   await requireStaffRole();
-  return db.product.update({
-    where: { id },
-    data: { isActive: false },
-  });
+  const [result] = await db.update(schema.product)
+    .set({ isActive: false })
+    .where(eq(schema.product.id, id))
+    .returning();
+  return result;
 }

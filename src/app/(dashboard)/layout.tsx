@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { AdminNav } from '@/components/dashboard/admin-nav';
 import { Separator } from '@/components/ui/separator';

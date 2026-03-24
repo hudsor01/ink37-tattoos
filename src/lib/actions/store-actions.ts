@@ -2,6 +2,8 @@
 
 import { stripe, dollarsToStripeCents } from '@/lib/stripe';
 import { db } from '@/lib/db';
+import { eq, and, inArray } from 'drizzle-orm';
+import * as schema from '@/lib/db/schema';
 import { validateGiftCard } from '@/lib/dal/gift-cards';
 import { createOrder } from '@/lib/dal/orders';
 import { StoreCheckoutSchema } from '@/lib/security/validation';
@@ -20,11 +22,11 @@ export async function storeCheckoutAction(data: {
   const validated = StoreCheckoutSchema.parse(data);
 
   // Look up all products
-  const products = await db.product.findMany({
-    where: {
-      id: { in: validated.items.map((i) => i.productId) },
-      isActive: true,
-    },
+  const products = await db.query.product.findMany({
+    where: and(
+      inArray(schema.product.id, validated.items.map((i) => i.productId)),
+      eq(schema.product.isActive, true),
+    ),
   });
 
   if (products.length !== validated.items.length) {
@@ -82,8 +84,8 @@ export async function storeCheckoutAction(data: {
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
     mode: 'payment',
     line_items: lineItems,
-    success_url: `${env.NEXT_PUBLIC_APP_URL}/store/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${env.NEXT_PUBLIC_APP_URL}/store/checkout/cancelled`,
+    success_url: `${env().NEXT_PUBLIC_APP_URL}/store/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${env().NEXT_PUBLIC_APP_URL}/store/checkout/cancelled`,
     customer_email: undefined, // Stripe will collect
     metadata: {
       orderType: 'store',
@@ -162,10 +164,9 @@ export async function storeCheckoutAction(data: {
   const checkoutSession = await stripe.checkout.sessions.create(sessionParams);
 
   // Update order with the Stripe checkout session ID
-  await db.order.update({
-    where: { id: order.id },
-    data: { stripeCheckoutSessionId: checkoutSession.id },
-  });
+  await db.update(schema.order)
+    .set({ stripeCheckoutSessionId: checkoutSession.id })
+    .where(eq(schema.order.id, order.id));
 
   return { success: true, checkoutUrl: checkoutSession.url };
 }

@@ -14,11 +14,11 @@ describe('Audit logging', () => {
     expect(content).toContain('console.error');
   });
 
-  it('logAudit writes to db.auditLog.create', async () => {
+  it('logAudit writes to db via Drizzle insert', async () => {
     const fs = await import('node:fs');
     const content = fs.readFileSync('src/lib/dal/audit.ts', 'utf-8');
 
-    expect(content).toContain('db.auditLog.create');
+    expect(content).toContain('db.insert(schema.auditLog)');
   });
 
   it('getAuditLogs returns entries ordered by timestamp desc', async () => {
@@ -29,7 +29,7 @@ describe('Audit logging', () => {
     const hasAsyncFn = content.includes('export async function getAuditLogs');
     const hasConstFn = content.includes('export const getAuditLogs');
     expect(hasAsyncFn || hasConstFn).toBe(true);
-    expect(content).toContain("timestamp: 'desc'");
+    expect(content).toContain('desc(schema.auditLog.timestamp)');
   });
 
   it('getAuditLogs enforces staff role', async () => {

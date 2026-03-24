@@ -11,12 +11,12 @@ export type PaymentRow = {
   id: string;
   type: string;
   status: string;
-  amount: { toString(): string }; // Prisma Decimal
+  amount: number;
   receiptUrl: string | null;
   createdAt: Date;
   completedAt: Date | null;
   customer: { firstName: string; lastName: string; email: string | null };
-  tattooSession: { designDescription: string; totalCost: { toString(): string } };
+  tattooSession: { designDescription: string; totalCost: number };
 };
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
@@ -48,7 +48,7 @@ export const columns: ColumnDef<PaymentRow, unknown>[] = [
   {
     accessorKey: 'amount',
     header: 'Amount',
-    cell: ({ row }) => currencyFormatter.format(Number(row.original.amount.toString())),
+    cell: ({ row }) => currencyFormatter.format(row.original.amount),
   },
   {
     accessorKey: 'type',

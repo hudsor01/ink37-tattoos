@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { getPublicDesigns } from '@/lib/dal/designs';
 import { GalleryClient } from '@/components/public/gallery-grid';
 
-export const revalidate = 1800; // ISR: 30 minutes
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Gallery | Ink 37 Tattoos',

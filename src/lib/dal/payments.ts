@@ -4,6 +4,8 @@ import { db } from '@/lib/db';
 import { stripe } from '@/lib/stripe';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { eq, and, sql, desc, inArray } from 'drizzle-orm';
+import * as schema from '@/lib/db/schema';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
 
@@ -37,10 +39,9 @@ export async function getOrCreateStripeCustomer(customer: {
     metadata: { internalCustomerId: customer.id },
   });
 
-  await db.customer.update({
-    where: { id: customer.id },
-    data: { stripeCustomerId: stripeCustomer.id },
-  });
+  await db.update(schema.customer)
+    .set({ stripeCustomerId: stripeCustomer.id })
+    .where(eq(schema.customer.id, customer.id));
 
   return stripeCustomer.id;
 }
@@ -55,16 +56,15 @@ export async function createPaymentRecord(data: {
   amount: number;
   stripeCheckoutSessionId: string;
 }) {
-  return db.payment.create({
-    data: {
-      customerId: data.customerId,
-      tattooSessionId: data.tattooSessionId,
-      type: data.type,
-      status: 'PENDING',
-      amount: data.amount,
-      stripeCheckoutSessionId: data.stripeCheckoutSessionId,
-    },
-  });
+  const [result] = await db.insert(schema.payment).values({
+    customerId: data.customerId,
+    tattooSessionId: data.tattooSessionId,
+    type: data.type,
+    status: 'PENDING',
+    amount: data.amount,
+    stripeCheckoutSessionId: data.stripeCheckoutSessionId,
+  }).returning();
+  return result;
 }
 
 /**
@@ -79,30 +79,29 @@ export const getPayments = cache(
     offset?: number;
   }) => {
     await requireStaffRole();
-    return db.payment.findMany({
-      where: {
-        ...(filters?.status && {
-          status: filters.status as
-            | 'PENDING'
-            | 'PROCESSING'
-            | 'COMPLETED'
-            | 'FAILED'
-            | 'REFUNDED',
-        }),
-        ...(filters?.type && {
-          type: filters.type as 'DEPOSIT' | 'SESSION_BALANCE' | 'REFUND',
-        }),
-        ...(filters?.customerId && { customerId: filters.customerId }),
-      },
-      orderBy: { createdAt: 'desc' },
-      take: filters?.limit ?? 50,
-      skip: filters?.offset ?? 0,
-      include: {
+
+    const conditions = [];
+    if (filters?.status) {
+      conditions.push(eq(schema.payment.status, filters.status as 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'REFUNDED'));
+    }
+    if (filters?.type) {
+      conditions.push(eq(schema.payment.type, filters.type as 'DEPOSIT' | 'SESSION_BALANCE' | 'REFUND'));
+    }
+    if (filters?.customerId) {
+      conditions.push(eq(schema.payment.customerId, filters.customerId));
+    }
+
+    return db.query.payment.findMany({
+      where: conditions.length > 0 ? and(...conditions) : undefined,
+      orderBy: [desc(schema.payment.createdAt)],
+      limit: filters?.limit ?? 50,
+      offset: filters?.offset ?? 0,
+      with: {
         customer: {
-          select: { firstName: true, lastName: true, email: true },
+          columns: { firstName: true, lastName: true, email: true },
         },
         tattooSession: {
-          select: { designDescription: true, totalCost: true },
+          columns: { designDescription: true, totalCost: true },
         },
       },
     });
@@ -115,12 +114,12 @@ export const getPayments = cache(
 export const getPaymentsBySession = cache(
   async (tattooSessionId: string) => {
     await requireStaffRole();
-    return db.payment.findMany({
-      where: { tattooSessionId },
-      orderBy: { createdAt: 'desc' },
-      include: {
+    return db.query.payment.findMany({
+      where: eq(schema.payment.tattooSessionId, tattooSessionId),
+      orderBy: [desc(schema.payment.createdAt)],
+      with: {
         customer: {
-          select: { firstName: true, lastName: true, email: true },
+          columns: { firstName: true, lastName: true, email: true },
         },
       },
     });
@@ -133,27 +132,25 @@ export const getPaymentsBySession = cache(
 export const getPaymentStats = cache(async () => {
   await requireStaffRole();
 
-  const [totalCollected, pendingAmount, refundedAmount, totalPayments] =
+  const [totalCollected, pendingAmount, refundedAmount, totalPaymentsResult] =
     await Promise.all([
-      db.payment.aggregate({
-        _sum: { amount: true },
-        where: { status: 'COMPLETED' },
-      }),
-      db.payment.aggregate({
-        _sum: { amount: true },
-        where: { status: 'PENDING' },
-      }),
-      db.payment.aggregate({
-        _sum: { amount: true },
-        where: { status: 'REFUNDED' },
-      }),
-      db.payment.count(),
+      db.select({ total: sql<number>`coalesce(sum(${schema.payment.amount}), 0)` })
+        .from(schema.payment)
+        .where(eq(schema.payment.status, 'COMPLETED')),
+      db.select({ total: sql<number>`coalesce(sum(${schema.payment.amount}), 0)` })
+        .from(schema.payment)
+        .where(eq(schema.payment.status, 'PENDING')),
+      db.select({ total: sql<number>`coalesce(sum(${schema.payment.amount}), 0)` })
+        .from(schema.payment)
+        .where(eq(schema.payment.status, 'REFUNDED')),
+      db.select({ count: sql<number>`cast(count(*) as integer)` })
+        .from(schema.payment),
     ]);
 
   return {
-    totalCollected: Number(totalCollected._sum.amount ?? 0),
-    pendingAmount: Number(pendingAmount._sum.amount ?? 0),
-    refundedAmount: Number(refundedAmount._sum.amount ?? 0),
-    totalPayments,
+    totalCollected: Number(totalCollected[0]?.total ?? 0),
+    pendingAmount: Number(pendingAmount[0]?.total ?? 0),
+    refundedAmount: Number(refundedAmount[0]?.total ?? 0),
+    totalPayments: totalPaymentsResult[0]?.count ?? 0,
   };
 });

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 07-01-PLAN.md
-last_updated: "2026-03-22T23:04:58.712Z"
+stopped_at: Completed 08-03-PLAN.md
+last_updated: "2026-03-24T04:10:42.720Z"
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 22
-  completed_plans: 22
+  total_phases: 8
+  completed_phases: 8
+  total_plans: 25
+  completed_plans: 25
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** The tattoo artist manages their entire business from one app while clients get a polished experience for discovering, booking, paying, and tracking their tattoo journey.
-**Current focus:** Phase 07 — store-integration-fixes
+**Current focus:** Phase 08 — drizzle-migration
 
 ## Current Position
 
-Phase: 07
+Phase: 08
 Plan: Not started
 
 ## Performance Metrics
@@ -49,6 +49,9 @@ Plan: Not started
 | Phase 05 P04 | 8min | 2 tasks | 9 files |
 | Phase 06 P01 | 3min | 2 tasks | 2 files |
 | Phase 07 P01 | 9min | 2 tasks | 5 files |
+| Phase 08 P01 | 7min | 2 tasks | 7 files |
+| Phase 08 P02 | 12min | 2 tasks | 21 files |
+| Phase 08 P03 | 10min | 2 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -90,10 +93,21 @@ Recent decisions affecting current work:
 - [Phase 07]: Download URLs use per-item tokens from downloadTokens relation, matching checkout success page pattern
 - [Phase 07]: stripePriceId guard returns user-friendly error before Stripe line item construction
 - [Phase 07]: Gift card purchaser confirmation is a separate email function/template from recipient delivery
+- [Phase 08]: Single neon-serverless driver for Drizzle (not dual-driver) for simplicity and transaction support
+- [Phase 08]: Better Auth uses raw pg.Pool (not drizzleAdapter) to decouple auth from Drizzle version
+- [Phase 08]: All 17 Decimal columns use numeric mode:number to prevent silent string-number conversion bugs
+- [Phase 08]: Use Drizzle relational API for reads and SQL builder for mutations/aggregations
+- [Phase 08]: Replace Prisma P2025 error catch with Drizzle conditional update returning undefined
+- [Phase 08]: npm audit fix resolved hono high CVEs; remaining moderate vulns are devDep-only and acceptable
+- [Phase 08]: Pre-existing null-safety errors in 4 view files fixed as blocking issues for build pass
 
 ### Pending Todos
 
 None yet.
+
+### Roadmap Evolution
+
+- Phase 8 added: Prisma to Drizzle ORM migration with verification audit and cleanup
 
 ### Blockers/Concerns
 
@@ -103,6 +117,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-22T23:00:00.021Z
-Stopped at: Completed 07-01-PLAN.md
+Last session: 2026-03-24T01:03:52.777Z
+Stopped at: Completed 08-03-PLAN.md
 Resume file: None

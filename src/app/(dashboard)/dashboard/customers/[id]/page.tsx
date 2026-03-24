@@ -36,6 +36,10 @@ export default async function CustomerDetailPage({
     notFound();
   }
 
+  type Customer = typeof customer;
+  type Appointment = Customer['appointments'][number];
+  type Session = Customer['tattooSessions'][number];
+
   const fullAddress = [
     customer.address,
     customer.city,
@@ -110,9 +114,9 @@ export default async function CustomerDetailPage({
               <p className="text-sm font-medium text-muted-foreground">
                 Allergies
               </p>
-              {customer.allergies.length > 0 ? (
+              {customer.allergies && customer.allergies.length > 0 ? (
                 <div className="mt-1 flex flex-wrap gap-1">
-                  {customer.allergies.map((allergy) => (
+                  {customer.allergies.map((allergy: string) => (
                     <Badge key={allergy} variant="outline">
                       {allergy}
                     </Badge>
@@ -126,9 +130,9 @@ export default async function CustomerDetailPage({
               <p className="text-sm font-medium text-muted-foreground">
                 Medical Conditions
               </p>
-              {customer.medicalConditions.length > 0 ? (
+              {customer.medicalConditions && customer.medicalConditions.length > 0 ? (
                 <div className="mt-1 flex flex-wrap gap-1">
-                  {customer.medicalConditions.map((condition) => (
+                  {customer.medicalConditions.map((condition: string) => (
                     <Badge key={condition} variant="outline">
                       {condition}
                     </Badge>
@@ -171,7 +175,7 @@ export default async function CustomerDetailPage({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {customer.appointments.map((appt) => (
+                {customer.appointments.map((appt: Appointment) => (
                   <TableRow key={appt.id}>
                     <TableCell>
                       {format(
@@ -218,7 +222,7 @@ export default async function CustomerDetailPage({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {customer.tattooSessions.map((session) => (
+                {customer.tattooSessions.map((session: Session) => (
                   <TableRow key={session.id}>
                     <TableCell>
                       {format(

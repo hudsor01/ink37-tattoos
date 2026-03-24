@@ -3,6 +3,8 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { eq, and, sql, desc, inArray } from 'drizzle-orm';
+import * as schema from '@/lib/db/schema';
 import { randomBytes } from 'node:crypto';
 import { DOWNLOAD_LINK_EXPIRY_HOURS, MAX_DOWNLOADS_PER_TOKEN } from '@/lib/store-helpers';
 
@@ -27,16 +29,18 @@ export const getOrders = cache(
     offset?: number;
   }) => {
     await requireStaffRole();
-    return db.order.findMany({
-      where: {
-        ...(filters?.status && {
-          status: filters.status as 'PENDING' | 'PAID' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REFUNDED',
-        }),
-      },
-      orderBy: { createdAt: 'desc' },
-      include: { items: true },
-      take: filters?.limit ?? 50,
-      skip: filters?.offset ?? 0,
+
+    const conditions = [];
+    if (filters?.status) {
+      conditions.push(eq(schema.order.status, filters.status as 'PENDING' | 'PAID' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REFUNDED'));
+    }
+
+    return db.query.order.findMany({
+      where: conditions.length > 0 ? and(...conditions) : undefined,
+      orderBy: [desc(schema.order.createdAt)],
+      with: { items: true },
+      limit: filters?.limit ?? 50,
+      offset: filters?.offset ?? 0,
     });
   }
 );
@@ -46,10 +50,10 @@ export const getOrders = cache(
  */
 export const getOrderById = cache(async (id: string) => {
   await requireStaffRole();
-  return db.order.findUnique({
-    where: { id },
-    include: {
-      items: { include: { product: true } },
+  return db.query.order.findFirst({
+    where: eq(schema.order.id, id),
+    with: {
+      items: { with: { product: true } },
       downloadTokens: true,
     },
   });
@@ -83,41 +87,38 @@ export async function createOrder(data: {
     totalPrice: number;
   }>;
 }) {
-  return db.$transaction(async (tx) => {
+  return db.transaction(async (tx) => {
     // 1. Create the Order
-    const order = await tx.order.create({
-      data: {
-        email: data.email,
-        subtotal: data.subtotal,
-        shippingAmount: data.shippingAmount,
-        discountAmount: data.discountAmount,
-        total: data.total,
-        stripeCheckoutSessionId: data.stripeCheckoutSessionId,
-        stripePaymentIntentId: data.stripePaymentIntentId,
-        shippingName: data.shippingName,
-        shippingAddress: data.shippingAddress,
-        shippingCity: data.shippingCity,
-        shippingState: data.shippingState,
-        shippingPostalCode: data.shippingPostalCode,
-        shippingCountry: data.shippingCountry,
-        giftCardCode: data.giftCardCode,
-      },
-    });
+    const [order] = await tx.insert(schema.order).values({
+      email: data.email,
+      subtotal: data.subtotal,
+      shippingAmount: data.shippingAmount,
+      discountAmount: data.discountAmount,
+      total: data.total,
+      stripeCheckoutSessionId: data.stripeCheckoutSessionId,
+      stripePaymentIntentId: data.stripePaymentIntentId,
+      shippingName: data.shippingName,
+      shippingAddress: data.shippingAddress,
+      shippingCity: data.shippingCity,
+      shippingState: data.shippingState,
+      shippingPostalCode: data.shippingPostalCode,
+      shippingCountry: data.shippingCountry,
+      giftCardCode: data.giftCardCode,
+    }).returning();
 
     // 2. Create OrderItems
     const orderItems = await Promise.all(
-      data.items.map((item) =>
-        tx.orderItem.create({
-          data: {
-            orderId: order.id,
-            productId: item.productId,
-            productName: item.productName,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            totalPrice: item.totalPrice,
-          },
-        })
-      )
+      data.items.map(async (item) => {
+        const [orderItem] = await tx.insert(schema.orderItem).values({
+          orderId: order.id,
+          productId: item.productId,
+          productName: item.productName,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          totalPrice: item.totalPrice,
+        }).returning();
+        return orderItem;
+      })
     );
 
     // 3. For DIGITAL items, create DownloadTokens
@@ -128,16 +129,14 @@ export async function createOrder(data: {
     if (digitalItems.length > 0) {
       await Promise.all(
         digitalItems.map((item) =>
-          tx.downloadToken.create({
-            data: {
-              token: randomBytes(32).toString('hex'),
-              orderId: order.id,
-              orderItemId: item.orderItemId,
-              maxDownloads: MAX_DOWNLOADS_PER_TOKEN,
-              expiresAt: new Date(
-                Date.now() + DOWNLOAD_LINK_EXPIRY_HOURS * 60 * 60 * 1000
-              ),
-            },
+          tx.insert(schema.downloadToken).values({
+            token: randomBytes(32).toString('hex'),
+            orderId: order.id,
+            orderItemId: item.orderItemId,
+            maxDownloads: MAX_DOWNLOADS_PER_TOKEN,
+            expiresAt: new Date(
+              Date.now() + DOWNLOAD_LINK_EXPIRY_HOURS * 60 * 60 * 1000
+            ),
           })
         )
       );
@@ -156,13 +155,14 @@ export async function updateOrderStatus(data: {
   notes?: string;
 }) {
   await requireStaffRole();
-  return db.order.update({
-    where: { id: data.orderId },
-    data: {
+  const [result] = await db.update(schema.order)
+    .set({
       status: data.status as 'PENDING' | 'PAID' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REFUNDED',
       notes: data.notes,
-    },
-  });
+    })
+    .where(eq(schema.order.id, data.orderId))
+    .returning();
+  return result;
 }
 
 /**
@@ -171,19 +171,21 @@ export async function updateOrderStatus(data: {
 export const getOrderStats = cache(async () => {
   await requireStaffRole();
 
-  const [totalRevenue, pendingOrders, totalOrders] = await Promise.all([
-    db.order.aggregate({
-      _sum: { total: true },
-      where: { status: { in: ['PAID', 'SHIPPED', 'DELIVERED'] } },
-    }),
-    db.order.count({ where: { status: 'PENDING' } }),
-    db.order.count(),
+  const [totalRevenueResult, pendingOrdersResult, totalOrdersResult] = await Promise.all([
+    db.select({ total: sql<number>`coalesce(sum(${schema.order.total}), 0)` })
+      .from(schema.order)
+      .where(inArray(schema.order.status, ['PAID', 'SHIPPED', 'DELIVERED'])),
+    db.select({ count: sql<number>`cast(count(*) as integer)` })
+      .from(schema.order)
+      .where(eq(schema.order.status, 'PENDING')),
+    db.select({ count: sql<number>`cast(count(*) as integer)` })
+      .from(schema.order),
   ]);
 
   return {
-    totalRevenue: Number(totalRevenue._sum.total ?? 0),
-    pendingOrders,
-    totalOrders,
+    totalRevenue: Number(totalRevenueResult[0]?.total ?? 0),
+    pendingOrders: pendingOrdersResult[0]?.count ?? 0,
+    totalOrders: totalOrdersResult[0]?.count ?? 0,
   };
 });
 
@@ -191,8 +193,10 @@ export const getOrderStats = cache(async () => {
  * Get an order by its Stripe checkout session ID. No auth -- called from webhook.
  */
 export async function getOrderByCheckoutSessionId(stripeCheckoutSessionId: string) {
-  return db.order.findUnique({
-    where: { stripeCheckoutSessionId },
-    include: { items: { include: { product: true, downloadTokens: true } } },
+  return db.query.order.findFirst({
+    where: eq(schema.order.stripeCheckoutSessionId, stripeCheckoutSessionId),
+    with: {
+      items: { with: { product: true, downloadTokens: true } },
+    },
   });
 }

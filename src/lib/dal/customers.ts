@@ -3,6 +3,8 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { eq, or, ilike, desc } from 'drizzle-orm';
+import * as schema from '@/lib/db/schema';
 import type { CreateCustomerData, UpdateCustomerData } from '@/lib/security/validation';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
@@ -18,9 +20,9 @@ async function requireStaffRole() {
 
 export const getCustomers = cache(async () => {
   await requireStaffRole();
-  return db.customer.findMany({
-    orderBy: { createdAt: 'desc' },
-    select: {
+  return db.query.customer.findMany({
+    orderBy: [desc(schema.customer.createdAt)],
+    columns: {
       id: true, firstName: true, lastName: true,
       email: true, phone: true, createdAt: true,
     },
@@ -29,14 +31,16 @@ export const getCustomers = cache(async () => {
 
 export const getCustomerById = cache(async (id: string) => {
   await requireStaffRole();
-  return db.customer.findUnique({ where: { id } });
+  return db.query.customer.findFirst({
+    where: eq(schema.customer.id, id),
+  });
 });
 
 export const getCustomerWithDetails = cache(async (id: string) => {
   await requireStaffRole();
-  return db.customer.findUnique({
-    where: { id },
-    include: {
+  return db.query.customer.findFirst({
+    where: eq(schema.customer.id, id),
+    with: {
       appointments: true,
       tattooSessions: true,
       designs: true,
@@ -46,39 +50,44 @@ export const getCustomerWithDetails = cache(async (id: string) => {
 
 export async function createCustomer(data: CreateCustomerData) {
   await requireStaffRole();
-  return db.customer.create({
-    data: {
-      ...data,
-      dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
-    },
-  });
+  const [result] = await db.insert(schema.customer).values({
+    ...data,
+    dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
+  }).returning();
+  return result;
 }
 
 export async function updateCustomer(id: string, data: UpdateCustomerData) {
   await requireStaffRole();
-  return db.customer.update({
-    where: { id },
-    data,
-  });
+  const setData: Record<string, unknown> = { ...data };
+  if (data.dateOfBirth !== undefined) {
+    setData.dateOfBirth = data.dateOfBirth ? new Date(data.dateOfBirth) : null;
+  }
+  const [result] = await db.update(schema.customer)
+    .set(setData)
+    .where(eq(schema.customer.id, id))
+    .returning();
+  return result;
 }
 
 export async function deleteCustomer(id: string) {
   await requireStaffRole();
-  return db.customer.delete({ where: { id } });
+  const [result] = await db.delete(schema.customer)
+    .where(eq(schema.customer.id, id))
+    .returning();
+  return result;
 }
 
 export const searchCustomers = cache(async (query: string) => {
   await requireStaffRole();
-  return db.customer.findMany({
-    where: {
-      OR: [
-        { firstName: { contains: query, mode: 'insensitive' } },
-        { lastName: { contains: query, mode: 'insensitive' } },
-        { email: { contains: query, mode: 'insensitive' } },
-      ],
-    },
-    orderBy: { createdAt: 'desc' },
-    select: {
+  return db.query.customer.findMany({
+    where: or(
+      ilike(schema.customer.firstName, `%${query}%`),
+      ilike(schema.customer.lastName, `%${query}%`),
+      ilike(schema.customer.email, `%${query}%`),
+    ),
+    orderBy: [desc(schema.customer.createdAt)],
+    columns: {
       id: true, firstName: true, lastName: true,
       email: true, phone: true, createdAt: true,
     },

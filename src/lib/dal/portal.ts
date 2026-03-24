@@ -3,6 +3,8 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { eq, and, gte, not, sql, desc, asc } from 'drizzle-orm';
+import * as schema from '@/lib/db/schema';
 
 /**
  * Portal authentication helper.
@@ -13,17 +15,17 @@ async function requirePortalAuth() {
   const session = await getCurrentSession();
   if (!session?.user) redirect('/login');
 
-  const customer = await db.customer.findUnique({
-    where: { userId: session.user.id },
+  const customerRecord = await db.query.customer.findFirst({
+    where: eq(schema.customer.userId, session.user.id),
   });
 
-  if (!customer) {
+  if (!customerRecord) {
     // User exists but has no linked Customer record.
     // Shouldn't normally happen if databaseHooks works, but handle gracefully.
     redirect('/portal/no-account');
   }
 
-  return { session, customer };
+  return { session, customer: customerRecord };
 }
 
 /**
@@ -32,10 +34,10 @@ async function requirePortalAuth() {
  */
 export const getPortalAppointments = cache(async () => {
   const { customer } = await requirePortalAuth();
-  return db.appointment.findMany({
-    where: { customerId: customer.id },
-    orderBy: { scheduledDate: 'desc' },
-    select: {
+  return db.query.appointment.findMany({
+    where: eq(schema.appointment.customerId, customer.id),
+    orderBy: [desc(schema.appointment.scheduledDate)],
+    columns: {
       id: true,
       scheduledDate: true,
       duration: true,
@@ -57,10 +59,10 @@ export const getPortalAppointments = cache(async () => {
  */
 export const getPortalSessions = cache(async () => {
   const { customer } = await requirePortalAuth();
-  return db.tattooSession.findMany({
-    where: { customerId: customer.id },
-    orderBy: { appointmentDate: 'desc' },
-    select: {
+  return db.query.tattooSession.findMany({
+    where: eq(schema.tattooSession.customerId, customer.id),
+    orderBy: [desc(schema.tattooSession.appointmentDate)],
+    columns: {
       id: true,
       appointmentDate: true,
       duration: true,
@@ -78,8 +80,10 @@ export const getPortalSessions = cache(async () => {
       consentSignedBy: true,
       aftercareProvided: true,
       // OMIT: hourlyRate, estimatedHours (D-16), notes (D-17)
+    },
+    with: {
       appointment: {
-        select: {
+        columns: {
           id: true,
           scheduledDate: true,
           type: true,
@@ -96,10 +100,10 @@ export const getPortalSessions = cache(async () => {
  */
 export const getPortalPayments = cache(async () => {
   const { customer } = await requirePortalAuth();
-  return db.payment.findMany({
-    where: { customerId: customer.id },
-    orderBy: { createdAt: 'desc' },
-    select: {
+  return db.query.payment.findMany({
+    where: eq(schema.payment.customerId, customer.id),
+    orderBy: [desc(schema.payment.createdAt)],
+    columns: {
       id: true,
       amount: true,
       status: true,
@@ -118,10 +122,10 @@ export const getPortalPayments = cache(async () => {
  */
 export const getPortalDesigns = cache(async () => {
   const { customer } = await requirePortalAuth();
-  return db.tattooDesign.findMany({
-    where: { customerId: customer.id },
-    orderBy: { createdAt: 'desc' },
-    select: {
+  return db.query.tattooDesign.findMany({
+    where: eq(schema.tattooDesign.customerId, customer.id),
+    orderBy: [desc(schema.tattooDesign.createdAt)],
+    columns: {
       id: true,
       name: true,
       description: true,
@@ -143,16 +147,16 @@ export const getPortalDesigns = cache(async () => {
 export const getPortalOverview = cache(async () => {
   const { customer } = await requirePortalAuth();
 
-  const [nextAppointment, recentPayment, totalAppointments, totalSessions, unsignedConsents] =
+  const [nextAppointment, recentPayment, totalAppointmentsResult, totalSessionsResult, unsignedConsentsResult] =
     await Promise.all([
-      db.appointment.findFirst({
-        where: {
-          customerId: customer.id,
-          scheduledDate: { gte: new Date() },
-          status: { not: 'CANCELLED' },
-        },
-        orderBy: { scheduledDate: 'asc' },
-        select: {
+      db.query.appointment.findFirst({
+        where: and(
+          eq(schema.appointment.customerId, customer.id),
+          gte(schema.appointment.scheduledDate, new Date()),
+          not(eq(schema.appointment.status, 'CANCELLED')),
+        ),
+        orderBy: [asc(schema.appointment.scheduledDate)],
+        columns: {
           id: true,
           scheduledDate: true,
           duration: true,
@@ -162,10 +166,10 @@ export const getPortalOverview = cache(async () => {
           description: true,
         },
       }),
-      db.payment.findFirst({
-        where: { customerId: customer.id },
-        orderBy: { createdAt: 'desc' },
-        select: {
+      db.query.payment.findFirst({
+        where: eq(schema.payment.customerId, customer.id),
+        orderBy: [desc(schema.payment.createdAt)],
+        columns: {
           id: true,
           amount: true,
           status: true,
@@ -174,27 +178,27 @@ export const getPortalOverview = cache(async () => {
           receiptUrl: true,
         },
       }),
-      db.appointment.count({
-        where: { customerId: customer.id },
-      }),
-      db.tattooSession.count({
-        where: { customerId: customer.id },
-      }),
-      db.tattooSession.count({
-        where: {
-          customerId: customer.id,
-          consentSigned: false,
-        },
-      }),
+      db.select({ count: sql<number>`cast(count(*) as integer)` })
+        .from(schema.appointment)
+        .where(eq(schema.appointment.customerId, customer.id)),
+      db.select({ count: sql<number>`cast(count(*) as integer)` })
+        .from(schema.tattooSession)
+        .where(eq(schema.tattooSession.customerId, customer.id)),
+      db.select({ count: sql<number>`cast(count(*) as integer)` })
+        .from(schema.tattooSession)
+        .where(and(
+          eq(schema.tattooSession.customerId, customer.id),
+          eq(schema.tattooSession.consentSigned, false),
+        )),
     ]);
 
   return {
-    nextAppointment,
-    recentPayment,
+    nextAppointment: nextAppointment ?? null,
+    recentPayment: recentPayment ?? null,
     stats: {
-      totalAppointments,
-      totalSessions,
-      unsignedConsents,
+      totalAppointments: totalAppointmentsResult[0]?.count ?? 0,
+      totalSessions: totalSessionsResult[0]?.count ?? 0,
+      unsignedConsents: unsignedConsentsResult[0]?.count ?? 0,
     },
   };
 });
@@ -205,9 +209,9 @@ export const getPortalOverview = cache(async () => {
  */
 export const getPortalProfile = cache(async () => {
   const { session } = await requirePortalAuth();
-  return db.customer.findUnique({
-    where: { userId: session.user.id },
-    select: {
+  return db.query.customer.findFirst({
+    where: eq(schema.customer.userId, session.user.id),
+    columns: {
       id: true,
       firstName: true,
       lastName: true,

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { getActiveProducts } from '@/lib/dal/products';
 import { ProductGrid } from '@/components/store/product-grid';
 import type { Metadata } from 'next';
