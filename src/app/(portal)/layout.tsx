@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import type { Metadata } from 'next';
 import { PortalHeader } from '@/components/portal/portal-header';
 import { PortalNav } from '@/components/portal/portal-nav';

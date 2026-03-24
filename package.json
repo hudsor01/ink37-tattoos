@@ -50,6 +50,12 @@
     "zod": "4.3.6",
     "zustand": "5.0.12"
   },
+  "overrides": {
+    "eslint-plugin-import": { "eslint": "$eslint" },
+    "eslint-plugin-jsx-a11y": { "eslint": "$eslint" },
+    "eslint-plugin-react": { "eslint": "$eslint" },
+    "eslint-plugin-react-hooks": { "eslint": "$eslint" }
+  },
   "devDependencies": {
     "@tailwindcss/postcss": "4.2.2",
     "@types/node": "22.15.0",
