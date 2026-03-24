@@ -81,7 +81,7 @@ function SessionCard({
     placement: string | null;
     size: string | null;
     style: string | null;
-    referenceImages: string[];
+    referenceImages: string[] | null;
     totalCost: unknown;
     depositAmount: unknown;
     paidAmount: unknown;
@@ -148,7 +148,7 @@ function SessionCard({
         )}
 
         {/* Reference images (D-19: view only, no download) */}
-        {session.referenceImages.length > 0 && (
+        {session.referenceImages && session.referenceImages.length > 0 && (
           <div>
             <p className="mb-2 text-sm font-medium">Reference Images</p>
             <div className="flex flex-wrap gap-2">

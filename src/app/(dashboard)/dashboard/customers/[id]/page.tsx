@@ -110,7 +110,7 @@ export default async function CustomerDetailPage({
               <p className="text-sm font-medium text-muted-foreground">
                 Allergies
               </p>
-              {customer.allergies.length > 0 ? (
+              {customer.allergies && customer.allergies.length > 0 ? (
                 <div className="mt-1 flex flex-wrap gap-1">
                   {customer.allergies.map((allergy) => (
                     <Badge key={allergy} variant="outline">
@@ -126,7 +126,7 @@ export default async function CustomerDetailPage({
               <p className="text-sm font-medium text-muted-foreground">
                 Medical Conditions
               </p>
-              {customer.medicalConditions.length > 0 ? (
+              {customer.medicalConditions && customer.medicalConditions.length > 0 ? (
                 <div className="mt-1 flex flex-wrap gap-1">
                   {customer.medicalConditions.map((condition) => (
                     <Badge key={condition} variant="outline">
