@@ -3,6 +3,31 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // Mock server-only (no-op in test environment)
 vi.mock('server-only', () => ({}));
 
+// Mock env module to avoid requiring real env vars in tests
+vi.mock('@/lib/env', () => ({
+  env: {
+    DATABASE_URL: 'postgresql://test:test@localhost:5432/test',
+    BETTER_AUTH_SECRET: 'test-secret-that-is-at-least-32-chars-long',
+    BETTER_AUTH_URL: 'http://localhost:3000',
+    NEXT_PUBLIC_APP_URL: 'http://localhost:3000',
+    STRIPE_SECRET_KEY: 'sk_test_fake',
+    STRIPE_WEBHOOK_SECRET: 'whsec_test_fake',
+  },
+}));
+
+// Mock auth module to avoid DB connection in tests
+vi.mock('@/lib/auth', () => ({
+  auth: {},
+  getCurrentSession: vi.fn().mockResolvedValue(null),
+}));
+
+// Mock email module to avoid Resend client initialization
+vi.mock('@/lib/email/resend', () => ({
+  sendContactNotification: vi.fn(),
+  sendPaymentConfirmation: vi.fn(),
+  sendAppointmentReminder: vi.fn(),
+}));
+
 // Mock next/server
 vi.mock('next/server', () => ({
   NextResponse: {

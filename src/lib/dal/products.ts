@@ -39,7 +39,7 @@ export const getProductById = cache(async (id: string) => {
 
 /**
  * Get all products (including inactive) for admin product list. Requires staff role.
- * Includes order item count via extras subquery (replaces Prisma _count).
+ * Includes order item count via extras subquery.
  */
 export const getProducts = cache(async () => {
   await requireStaffRole();
