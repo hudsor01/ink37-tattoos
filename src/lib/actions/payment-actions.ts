@@ -92,8 +92,8 @@ export async function requestDepositAction(formData: FormData) {
       customerId: tattooSession.customerId,
       ...(giftCardCode && { giftCardCode, discountAmount: String(discountAmount) }),
     },
-    success_url: `${env.NEXT_PUBLIC_APP_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${env.NEXT_PUBLIC_APP_URL}/payment/cancelled`,
+    success_url: `${env().NEXT_PUBLIC_APP_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${env().NEXT_PUBLIC_APP_URL}/payment/cancelled`,
   });
 
   // Create PENDING payment record
@@ -219,8 +219,8 @@ export async function requestBalanceAction(formData: FormData) {
       customerId: tattooSession.customerId,
       ...(balanceGiftCardCode && { giftCardCode: balanceGiftCardCode, discountAmount: String(balanceDiscountAmount) }),
     },
-    success_url: `${env.NEXT_PUBLIC_APP_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${env.NEXT_PUBLIC_APP_URL}/payment/cancelled`,
+    success_url: `${env().NEXT_PUBLIC_APP_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${env().NEXT_PUBLIC_APP_URL}/payment/cancelled`,
   });
 
   // Create PENDING payment record

@@ -42,8 +42,8 @@ export async function purchaseGiftCardAction(data: {
       senderName: validated.senderName,
       personalMessage: validated.personalMessage ?? '',
     },
-    success_url: `${env.NEXT_PUBLIC_APP_URL}/store/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${env.NEXT_PUBLIC_APP_URL}/store/checkout/cancelled`,
+    success_url: `${env().NEXT_PUBLIC_APP_URL}/store/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${env().NEXT_PUBLIC_APP_URL}/store/checkout/cancelled`,
   });
 
   return { success: true, checkoutUrl: checkoutSession.url };

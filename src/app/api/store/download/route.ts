@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Check for blob token
-  const blobToken = env.BLOB_PRIVATE_READ_WRITE_TOKEN;
+  const blobToken = env().BLOB_PRIVATE_READ_WRITE_TOKEN;
   if (!blobToken) {
     return NextResponse.json(
       { error: 'Download service not configured' },

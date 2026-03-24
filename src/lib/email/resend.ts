@@ -10,7 +10,7 @@ import {
   giftCardPurchaseConfirmationTemplate,
 } from './templates';
 
-const resend = new Resend(env.RESEND_API_KEY ?? '');
+const getResend = () => new Resend(env().RESEND_API_KEY ?? '');
 const FROM_EMAIL = 'Ink 37 Tattoos <noreply@ink37tattoos.com>';
 
 export async function sendContactNotification(data: {
@@ -19,7 +19,7 @@ export async function sendContactNotification(data: {
   phone?: string;
   message: string;
 }) {
-  const adminEmail = env.ADMIN_EMAIL;
+  const adminEmail = env().ADMIN_EMAIL;
   if (!adminEmail) {
     console.warn(
       'ADMIN_EMAIL not configured -- skipping admin notification'
@@ -27,7 +27,7 @@ export async function sendContactNotification(data: {
     return { adminSent: false, customerSent: false };
   }
 
-  if (!env.RESEND_API_KEY) {
+  if (!env().RESEND_API_KEY) {
     console.warn(
       'RESEND_API_KEY not configured -- skipping email notifications'
     );
@@ -35,14 +35,14 @@ export async function sendContactNotification(data: {
   }
 
   const [adminResult, customerResult] = await Promise.allSettled([
-    resend.emails.send({
+    getResend().emails.send({
       from: FROM_EMAIL,
       to: adminEmail,
       replyTo: data.email,
       subject: `New Contact: ${data.name}`,
       html: contactAdminTemplate(data),
     }),
-    resend.emails.send({
+    getResend().emails.send({
       from: FROM_EMAIL,
       to: data.email,
       subject: 'Thank you for contacting Ink 37 Tattoos',
@@ -63,14 +63,14 @@ export async function sendPaymentRequestEmail(data: {
   type: 'deposit' | 'balance';
   paymentUrl: string;
 }): Promise<{ sent: boolean }> {
-  if (!env.RESEND_API_KEY) {
+  if (!env().RESEND_API_KEY) {
     console.warn(
       'RESEND_API_KEY not configured -- skipping payment request email'
     );
     return { sent: false };
   }
 
-  const result = await resend.emails.send({
+  const result = await getResend().emails.send({
     from: FROM_EMAIL,
     to: data.to,
     subject: `Payment Request - ${data.type === 'deposit' ? 'Deposit' : 'Session Balance'} - Ink 37 Tattoos`,
@@ -91,14 +91,14 @@ export async function sendOrderConfirmationEmail(data: {
   hasDigitalItems: boolean;
   downloadLinks?: Array<{ name: string; url: string }>;
 }): Promise<{ sent: boolean }> {
-  if (!env.RESEND_API_KEY) {
+  if (!env().RESEND_API_KEY) {
     console.warn(
       'RESEND_API_KEY not configured -- skipping order confirmation email'
     );
     return { sent: false };
   }
 
-  const result = await resend.emails.send({
+  const result = await getResend().emails.send({
     from: FROM_EMAIL,
     to: data.to,
     subject: 'Order Confirmation - Ink 37 Tattoos',
@@ -116,14 +116,14 @@ export async function sendGiftCardEmail(data: {
   code: string;
   personalMessage?: string;
 }): Promise<{ sent: boolean }> {
-  if (!env.RESEND_API_KEY) {
+  if (!env().RESEND_API_KEY) {
     console.warn(
       'RESEND_API_KEY not configured -- skipping gift card email'
     );
     return { sent: false };
   }
 
-  const result = await resend.emails.send({
+  const result = await getResend().emails.send({
     from: FROM_EMAIL,
     to: data.to,
     subject: "You've received an Ink 37 Gift Card!",
@@ -138,14 +138,14 @@ export async function sendGiftCardPurchaseConfirmationEmail(data: {
   amount: number;
   recipientName: string;
 }): Promise<{ sent: boolean }> {
-  if (!env.RESEND_API_KEY) {
+  if (!env().RESEND_API_KEY) {
     console.warn(
       'RESEND_API_KEY not configured -- skipping gift card purchase confirmation email'
     );
     return { sent: false };
   }
 
-  const result = await resend.emails.send({
+  const result = await getResend().emails.send({
     from: FROM_EMAIL,
     to: data.to,
     subject: 'Gift Card Purchase Confirmation - Ink 37 Tattoos',
