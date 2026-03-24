@@ -31,9 +31,9 @@ The tattoo artist can manage their entire business — bookings, clients, portfo
 ### Active
 
 - [ ] Consolidate two repos into single Next.js app
-- [ ] Unify Prisma schemas into one coherent data model
-- [ ] Modernize all packages to latest versions (Next.js 16, React 19.2, Prisma 7)
-- [ ] Evaluate database/ORM strategy (Prisma vs Drizzle, Neon vs Supabase)
+- [x] Unify schemas into one coherent data model (Drizzle ORM, 19 tables, 8 enums)
+- [x] Modernize all packages to latest versions (Next.js 16, React 19.2, Drizzle ORM 0.45.1)
+- [x] ORM migration: Drizzle ORM 0.45.1 replaces Prisma 7 (zero high/critical CVEs)
 - [ ] Admin dashboard accessible at /dashboard route group
 - [ ] Unified auth system (Better Auth) for admin and future client portal
 - [ ] Payment processing integration (deposits, session payments)
@@ -70,11 +70,11 @@ The tattoo artist can manage their entire business — bookings, clients, portfo
 
 ### Technical Notes
 
-- Both projects use PostgreSQL via Prisma, pointed at the same database
+- Consolidated project uses PostgreSQL via Drizzle ORM (migrated from Prisma in Phase 8), Neon serverless driver
 - Both use Shadcn UI (Radix primitives) — significant component overlap
 - Both use TanStack Query, Zod, Tailwind, Framer Motion — version alignment needed
 - Admin runs on port 3001, public on 3000 — will merge into single app
-- Hosted on Vercel with Prisma Accelerate integration
+- Hosted on Vercel (Prisma Accelerate no longer needed -- Drizzle uses neon-serverless driver directly)
 - Live domain: ink37tattoos.com
 - Database provider needs investigation (Neon vs Supabase vs Vercel Postgres)
 
@@ -103,6 +103,7 @@ The tattoo artist can manage their entire business — bookings, clients, portfo
 | Evaluate Prisma vs Drizzle during research | User open to either — let research guide the ORM decision | — Pending |
 | Evaluate Neon vs Supabase during research | User open to either — need to identify current provider and compare | — Pending |
 | Keep Better Auth | Already implemented with RBAC — proven in admin project | — Pending |
+| Drizzle ORM 0.45.1 replaces Prisma 7 | Prisma 7 bundles Hono with unresolvable CVEs. Drizzle has zero runtime CVEs. | Phase 8 complete |
 
 ---
-*Last updated: 2026-03-20 after initialization*
+*Last updated: 2026-03-23 after Phase 8 Drizzle migration*

@@ -42,7 +42,7 @@ Both source repos should remain accessible for code migration:
 ## Tech Stack Decisions (from Research)
 
 - **Framework:** Next.js 16 + React 19.2
-- **ORM:** Prisma 7 (keep, don't switch to Drizzle)
+- **ORM:** Drizzle ORM 0.45.1 (migrated from Prisma 7 in Phase 8)
 - **Database:** Neon PostgreSQL (migrate if not already)
 - **Auth:** Better Auth (upgrade to v1.5.5) with 5-tier RBAC
 - **Payments:** Stripe
@@ -59,10 +59,15 @@ Both source repos should remain accessible for code migration:
 - Data Access Layer (DAL) pattern — auth checks in server-only DB functions, not just middleware
 - Server Actions for mutations, Route Handlers for webhooks only
 - Customer model gets optional `userId` FK for portal linking
+- Drizzle ORM with single neon-serverless driver, schema in src/lib/db/schema.ts, relational query API for reads, SQL builder for aggregations
+- Better Auth uses raw pg.Pool (not Drizzle adapter) for full feature decoupling
+- Import db from @/lib/db, schema from @/lib/db/schema
 
 ## Critical Pitfalls (from Research)
 
 1. Schema merge is highest risk — different ID strategies (uuid vs cuid), table name conflicts (`accounts` vs `account`)
 2. Admin middleware has role check bug (`!== 'admin'` blocks SUPER_ADMIN etc.)
 3. Must verify actual production table names before writing consolidated schema
-4. Prisma `migrate dev` will try to reset production data — use `migrate diff` + baseline
+4. Drizzle numeric() returns strings by default — all monetary columns use mode:'number'
+5. Drizzle mutations need explicit .returning() — without it, only rowCount is returned
+6. Drizzle relational API (db.query) does not support aggregations — use SQL builder with sql template literals
