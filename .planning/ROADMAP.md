@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: Online Store** - E-commerce for merchandise, prints, and gift cards (completed 2026-03-22)
 - [ ] **Phase 6: UI Stub Closure + UX Wiring** - Close Phase 2 UI stubs and fix cross-phase UX gaps (gap closure)
 - [ ] **Phase 7: Store Integration Fixes** - Fix store download URLs, checkout guards, and gift card email (gap closure)
-- [ ] **Phase 8: Drizzle Migration** - Replace Prisma ORM with Drizzle ORM, verify all functionality, clean up artifacts
+- [x] **Phase 8: Drizzle Migration** - Replace Prisma ORM with Drizzle ORM, verify all functionality, clean up artifacts (completed 2026-03-24)
 
 ## Phase Details
 
@@ -157,7 +157,7 @@ Plans:
 Plans:
 - [x] 08-01-PLAN.md — Install Drizzle, introspect DB, build schema.ts, create db client, convert Better Auth
 - [x] 08-02-PLAN.md — Rewrite all 82 Prisma queries across DAL, actions, routes, and tests to Drizzle
-- [ ] 08-03-PLAN.md — Delete Prisma artifacts, update scripts, verify build/test/audit, update documentation
+- [x] 08-03-PLAN.md — Delete Prisma artifacts, update scripts, verify build/test/audit, update documentation
 
 ## Progress
 
@@ -173,4 +173,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 5. Online Store | 5/5 | Complete   | 2026-03-22 |
 | 6. UI Stub Closure + UX Wiring | 0/0 | Not started | - |
 | 7. Store Integration Fixes | 0/1 | Not started | - |
-| 8. Drizzle Migration | 2/3 | In Progress|  |
+| 8. Drizzle Migration | 3/3 | Complete   | 2026-03-24 |
