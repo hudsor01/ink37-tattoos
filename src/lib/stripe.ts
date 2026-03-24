@@ -10,7 +10,7 @@ export const stripe = new Proxy({} as Stripe, {
         typescript: true,
       });
     }
-    return (_stripe as Record<string | symbol, unknown>)[prop];
+    return (_stripe as unknown as Record<string | symbol, unknown>)[prop];
   },
 });
 

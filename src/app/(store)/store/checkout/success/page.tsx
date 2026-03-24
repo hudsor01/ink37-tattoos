@@ -52,7 +52,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
     if (result) {
       order = result;
 
-      const types = new Set(order.items.map((i) => i.product.productType));
+      const types = new Set(result.items.map((i) => i.product.productType));
       if (types.has('GIFT_CARD') && types.size === 1) orderType = 'gift_card';
       else if (types.has('DIGITAL') && !types.has('PHYSICAL')) orderType = 'digital';
       else if (types.has('PHYSICAL') && !types.has('DIGITAL')) orderType = 'physical';

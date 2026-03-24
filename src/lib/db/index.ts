@@ -1,9 +1,9 @@
 import 'server-only';
-import { drizzle, type NeonServerlessDatabase } from 'drizzle-orm/neon-serverless';
+import { drizzle, type NeonDatabase } from 'drizzle-orm/neon-serverless';
 import ws from 'ws';
 import * as schema from './schema';
 
-let _db: NeonServerlessDatabase<typeof schema> | undefined;
+let _db: NeonDatabase<typeof schema> | undefined;
 export function getDb() {
   if (!_db) {
     _db = drizzle({
@@ -15,12 +15,12 @@ export function getDb() {
   return _db;
 }
 
-export const db = new Proxy({} as NeonServerlessDatabase<typeof schema>, {
+export const db = new Proxy({} as NeonDatabase<typeof schema>, {
   get(_, prop) {
-    return (getDb() as Record<string | symbol, unknown>)[prop];
+    return (getDb() as unknown as Record<string | symbol, unknown>)[prop];
   },
 });
 
-export type Database = NeonServerlessDatabase<typeof schema>;
+export type Database = NeonDatabase<typeof schema>;
 
 export * from './schema';
