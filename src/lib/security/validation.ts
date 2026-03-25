@@ -11,7 +11,6 @@ export const ContactFormSchema = z.object({
   message: z.string().min(1, 'Message is required').max(5000),
 });
 
-export type ContactFormData = z.infer<typeof ContactFormSchema>;
 
 // ============================================================================
 // CUSTOMER MANAGEMENT
@@ -124,7 +123,6 @@ export const UpdateSettingsSchema = z.object({
   description: z.string().optional(),
 });
 
-export type UpdateSettingsData = z.infer<typeof UpdateSettingsSchema>;
 
 // ============================================================================
 // PAYMENT MANAGEMENT
@@ -135,13 +133,11 @@ export const RequestDepositSchema = z.object({
   amount: z.number().positive('Amount must be positive').max(50000, 'Amount exceeds maximum'),
 });
 
-export type RequestDepositData = z.infer<typeof RequestDepositSchema>;
 
 export const RequestBalanceSchema = z.object({
   sessionId: z.string().uuid('Invalid session ID'),
 });
 
-export type RequestBalanceData = z.infer<typeof RequestBalanceSchema>;
 
 // ============================================================================
 // PORTAL: CONSENT SIGNING (D-06, D-07)
@@ -155,7 +151,6 @@ export const ConsentSignSchema = z.object({
   }),
 });
 
-export type ConsentSignData = z.infer<typeof ConsentSignSchema>;
 
 // ============================================================================
 // PORTAL: PROFILE UPDATE (D-04 -- no medical fields)
@@ -172,7 +167,6 @@ export const UpdatePortalProfileSchema = z.object({
   country: z.string().optional(),
 });
 
-export type UpdatePortalProfileData = z.infer<typeof UpdatePortalProfileSchema>;
 
 // ============================================================================
 // STORE: PRODUCT MANAGEMENT (D-01, D-02)
@@ -212,7 +206,6 @@ export const PurchaseGiftCardSchema = z.object({
   personalMessage: z.string().max(500).optional(),
 });
 
-export type PurchaseGiftCardData = z.infer<typeof PurchaseGiftCardSchema>;
 
 // ============================================================================
 // STORE: GIFT CARD REDEMPTION (D-09, D-14)
@@ -228,7 +221,6 @@ export const RedeemGiftCardSchema = z.object({
     ),
 });
 
-export type RedeemGiftCardData = z.infer<typeof RedeemGiftCardSchema>;
 
 // ============================================================================
 // STORE: CHECKOUT (D-05, D-06, D-08)
@@ -244,7 +236,6 @@ export const StoreCheckoutSchema = z.object({
   giftCardCode: z.string().optional(),
 });
 
-export type StoreCheckoutData = z.infer<typeof StoreCheckoutSchema>;
 
 // ============================================================================
 // STORE: ORDER MANAGEMENT (D-19, D-20)
@@ -256,4 +247,3 @@ export const UpdateOrderStatusSchema = z.object({
   notes: z.string().max(1000).optional(),
 });
 
-export type UpdateOrderStatusData = z.infer<typeof UpdateOrderStatusSchema>;
