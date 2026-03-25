@@ -20,6 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 6: UI Stub Closure + UX Wiring** - Close Phase 2 UI stubs and fix cross-phase UX gaps (gap closure)
 - [ ] **Phase 7: Store Integration Fixes** - Fix store download URLs, checkout guards, and gift card email (gap closure)
 - [x] **Phase 8: Drizzle Migration** - Replace Prisma ORM with Drizzle ORM, verify all functionality, clean up artifacts (completed 2026-03-24)
+- [ ] **Phase 9: Cal.com Integration** - Webhook sync for bookings, customer matching, appointment auto-creation, admin + portal visibility
 
 ## Phase Details
 
@@ -159,10 +160,23 @@ Plans:
 - [x] 08-02-PLAN.md — Rewrite all 82 Prisma queries across DAL, actions, routes, and tests to Drizzle
 - [x] 08-03-PLAN.md — Delete Prisma artifacts, update scripts, verify build/test/audit, update documentation
 
+### Phase 9: Cal.com Integration
+**Goal:** Wire Cal.com webhook events into the appointment system so bookings made through Cal.com automatically create and sync appointment records, match or create customers, and appear in both the admin dashboard and client portal without manual data entry
+**Depends on:** Phase 8
+**Requirements**: CAL-01, CAL-02, CAL-03, CAL-04, CAL-05, CAL-06, CAL-07
+**Success Criteria** (what must be TRUE):
+  1. A booking made through the Cal.com embed creates an appointment row with calBookingUid, calEventTypeId, calStatus, and calMeetingUrl populated
+  2. The webhook matches the booker's email to an existing customer record, or creates a new customer if no match exists
+  3. Rescheduling a Cal.com booking updates the appointment's scheduledDate and calStatus; cancelling sets status to CANCELLED
+  4. Cal.com webhook payloads are verified using the signing secret — unsigned or tampered requests are rejected with 401
+  5. Cal.com-synced appointments appear in the admin appointment list with a visual indicator of their source
+  6. A client with a portal account sees their Cal.com bookings on the portal appointments page without admin intervention
+**Plans**: 0 plans
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -174,3 +188,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 6. UI Stub Closure + UX Wiring | 0/0 | Not started | - |
 | 7. Store Integration Fixes | 0/1 | Not started | - |
 | 8. Drizzle Migration | 3/3 | Complete   | 2026-03-24 |
+| 9. Cal.com Integration | 0/0 | Not started | - |
