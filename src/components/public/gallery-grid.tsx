@@ -4,7 +4,9 @@ import { useMemo, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { GalleryFilterBar } from '@/components/public/gallery-filter-bar';
-import { GalleryLightbox } from '@/components/public/gallery-lightbox';
+import dynamic from 'next/dynamic';
+
+const GalleryLightbox = dynamic(() => import('@/components/public/gallery-lightbox').then(m => m.GalleryLightbox));
 
 interface Design {
   id: string;
