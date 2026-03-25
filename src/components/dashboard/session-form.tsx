@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useForm, type FieldValues, type SubmitHandler } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -29,7 +29,6 @@ const SessionFormSchema = z.object({
   notes: z.string().optional(),
 });
 
-type SessionFormData = z.infer<typeof SessionFormSchema>;
 
 interface SessionFormProps {
   onSuccess?: () => void;
@@ -94,15 +93,17 @@ export function SessionForm({ onSuccess }: SessionFormProps) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-h-[60vh] overflow-y-auto px-1">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium">Customer ID</label>
+          <label className="text-sm font-medium">Customer ID
           <Input {...register('customerId')} placeholder="Customer UUID" />
+          </label>
           {errors.customerId && (
             <p className="text-xs text-destructive mt-1">{errors.customerId.message}</p>
           )}
         </div>
         <div>
-          <label className="text-sm font-medium">Artist ID</label>
+          <label className="text-sm font-medium">Artist ID
           <Input {...register('artistId')} placeholder="Artist UUID" />
+          </label>
           {errors.artistId && (
             <p className="text-xs text-destructive mt-1">{errors.artistId.message}</p>
           )}
@@ -111,19 +112,21 @@ export function SessionForm({ onSuccess }: SessionFormProps) {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium">Date</label>
+          <label className="text-sm font-medium">Date
           <Input type="datetime-local" {...register('appointmentDate')} />
+          </label>
           {errors.appointmentDate && (
             <p className="text-xs text-destructive mt-1">{errors.appointmentDate.message}</p>
           )}
         </div>
         <div>
-          <label className="text-sm font-medium">Duration (minutes)</label>
+          <label className="text-sm font-medium">Duration (minutes)
           <Input
             type="number"
             {...register('duration', { valueAsNumber: true })}
             placeholder="120"
           />
+          </label>
           {errors.duration && (
             <p className="text-xs text-destructive mt-1">{errors.duration.message}</p>
           )}
@@ -131,8 +134,9 @@ export function SessionForm({ onSuccess }: SessionFormProps) {
       </div>
 
       <div>
-        <label className="text-sm font-medium">Design Description</label>
+        <label className="text-sm font-medium">Design Description
         <Textarea {...register('designDescription')} placeholder="Describe the tattoo design..." />
+        </label>
         {errors.designDescription && (
           <p className="text-xs text-destructive mt-1">{errors.designDescription.message}</p>
         )}
@@ -140,22 +144,25 @@ export function SessionForm({ onSuccess }: SessionFormProps) {
 
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <label className="text-sm font-medium">Placement</label>
+          <label className="text-sm font-medium">Placement
           <Input {...register('placement')} placeholder="e.g., Upper arm" />
+          </label>
           {errors.placement && (
             <p className="text-xs text-destructive mt-1">{errors.placement.message}</p>
           )}
         </div>
         <div>
-          <label className="text-sm font-medium">Size</label>
+          <label className="text-sm font-medium">Size
           <Input {...register('size')} placeholder='e.g., 6"x4"' />
+          </label>
           {errors.size && (
             <p className="text-xs text-destructive mt-1">{errors.size.message}</p>
           )}
         </div>
         <div>
-          <label className="text-sm font-medium">Style</label>
+          <label className="text-sm font-medium">Style
           <Input {...register('style')} placeholder="e.g., Realism" />
+          </label>
           {errors.style && (
             <p className="text-xs text-destructive mt-1">{errors.style.message}</p>
           )}
@@ -166,40 +173,43 @@ export function SessionForm({ onSuccess }: SessionFormProps) {
         <h4 className="text-sm font-semibold mb-3">Pricing</h4>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-medium">Hourly Rate ($)</label>
+            <label className="text-sm font-medium">Hourly Rate ($)
             <Input
               type="number"
               step="0.01"
               {...register('hourlyRate', { valueAsNumber: true })}
               placeholder="150.00"
             />
+            </label>
             {errors.hourlyRate && (
               <p className="text-xs text-destructive mt-1">{errors.hourlyRate.message}</p>
             )}
           </div>
           <div>
-            <label className="text-sm font-medium">Estimated Hours</label>
+            <label className="text-sm font-medium">Estimated Hours
             <Input
               type="number"
               step="0.5"
               {...register('estimatedHours', { valueAsNumber: true })}
               placeholder="3"
             />
+            </label>
             {errors.estimatedHours && (
               <p className="text-xs text-destructive mt-1">{errors.estimatedHours.message}</p>
             )}
           </div>
           <div>
-            <label className="text-sm font-medium">Deposit ($)</label>
+            <label className="text-sm font-medium">Deposit ($)
             <Input
               type="number"
               step="0.01"
               {...register('depositAmount', { valueAsNumber: true })}
               placeholder="0.00"
             />
+            </label>
           </div>
           <div>
-            <label className="text-sm font-medium">Total Cost ($)</label>
+            <label className="text-sm font-medium">Total Cost ($)
             <Input
               type="number"
               step="0.01"
@@ -208,6 +218,7 @@ export function SessionForm({ onSuccess }: SessionFormProps) {
               readOnly
               className="bg-muted"
             />
+            </label>
             {errors.totalCost && (
               <p className="text-xs text-destructive mt-1">{errors.totalCost.message}</p>
             )}
@@ -229,8 +240,9 @@ export function SessionForm({ onSuccess }: SessionFormProps) {
       </div>
 
       <div>
-        <label className="text-sm font-medium">Notes</label>
+        <label className="text-sm font-medium">Notes
         <Textarea {...register('notes')} placeholder="Additional notes..." />
+        </label>
       </div>
 
       <Button type="submit" className="w-full" disabled={isSubmitting}>

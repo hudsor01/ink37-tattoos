@@ -60,8 +60,8 @@ export function ProductForm({ product, mode }: ProductFormProps) {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const form = useForm<CreateProductData>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- zodResolver typing mismatch with .default() in Zod schema
     resolver: zodResolver(CreateProductSchema) as any,
     defaultValues: {
       name: product?.name ?? '',
@@ -256,7 +256,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
 
           {/* Image Upload */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Product Image</label>
+            <span className="text-sm font-medium">Product Image</span>
             {imageUrl ? (
               <div className="flex items-center gap-4">
                 <Image
@@ -294,6 +294,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
+                onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
                 role="button"
                 tabIndex={0}
               >

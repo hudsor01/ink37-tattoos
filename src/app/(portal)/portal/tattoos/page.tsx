@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { format } from 'date-fns';
 import { Palette, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { getPortalSessions, getPortalDesigns } from '@/lib/dal/portal';
@@ -153,10 +154,12 @@ function SessionCard({
             <p className="mb-2 text-sm font-medium">Reference Images</p>
             <div className="flex flex-wrap gap-2">
               {session.referenceImages.map((url, i) => (
-                <img
+                <Image
                   key={i}
                   src={url}
                   alt={`Reference ${i + 1}`}
+                  width={96}
+                  height={96}
                   className="size-24 rounded-md border object-cover"
                   draggable={false}
                 />
@@ -218,9 +221,11 @@ function DesignCard({
       {/* Design image (D-19: view only) */}
       {(design.thumbnailUrl || design.fileUrl) && (
         <div className="overflow-hidden rounded-t-xl">
-          <img
+          <Image
             src={design.thumbnailUrl ?? design.fileUrl!}
             alt={design.name ?? 'Tattoo design'}
+            width={400}
+            height={192}
             className="h-48 w-full object-cover"
             draggable={false}
           />

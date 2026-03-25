@@ -3,7 +3,7 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { eq, gte, lte, and, sql, desc, asc, count } from 'drizzle-orm';
+import { eq, gte, and, sql, desc, asc } from 'drizzle-orm';
 import { customer, appointment, tattooSession } from '@/lib/db/schema';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];

@@ -53,8 +53,8 @@ export function CustomerForm({ customer, onSuccess }: CustomerFormProps) {
   const queryClient = useQueryClient();
   const isEdit = !!customer;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const form = useForm<CreateCustomerData>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- zodResolver typing mismatch with .default() in Zod schema
     resolver: zodResolver(CreateCustomerSchema) as any,
     defaultValues: {
       firstName: customer?.firstName ?? '',

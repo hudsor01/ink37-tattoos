@@ -57,7 +57,7 @@ export function GiftCardForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="mx-auto max-w-xl space-y-6">
       {/* Denomination selection */}
       <div className="space-y-2">
-        <Label>Select Amount</Label>
+        <span className="flex items-center gap-2 text-sm leading-none font-medium">Select Amount</span>
         <div className="flex flex-wrap gap-3">
           {GIFT_CARD_DENOMINATIONS.map((amount) => (
             <Button

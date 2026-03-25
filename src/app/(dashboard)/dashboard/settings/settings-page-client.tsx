@@ -75,56 +75,50 @@ export function SettingsPageClient({ initialSettings }: SettingsPageClientProps)
             <CardDescription>Basic details about your tattoo studio.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Studio Name</label>
+            <label className="text-sm font-medium">Studio Name
               <Input
                 value={getVal(settings, 'studio_name')}
                 onChange={(e) => updateLocal('studio_name', e.target.value)}
                 placeholder="Ink37 Tattoos"
               />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Address</label>
+            </label>
+            <label className="text-sm font-medium">Address
               <Input
                 value={getVal(settings, 'studio_address')}
                 onChange={(e) => updateLocal('studio_address', e.target.value)}
                 placeholder="123 Main St"
               />
-            </div>
+            </label>
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">Phone</label>
+              <label className="text-sm font-medium">Phone
                 <Input
                   value={getVal(settings, 'studio_phone')}
                   onChange={(e) => updateLocal('studio_phone', e.target.value)}
                   placeholder="(555) 123-4567"
                 />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Email</label>
+              </label>
+              <label className="text-sm font-medium">Email
                 <Input
                   value={getVal(settings, 'studio_email')}
                   onChange={(e) => updateLocal('studio_email', e.target.value)}
                   placeholder="info@ink37tattoos.com"
                 />
-              </div>
+              </label>
             </div>
-            <div>
-              <label className="text-sm font-medium">Description</label>
+            <label className="text-sm font-medium">Description
               <Textarea
                 value={getVal(settings, 'studio_description')}
                 onChange={(e) => updateLocal('studio_description', e.target.value)}
                 placeholder="Tell clients about your studio..."
               />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Website URL</label>
+            </label>
+            <label className="text-sm font-medium">Website URL
               <Input
                 value={getVal(settings, 'studio_website')}
                 onChange={(e) => updateLocal('studio_website', e.target.value)}
                 placeholder="https://ink37tattoos.com"
               />
-            </div>
+            </label>
             <Button
               onClick={() =>
                 saveCategory('studio', [
@@ -151,30 +145,27 @@ export function SettingsPageClient({ initialSettings }: SettingsPageClientProps)
             <CardDescription>Cal.com integration and session defaults.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Cal.com Username</label>
+            <label className="text-sm font-medium">Cal.com Username
               <Input
                 value={getVal(settings, 'cal_username')}
                 onChange={(e) => updateLocal('cal_username', e.target.value)}
                 placeholder="your-cal-username"
               />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Event Type Slugs (comma-separated)</label>
+            </label>
+            <label className="text-sm font-medium">Event Type Slugs (comma-separated)
               <Input
                 value={getVal(settings, 'cal_event_slugs')}
                 onChange={(e) => updateLocal('cal_event_slugs', e.target.value)}
                 placeholder="consultation,tattoo-session,touch-up"
               />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Default Session Duration (minutes)</label>
+            </label>
+            <label className="text-sm font-medium">Default Session Duration (minutes)
               <Input
                 type="number"
                 value={getVal(settings, 'default_session_duration', '60')}
                 onChange={(e) => updateLocal('default_session_duration', e.target.value)}
               />
-            </div>
+            </label>
             <Button
               onClick={() =>
                 saveCategory('booking', [
@@ -198,14 +189,13 @@ export function SettingsPageClient({ initialSettings }: SettingsPageClientProps)
             <CardDescription>Configure email notifications.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Admin Notification Email</label>
+            <label className="text-sm font-medium">Admin Notification Email
               <Input
                 value={getVal(settings, 'admin_email')}
                 onChange={(e) => updateLocal('admin_email', e.target.value)}
                 placeholder="admin@ink37tattoos.com"
               />
-            </div>
+            </label>
             <div className="flex items-center justify-between rounded-lg border p-3">
               <div>
                 <p className="text-sm font-medium">Email Notifications</p>
@@ -242,38 +232,34 @@ export function SettingsPageClient({ initialSettings }: SettingsPageClientProps)
             <CardDescription>Branding and visual settings.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Logo URL</label>
+            <label className="text-sm font-medium">Logo URL
               <Input
                 value={getVal(settings, 'logo_url')}
                 onChange={(e) => updateLocal('logo_url', e.target.value)}
                 placeholder="https://..."
               />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Brand Color</label>
+            </label>
+            <label className="text-sm font-medium">Brand Color
               <Input
                 value={getVal(settings, 'brand_color', '#1a1a1a')}
                 onChange={(e) => updateLocal('brand_color', e.target.value)}
                 placeholder="#1a1a1a"
               />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Instagram URL</label>
+            </label>
+            <label className="text-sm font-medium">Instagram URL
               <Input
                 value={getVal(settings, 'social_instagram')}
                 onChange={(e) => updateLocal('social_instagram', e.target.value)}
                 placeholder="https://instagram.com/..."
               />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Facebook URL</label>
+            </label>
+            <label className="text-sm font-medium">Facebook URL
               <Input
                 value={getVal(settings, 'social_facebook')}
                 onChange={(e) => updateLocal('social_facebook', e.target.value)}
                 placeholder="https://facebook.com/..."
               />
-            </div>
+            </label>
             <Button
               onClick={() =>
                 saveCategory('appearance', [

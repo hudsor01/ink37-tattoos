@@ -10,7 +10,7 @@ export function CartIcon() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    queueMicrotask(() => setMounted(true));
   }, []);
 
   const count = mounted ? totalItems() : 0;

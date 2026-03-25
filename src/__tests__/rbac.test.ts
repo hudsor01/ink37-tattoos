@@ -3,7 +3,6 @@ import { describe, it, expect } from 'vitest';
 describe('RBAC enforcement', () => {
   const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
   const ADMIN_ROLES = ['admin', 'super_admin'];
-  const NON_STAFF_ROLES = ['user'];
   const NON_ADMIN_ROLES = ['user', 'staff'];
 
   it('requireStaffRole rejects user role', () => {
