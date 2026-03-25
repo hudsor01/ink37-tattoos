@@ -76,6 +76,16 @@ Requirements for initial consolidated release. Each maps to roadmap phases.
 - [x] **SEC-05**: Stripe webhook signature verification
 - [x] **SEC-06**: Deployment migration from existing domain with DNS cutover (brief downtime accepted)
 
+### Cal.com Integration
+
+- [ ] **CAL-01**: Webhook handler receives Cal.com booking events (BOOKING_CREATED, BOOKING_RESCHEDULED, BOOKING_CANCELLED) and processes them idempotently
+- [ ] **CAL-02**: Incoming bookings auto-create appointment records with cal fields populated (calBookingUid, calEventTypeId, calStatus, calMeetingUrl)
+- [ ] **CAL-03**: Customer matching — incoming bookings match to existing customers by email, or create a new customer record if none exists
+- [ ] **CAL-04**: Booking status sync — rescheduling updates scheduledDate + calStatus, cancellation sets appointment status to CANCELLED
+- [ ] **CAL-05**: Admin dashboard displays Cal.com booking source and live status alongside manually-created appointments
+- [ ] **CAL-06**: Client portal displays Cal.com-synced appointments automatically without manual admin entry
+- [ ] **CAL-07**: Webhook signature verification using Cal.com signing secret for security
+
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
