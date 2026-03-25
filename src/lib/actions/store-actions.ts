@@ -125,33 +125,32 @@ export async function storeCheckoutAction(data: {
     ];
   }
 
-  // Gift card discount
-  let discountAmount = 0;
-  if (validated.giftCardCode) {
-    const giftCard = await validateGiftCard(validated.giftCardCode);
-    if (giftCard && giftCard.valid) {
-      discountAmount = Math.min(giftCard.balance, cartTotal);
-      const coupon = await stripe.coupons.create({
-        amount_off: dollarsToStripeCents(discountAmount),
-        currency: 'usd',
-        duration: 'once',
-        name: `Gift Card ${validated.giftCardCode}`,
-      });
-      sessionParams.discounts = [{ coupon: coupon.id }];
-    }
-  }
+  // Validate gift card and create pending order in parallel
+  const [giftCard, order] = await Promise.all([
+    validated.giftCardCode ? validateGiftCard(validated.giftCardCode) : Promise.resolve(null),
+    createOrder({
+      email: '',  // Will be filled by webhook from Stripe session
+      subtotal: cartTotal,
+      shippingAmount: 0,  // Will be determined at Stripe checkout
+      discountAmount: 0,  // Updated below if gift card is valid
+      total: cartTotal,  // Updated below if gift card is valid
+      stripeCheckoutSessionId: '',  // Will be updated after session creation
+      giftCardCode: validated.giftCardCode,
+      items: orderItems,
+    }),
+  ]);
 
-  // Create pending order
-  const order = await createOrder({
-    email: '',  // Will be filled by webhook from Stripe session
-    subtotal: cartTotal,
-    shippingAmount: 0,  // Will be determined at Stripe checkout
-    discountAmount,
-    total: cartTotal - discountAmount,
-    stripeCheckoutSessionId: '',  // Will be updated after session creation
-    giftCardCode: validated.giftCardCode,
-    items: orderItems,
-  });
+  let discountAmount = 0;
+  if (giftCard?.valid) {
+    discountAmount = Math.min(giftCard.balance, cartTotal);
+    const coupon = await stripe.coupons.create({
+      amount_off: dollarsToStripeCents(discountAmount),
+      currency: 'usd',
+      duration: 'once',
+      name: `Gift Card ${validated.giftCardCode}`,
+    });
+    sessionParams.discounts = [{ coupon: coupon.id }];
+  }
 
   // Add orderId to metadata
   sessionParams.metadata!.orderId = order.id;
@@ -163,9 +162,15 @@ export async function storeCheckoutAction(data: {
   // Create Stripe Checkout Session
   const checkoutSession = await stripe.checkout.sessions.create(sessionParams);
 
-  // Update order with the Stripe checkout session ID
+  // Update order with Stripe session ID and finalized discount
   await db.update(schema.order)
-    .set({ stripeCheckoutSessionId: checkoutSession.id })
+    .set({
+      stripeCheckoutSessionId: checkoutSession.id,
+      ...(discountAmount > 0 && {
+        discountAmount,
+        total: cartTotal - discountAmount,
+      }),
+    })
     .where(eq(schema.order.id, order.id));
 
   return { success: true, checkoutUrl: checkoutSession.url };

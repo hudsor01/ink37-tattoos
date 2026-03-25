@@ -57,17 +57,17 @@ export async function refundOrderAction(formData: FormData) {
     throw new Error('No Stripe payment intent found for this order');
   }
 
-  // Issue Stripe refund
-  await stripe.refunds.create({
-    payment_intent: order.stripePaymentIntentId,
-  });
-
-  // Update order status to REFUNDED
-  await updateOrderStatus({
-    orderId,
-    status: 'REFUNDED',
-    notes: `Refunded by ${session.user.name ?? session.user.email} on ${new Date().toISOString()}`,
-  });
+  // Issue Stripe refund and update order status in parallel
+  await Promise.all([
+    stripe.refunds.create({
+      payment_intent: order.stripePaymentIntentId,
+    }),
+    updateOrderStatus({
+      orderId,
+      status: 'REFUNDED',
+      notes: `Refunded by ${session.user.name ?? session.user.email} on ${new Date().toISOString()}`,
+    }),
+  ]);
 
   // Audit logging (fire-and-forget)
   const hdrs = await headers();
