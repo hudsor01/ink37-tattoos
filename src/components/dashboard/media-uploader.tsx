@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, type KeyboardEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { createMediaAction } from '@/lib/actions/media-actions';
@@ -41,7 +41,7 @@ export function MediaUploader({ onSuccess }: MediaUploaderProps) {
     return null;
   };
 
-  const uploadFile = async (file: File) => {
+  const uploadFile = useCallback(async (file: File) => {
     const error = validateFile(file);
     if (error) {
       toast.error(error);
@@ -74,7 +74,7 @@ export function MediaUploader({ onSuccess }: MediaUploaderProps) {
     } finally {
       setUploading(false);
     }
-  };
+  }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -93,7 +93,7 @@ export function MediaUploader({ onSuccess }: MediaUploaderProps) {
       const file = e.dataTransfer.files[0];
       if (file) uploadFile(file);
     },
-    []
+    [uploadFile]
   );
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -144,66 +144,72 @@ export function MediaUploader({ onSuccess }: MediaUploaderProps) {
 
         <div className="space-y-3">
           <div>
-            <label className="text-sm font-medium">Name *</label>
-            <Input
-              value={formFields.name}
-              onChange={(e) =>
-                setFormFields((prev) => ({ ...prev, name: e.target.value }))
-              }
-              placeholder="Design name"
-            />
+            <label className="text-sm font-medium">Name *
+              <Input
+                value={formFields.name}
+                onChange={(e) =>
+                  setFormFields((prev) => ({ ...prev, name: e.target.value }))
+                }
+                placeholder="Design name"
+              />
+            </label>
           </div>
           <div>
-            <label className="text-sm font-medium">Artist ID *</label>
-            <Input
-              value={formFields.artistId}
-              onChange={(e) =>
-                setFormFields((prev) => ({ ...prev, artistId: e.target.value }))
-              }
-              placeholder="Artist UUID"
-            />
+            <label className="text-sm font-medium">Artist ID *
+              <Input
+                value={formFields.artistId}
+                onChange={(e) =>
+                  setFormFields((prev) => ({ ...prev, artistId: e.target.value }))
+                }
+                placeholder="Artist UUID"
+              />
+            </label>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="text-sm font-medium">Type</label>
-              <Input
-                value={formFields.designType}
-                onChange={(e) =>
-                  setFormFields((prev) => ({ ...prev, designType: e.target.value }))
-                }
-                placeholder="e.g., Flash"
-              />
+              <label className="text-sm font-medium">Type
+                <Input
+                  value={formFields.designType}
+                  onChange={(e) =>
+                    setFormFields((prev) => ({ ...prev, designType: e.target.value }))
+                  }
+                  placeholder="e.g., Flash"
+                />
+              </label>
             </div>
             <div>
-              <label className="text-sm font-medium">Size</label>
-              <Input
-                value={formFields.size}
-                onChange={(e) =>
-                  setFormFields((prev) => ({ ...prev, size: e.target.value }))
-                }
-                placeholder="e.g., Medium"
-              />
+              <label className="text-sm font-medium">Size
+                <Input
+                  value={formFields.size}
+                  onChange={(e) =>
+                    setFormFields((prev) => ({ ...prev, size: e.target.value }))
+                  }
+                  placeholder="e.g., Medium"
+                />
+              </label>
             </div>
             <div>
-              <label className="text-sm font-medium">Style</label>
-              <Input
-                value={formFields.style}
-                onChange={(e) =>
-                  setFormFields((prev) => ({ ...prev, style: e.target.value }))
-                }
-                placeholder="e.g., Realism"
-              />
+              <label className="text-sm font-medium">Style
+                <Input
+                  value={formFields.style}
+                  onChange={(e) =>
+                    setFormFields((prev) => ({ ...prev, style: e.target.value }))
+                  }
+                  placeholder="e.g., Realism"
+                />
+              </label>
             </div>
           </div>
           <div>
-            <label className="text-sm font-medium">Tags</label>
-            <Input
-              value={formFields.tags}
-              onChange={(e) =>
-                setFormFields((prev) => ({ ...prev, tags: e.target.value }))
-              }
-              placeholder="Comma-separated tags"
-            />
+            <label className="text-sm font-medium">Tags
+              <Input
+                value={formFields.tags}
+                onChange={(e) =>
+                  setFormFields((prev) => ({ ...prev, tags: e.target.value }))
+                }
+                placeholder="Comma-separated tags"
+              />
+            </label>
           </div>
         </div>
 
@@ -225,6 +231,7 @@ export function MediaUploader({ onSuccess }: MediaUploaderProps) {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       onClick={() => fileInputRef.current?.click()}
+      onKeyDown={(e: KeyboardEvent) => e.key === 'Enter' && fileInputRef.current?.click()}
       role="button"
       tabIndex={0}
     >

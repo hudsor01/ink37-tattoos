@@ -100,7 +100,7 @@ vi.mock('@/lib/db/schema', () => ({
 }));
 
 import { stripe } from '@/lib/stripe';
-import { db } from '@/lib/db';
+import '@/lib/db';
 
 describe('Stripe Webhook Security', () => {
   beforeEach(() => {

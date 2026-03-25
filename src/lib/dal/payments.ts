@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { stripe } from '@/lib/stripe';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { eq, and, sql, desc, inArray } from 'drizzle-orm';
+import { eq, and, sql, desc } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];

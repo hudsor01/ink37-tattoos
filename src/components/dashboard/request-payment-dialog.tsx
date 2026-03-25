@@ -91,23 +91,24 @@ export function RequestPaymentDialog({ sessions }: RequestPaymentDialogProps) {
 
         <div className="space-y-4 py-4">
           <div>
-            <label className="text-sm font-medium">Tattoo Session</label>
-            <select
-              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              value={selectedSessionId}
-              onChange={(e) => setSelectedSessionId(e.target.value)}
-            >
-              <option value="">Select a session...</option>
-              {sessions.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.customer.firstName} {s.customer.lastName} - {s.designDescription}
-                </option>
-              ))}
-            </select>
+            <label className="text-sm font-medium">Tattoo Session
+              <select
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={selectedSessionId}
+                onChange={(e) => setSelectedSessionId(e.target.value)}
+              >
+                <option value="">Select a session...</option>
+                {sessions.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.customer.firstName} {s.customer.lastName} - {s.designDescription}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
 
           <div>
-            <label className="text-sm font-medium">Payment Type</label>
+            <span className="text-sm font-medium">Payment Type</span>
             <div className="mt-1 flex gap-2">
               <Button
                 variant={paymentType === 'deposit' ? 'default' : 'outline'}
@@ -130,16 +131,17 @@ export function RequestPaymentDialog({ sessions }: RequestPaymentDialogProps) {
 
           {paymentType === 'deposit' && (
             <div>
-              <label className="text-sm font-medium">Deposit Amount ($)</label>
-              <Input
-                type="number"
-                step="0.01"
-                min="0.01"
-                placeholder="e.g. 50.00"
-                value={depositAmount}
-                onChange={(e) => setDepositAmount(e.target.value)}
-                className="mt-1"
-              />
+              <label className="text-sm font-medium">Deposit Amount ($)
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  placeholder="e.g. 50.00"
+                  value={depositAmount}
+                  onChange={(e) => setDepositAmount(e.target.value)}
+                  className="mt-1"
+                />
+              </label>
             </div>
           )}
 

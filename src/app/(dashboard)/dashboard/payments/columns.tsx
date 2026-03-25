@@ -69,7 +69,7 @@ export const columns: ColumnDef<PaymentRow, unknown>[] = [
     header: 'Receipt',
     cell: ({ row }) =>
       row.original.receiptUrl ? (
-        <Button variant="ghost" size="sm" render={<a href={row.original.receiptUrl} target="_blank" rel="noopener noreferrer" />}>
+        <Button variant="ghost" size="sm" render={<a href={row.original.receiptUrl} target="_blank" rel="noopener noreferrer" aria-label="View receipt" />}>
           <ExternalLink className="h-4 w-4 mr-1" />
           View
         </Button>

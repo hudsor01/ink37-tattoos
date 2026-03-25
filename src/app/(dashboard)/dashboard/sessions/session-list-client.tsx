@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { SessionForm } from '@/components/dashboard/session-form';
 import { deleteSessionAction } from '@/lib/actions/session-actions';
-import { Plus, Check, X, MoreHorizontal, Pencil, Trash2, Eye } from 'lucide-react';
+import { Plus, Check, X, Trash2, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface SessionWithRelations {
