@@ -54,15 +54,19 @@ vi.mock('@/lib/stripe', () => ({
 }));
 
 // Mock the db module with Drizzle API shape
-const mockFindFirst = vi.fn();
-const mockInsertValues = vi.fn().mockReturnThis();
-const mockInsertReturning = vi.fn();
-const mockInsert = vi.fn(() => ({
-  values: (...args: unknown[]) => {
-    mockInsertValues(...args);
-    return { returning: mockInsertReturning };
-  },
-}));
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const { mockFindFirst, mockInsertValues, mockInsertReturning, mockInsert } = vi.hoisted(() => {
+  const mockFindFirst = vi.fn();
+  const mockInsertValues = vi.fn().mockReturnThis();
+  const mockInsertReturning = vi.fn();
+  const mockInsert = vi.fn(() => ({
+    values: (...args: unknown[]) => {
+      mockInsertValues(...args);
+      return { returning: mockInsertReturning };
+    },
+  }));
+  return { mockFindFirst, mockInsertValues, mockInsertReturning, mockInsert };
+});
 
 vi.mock('@/lib/db', () => ({
   db: {
