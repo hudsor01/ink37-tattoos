@@ -16,6 +16,7 @@ import {
   CreditCard,
   Package,
   ShoppingBag,
+  MessageSquare,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -39,6 +40,7 @@ const navItems = [
   { label: 'Payments', href: '/dashboard/payments', icon: CreditCard },
   { label: 'Products', href: '/dashboard/products', icon: Package },
   { label: 'Orders', href: '/dashboard/orders', icon: ShoppingBag },
+  { label: 'Contacts', href: '/dashboard/contacts', icon: MessageSquare },
   { label: 'Media', href: '/dashboard/media', icon: Image },
   { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
