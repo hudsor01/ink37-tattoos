@@ -30,7 +30,6 @@ export function formatCurrency(amount: number): string {
 
 /** Gift card preset denominations in dollars (D-10). */
 export const GIFT_CARD_DENOMINATIONS = [25, 50, 100, 200, 500] as const;
-export type GiftCardDenomination = (typeof GIFT_CARD_DENOMINATIONS)[number];
 
 /** Flat shipping rate in cents for Stripe (D-07). $7.99 standard. */
 export const SHIPPING_RATE_CENTS = 799;
