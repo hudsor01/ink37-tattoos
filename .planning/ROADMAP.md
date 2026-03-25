@@ -171,7 +171,11 @@ Plans:
   4. Cal.com webhook payloads are verified using the signing secret — unsigned or tampered requests are rejected with 401
   5. Cal.com-synced appointments appear in the admin appointment list with a visual indicator of their source
   6. A client with a portal account sees their Cal.com bookings on the portal appointments page without admin intervention
-**Plans**: 0 plans
+**Plans**: 2 plans
+
+Plans:
+- [ ] 09-01-PLAN.md — Cal.com webhook types, signature verification, route handler with customer matching and appointment upsert, unit tests
+- [ ] 09-02-PLAN.md — Admin appointment list source badge and source filter dropdown
 
 ## Progress
 
@@ -188,4 +192,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 6. UI Stub Closure + UX Wiring | 0/0 | Not started | - |
 | 7. Store Integration Fixes | 0/1 | Not started | - |
 | 8. Drizzle Migration | 3/3 | Complete   | 2026-03-24 |
-| 9. Cal.com Integration | 0/0 | Not started | - |
+| 9. Cal.com Integration | 0/2 | Not started | - |
