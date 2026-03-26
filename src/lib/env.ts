@@ -14,6 +14,7 @@ const envSchema = z.object({
   BLOB_PRIVATE_READ_WRITE_TOKEN: z.string().optional(),
   STRIPE_SECRET_KEY: z.string().min(1),
   STRIPE_WEBHOOK_SECRET: z.string().min(1),
+  CAL_WEBHOOK_SECRET: z.string().min(1).optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
