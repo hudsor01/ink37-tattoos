@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { format } from 'date-fns';
+import { format, formatDistance } from 'date-fns';
 import { Palette, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { getPortalSessions, getPortalDesigns } from '@/lib/dal/portal';
 import { StatusBadge } from '@/components/dashboard/status-badge';
@@ -253,7 +253,9 @@ function DesignCard({
           {design.designType && <span>Type: {design.designType}</span>}
           {design.style && <span>Style: {design.style}</span>}
           {design.size && <span>Size: {design.size}</span>}
-          <span>Added: {format(new Date(design.createdAt), 'MMM d, yyyy')}</span>
+          <span title={format(new Date(design.createdAt), 'MMM d, yyyy')}>
+            Added {formatDistance(new Date(design.createdAt), new Date(), { addSuffix: true })}
+          </span>
         </div>
       </CardContent>
     </Card>

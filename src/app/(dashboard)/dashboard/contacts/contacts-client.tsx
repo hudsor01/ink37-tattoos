@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { format } from 'date-fns';
+import { format, formatDistance } from 'date-fns';
 import { updateContactStatusAction } from '@/lib/actions/contact-status-action';
 import { toast } from 'sonner';
 import { StatusBadge } from '@/components/dashboard/status-badge';
@@ -81,8 +81,11 @@ export function ContactsClient({ contacts }: ContactsClientProps) {
                 <StatusBadge status={contact.status} />
                 <CardTitle className="text-base">{contact.name}</CardTitle>
               </div>
-              <span className="text-sm text-muted-foreground">
-                {format(new Date(contact.createdAt), 'MMM d, yyyy h:mm a')}
+              <span
+                className="text-sm text-muted-foreground"
+                title={format(new Date(contact.createdAt), 'MMM d, yyyy h:mm a')}
+              >
+                {formatDistance(new Date(contact.createdAt), new Date(), { addSuffix: true })}
               </span>
             </div>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
