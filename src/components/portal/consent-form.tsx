@@ -55,19 +55,23 @@ export function ConsentForm({ sessionId }: { sessionId: string }) {
       return;
     }
 
-    startTransition(async () => {
+    startTransition(() => {
       const formData = new FormData();
       formData.set('sessionId', sessionId);
       formData.set('signedName', signedName.trim());
       formData.set('acknowledged', 'true');
 
-      const result = await signConsentAction(formData);
-
-      if (result.success) {
-        toast.success('Consent form signed successfully');
-      } else {
-        toast.error(result.error ?? 'Failed to sign consent form.');
-      }
+      toast.promise(
+        signConsentAction(formData).then((result) => {
+          if (!result.success) throw new Error(result.error ?? 'Failed to sign consent form.');
+          return result;
+        }),
+        {
+          loading: 'Signing consent form...',
+          success: 'Consent form signed successfully',
+          error: (err) => err.message || 'Failed to sign consent form.',
+        }
+      );
     });
   }
 

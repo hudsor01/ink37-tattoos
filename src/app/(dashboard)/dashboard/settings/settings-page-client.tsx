@@ -45,18 +45,20 @@ export function SettingsPageClient({ initialSettings }: SettingsPageClientProps)
 
   async function saveCategory(category: string, keys: string[]) {
     setSaving(true);
-    try {
-      for (const key of keys) {
-        if (settings[key] !== initialSettings[key]) {
-          await saveSetting(key, settings[key], category);
+    toast.promise(
+      (async () => {
+        for (const key of keys) {
+          if (settings[key] !== initialSettings[key]) {
+            await saveSetting(key, settings[key], category);
+          }
         }
+      })().finally(() => setSaving(false)),
+      {
+        loading: 'Saving settings...',
+        success: 'Settings saved',
+        error: "Changes couldn't be saved. Please try again.",
       }
-      toast.success('Settings saved');
-    } catch {
-      toast.error("Changes couldn't be saved. Please try again.");
-    } finally {
-      setSaving(false);
-    }
+    );
   }
 
   return (

@@ -61,18 +61,21 @@ function DeleteAction({ productId, productName }: { productId: string; productNa
   const [isPending, startTransition] = useTransition();
 
   function handleDelete() {
-    startTransition(async () => {
-      try {
-        const formData = new FormData();
-        formData.append('productId', productId);
-        const result = await deleteProductAction(formData);
-        if (result.success) {
-          toast.success(`"${productName}" has been deactivated.`);
+    startTransition(() => {
+      const formData = new FormData();
+      formData.append('productId', productId);
+      toast.promise(
+        deleteProductAction(formData).then((result) => {
+          if (!result.success) throw new Error('Failed');
           router.refresh();
+          return result;
+        }),
+        {
+          loading: 'Deactivating product...',
+          success: `"${productName}" has been deactivated.`,
+          error: "Changes couldn't be saved. Please try again.",
         }
-      } catch {
-        toast.error("Changes couldn't be saved. Please try again.");
-      }
+      );
     });
   }
 

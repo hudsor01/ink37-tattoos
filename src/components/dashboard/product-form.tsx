@@ -138,35 +138,39 @@ export function ProductForm({ product, mode }: ProductFormProps) {
   };
 
   async function onSubmit(data: CreateProductData) {
-    startTransition(async () => {
-      try {
-        const formData = new FormData();
+    startTransition(() => {
+      const formData = new FormData();
 
-        if (mode === 'edit' && product) {
-          formData.append('id', product.id);
-        }
-
-        formData.append('name', data.name);
-        if (data.description) formData.append('description', data.description);
-        formData.append('price', String(data.price));
-        formData.append('productType', data.productType);
-        if (data.imageUrl) formData.append('imageUrl', data.imageUrl);
-        if (data.digitalFilePathname) formData.append('digitalFilePathname', data.digitalFilePathname);
-        if (data.digitalFileName) formData.append('digitalFileName', data.digitalFileName);
-        formData.append('isActive', String(data.isActive));
-        formData.append('sortOrder', String(data.sortOrder));
-
-        const result = mode === 'create'
-          ? await createProductAction(formData)
-          : await updateProductAction(formData);
-
-        if (result.success) {
-          toast.success(mode === 'create' ? 'Product created successfully' : 'Product updated successfully');
-          router.push('/dashboard/products');
-        }
-      } catch {
-        toast.error("Changes couldn't be saved. Please try again.");
+      if (mode === 'edit' && product) {
+        formData.append('id', product.id);
       }
+
+      formData.append('name', data.name);
+      if (data.description) formData.append('description', data.description);
+      formData.append('price', String(data.price));
+      formData.append('productType', data.productType);
+      if (data.imageUrl) formData.append('imageUrl', data.imageUrl);
+      if (data.digitalFilePathname) formData.append('digitalFilePathname', data.digitalFilePathname);
+      if (data.digitalFileName) formData.append('digitalFileName', data.digitalFileName);
+      formData.append('isActive', String(data.isActive));
+      formData.append('sortOrder', String(data.sortOrder));
+
+      const action = mode === 'create'
+        ? createProductAction(formData)
+        : updateProductAction(formData);
+
+      toast.promise(
+        action.then((result) => {
+          if (!result.success) throw new Error('Failed');
+          router.push('/dashboard/products');
+          return result;
+        }),
+        {
+          loading: mode === 'create' ? 'Creating product...' : 'Updating product...',
+          success: mode === 'create' ? 'Product created successfully' : 'Product updated successfully',
+          error: "Changes couldn't be saved. Please try again.",
+        }
+      );
     });
   }
 
