@@ -54,7 +54,7 @@ describe('Audit logging', () => {
     const mediaActions = fs.readFileSync('src/lib/actions/media-actions.ts', 'utf-8');
     const settingsActions = fs.readFileSync('src/lib/actions/settings-actions.ts', 'utf-8');
 
-    // All action files must import and call logAudit
+    // All action files must import and call logAudit via after() or fire-and-forget
     for (const [name, content] of [
       ['customer-actions', customerActions],
       ['appointment-actions', appointmentActions],
@@ -64,7 +64,10 @@ describe('Audit logging', () => {
     ]) {
       expect(content, `${name} must import logAudit`).toContain("import { logAudit }");
       expect(content, `${name} must call logAudit`).toContain("logAudit({");
-      expect(content, `${name} must use fire-and-forget`).toContain(".catch(() => {})");
+      // after() from next/server or fire-and-forget .catch pattern
+      const usesAfter = content.includes("import { after }") || content.includes("from 'next/server'");
+      const usesCatch = content.includes(".catch(() => {})");
+      expect(usesAfter || usesCatch, `${name} must use after() or fire-and-forget for logAudit`).toBe(true);
     }
   });
 
