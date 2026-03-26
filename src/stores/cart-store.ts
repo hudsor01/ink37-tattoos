@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { devtools, persist } from 'zustand/middleware';
 
 export interface CartItem {
   productId: string;
@@ -28,6 +28,7 @@ interface CartState {
 }
 
 export const useCartStore = create<CartState>()(
+  devtools(
   persist(
     (set, get) => ({
       items: [],
@@ -76,5 +77,6 @@ export const useCartStore = create<CartState>()(
         get().items.some((i) => i.productType === 'PHYSICAL'),
     }),
     { name: 'ink37-cart' }
-  )
+  ),
+  { name: 'CartStore', enabled: process.env.NODE_ENV === 'development' })
 );

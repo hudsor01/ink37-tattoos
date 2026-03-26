@@ -18,7 +18,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
         <NuqsAdapter>
           {children}
-          <Toaster position="bottom-right" />
+          <Toaster position="bottom-right" richColors />
         </NuqsAdapter>
       </ThemeProvider>
     </QueryClientProvider>
