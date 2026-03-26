@@ -271,7 +271,7 @@ export const CalWebhookPayloadSchema = z.object({
     responses: z.object({
       phone: z.object({ value: z.string() }).optional(),
     }).passthrough().optional(),
-    metadata: z.record(z.unknown()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
     videoCallData: z.object({ url: z.string().optional() }).optional(),
     rescheduleUid: z.string().optional(),
     cancellationReason: z.string().optional(),
