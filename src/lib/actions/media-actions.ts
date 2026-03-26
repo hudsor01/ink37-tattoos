@@ -1,10 +1,11 @@
 'use server';
 
-import { createMediaItem, updateMediaItem, deleteMediaItem, togglePublicVisibility } from '@/lib/dal/media';
+import { createMediaItem, updateMediaItem, deleteMediaItem, getMediaItemById, togglePublicVisibility } from '@/lib/dal/media';
 import { logAudit } from '@/lib/dal/audit';
 import { getCurrentSession } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
+import { del } from '@vercel/blob';
 
 export async function createMediaAction(formData: FormData) {
   const session = await getCurrentSession();
@@ -78,6 +79,18 @@ export async function updateMediaAction(id: string, formData: FormData) {
 export async function deleteMediaAction(id: string) {
   const session = await getCurrentSession();
   if (!session?.user) throw new Error('Unauthorized');
+
+  // Fetch media record to get blob URL before deleting from DB
+  const media = await getMediaItemById(id);
+  if (media?.fileUrl) {
+    try {
+      await del(media.fileUrl);
+      if (media.thumbnailUrl) await del(media.thumbnailUrl);
+    } catch {
+      // Log but don't block deletion if blob cleanup fails
+      console.error(`[Media] Failed to delete blob for media ${id}`);
+    }
+  }
 
   await deleteMediaItem(id);
 

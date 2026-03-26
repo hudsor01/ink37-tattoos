@@ -3,7 +3,7 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { eq, gte, and, sql, desc, asc } from 'drizzle-orm';
+import { eq, gte, and, sql, desc, asc, count, sum } from 'drizzle-orm';
 import { customer, appointment, tattooSession } from '@/lib/db/schema';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
@@ -22,10 +22,10 @@ export const getDashboardStats = cache(async () => {
 
   const [totalCustomersResult, totalAppointmentsResult, completedSessionsResult, revenueResult, recentAppointments] =
     await Promise.all([
-      db.select({ count: sql<number>`cast(count(*) as integer)` }).from(customer),
-      db.select({ count: sql<number>`cast(count(*) as integer)` }).from(appointment),
-      db.select({ count: sql<number>`cast(count(*) as integer)` }).from(tattooSession).where(eq(tattooSession.status, 'COMPLETED')),
-      db.select({ total: sql<number>`coalesce(sum(${tattooSession.totalCost}), 0)` }).from(tattooSession).where(eq(tattooSession.status, 'COMPLETED')),
+      db.select({ count: count() }).from(customer),
+      db.select({ count: count() }).from(appointment),
+      db.select({ count: count() }).from(tattooSession).where(eq(tattooSession.status, 'COMPLETED')),
+      db.select({ total: sum(tattooSession.totalCost) }).from(tattooSession).where(eq(tattooSession.status, 'COMPLETED')),
       db.query.appointment.findMany({
         orderBy: [desc(appointment.scheduledDate)],
         limit: 5,
@@ -111,7 +111,7 @@ export const getAppointmentTypeBreakdown = cache(async () => {
 
   const breakdown = await db.select({
     type: appointment.type,
-    count: sql<number>`cast(count(*) as integer)`,
+    count: count(),
   })
     .from(appointment)
     .groupBy(appointment.type);
