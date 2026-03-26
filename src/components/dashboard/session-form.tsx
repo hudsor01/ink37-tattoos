@@ -74,19 +74,24 @@ export function SessionForm({ onSuccess }: SessionFormProps) {
   }, [hourlyRate, estimatedHours, setValue]);
 
   async function onSubmit(data: Record<string, unknown>) {
-    try {
-      const formData = new FormData();
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          formData.append(key, String(value));
-        }
-      });
-      await createSessionAction(formData);
-      toast.success('Session logged successfully');
-      onSuccess?.();
-    } catch {
-      toast.error("Changes couldn't be saved. Please try again.");
-    }
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
+    });
+
+    toast.promise(
+      createSessionAction(formData).then((result) => {
+        onSuccess?.();
+        return result;
+      }),
+      {
+        loading: 'Logging session...',
+        success: 'Session logged successfully',
+        error: "Changes couldn't be saved. Please try again.",
+      }
+    );
   }
 
   return (

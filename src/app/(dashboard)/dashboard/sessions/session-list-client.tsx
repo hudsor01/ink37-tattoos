@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { DataTable, type ColumnDef } from '@/components/dashboard/data-table';
 import { StatusBadge } from '@/components/dashboard/status-badge';
 import { Button } from '@/components/ui/button';
@@ -121,15 +121,20 @@ export function SessionListClient({
     initialData: initialSessions,
   });
 
-  async function handleDelete(id: string) {
-    if (!confirm('Are you sure you want to delete this session?')) return;
-    try {
-      await deleteSessionAction(id);
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteSessionAction(id),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
-      toast.success('Session deleted');
-    } catch {
-      toast.error("Changes couldn't be saved. Please try again.");
-    }
+    },
+  });
+
+  function handleDelete(id: string) {
+    if (!confirm('Are you sure you want to delete this session?')) return;
+    toast.promise(deleteMutation.mutateAsync(id), {
+      loading: 'Deleting session...',
+      success: 'Session deleted',
+      error: "Changes couldn't be saved. Please try again.",
+    });
   }
 
   const columnsWithActions: ColumnDef<SessionWithRelations, unknown>[] = [

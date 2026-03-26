@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { MoreHorizontal, Plus } from 'lucide-react';
@@ -92,7 +92,6 @@ export function AppointmentListClient({
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [statusFilter, setStatusFilter] = useState('ALL');
 
   const { data: appointments = [] } = useQuery<Appointment[]>({
@@ -106,31 +105,40 @@ export function AppointmentListClient({
       ? appointments
       : appointments.filter((a) => a.status === statusFilter);
 
-  async function handleDelete() {
-    if (!deleteId) return;
-    setIsDeleting(true);
-    try {
-      await deleteAppointmentAction(deleteId);
-      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
-      toast.success('Appointment cancelled successfully');
-    } catch {
-      toast.error("Changes couldn't be saved. Please try again.");
-    } finally {
-      setIsDeleting(false);
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteAppointmentAction(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
       setDeleteId(null);
-    }
-  }
+    },
+  });
 
-  async function handleStatusUpdate(id: string, status: string) {
-    try {
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) => {
       const formData = new FormData();
       formData.append('status', status);
-      await updateAppointmentAction(id, formData);
-      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
-      toast.success('Status updated successfully');
-    } catch {
-      toast.error("Changes couldn't be saved. Please try again.");
-    }
+      return updateAppointmentAction(id, formData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+    },
+  });
+
+  function handleDelete() {
+    if (!deleteId) return;
+    toast.promise(deleteMutation.mutateAsync(deleteId), {
+      loading: 'Cancelling appointment...',
+      success: 'Appointment cancelled successfully',
+      error: "Changes couldn't be saved. Please try again.",
+    });
+  }
+
+  function handleStatusUpdate(id: string, status: string) {
+    toast.promise(statusMutation.mutateAsync({ id, status }), {
+      loading: 'Updating status...',
+      success: 'Status updated successfully',
+      error: "Changes couldn't be saved. Please try again.",
+    });
   }
 
   const columns: ColumnDef<Appointment>[] = [
@@ -308,10 +316,10 @@ export function AppointmentListClient({
             <AlertDialogCancel>Keep Appointment</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              disabled={isDeleting}
+              disabled={deleteMutation.isPending}
               variant="destructive"
             >
-              {isDeleting ? 'Cancelling...' : 'Cancel Appointment'}
+              {deleteMutation.isPending ? 'Cancelling...' : 'Cancel Appointment'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
