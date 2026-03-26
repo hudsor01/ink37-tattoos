@@ -92,26 +92,28 @@ export function AppointmentForm({
   });
 
   async function onSubmit(data: CreateAppointmentData) {
-    try {
-      const formData = new FormData();
-      Object.entries(data).forEach(([key, value]) => {
-        if (value === undefined || value === null) return;
-        formData.append(key, String(value));
-      });
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value === undefined || value === null) return;
+      formData.append(key, String(value));
+    });
 
-      if (isEdit && appointment) {
-        await updateAppointmentAction(appointment.id, formData);
-        toast.success('Appointment updated successfully');
-      } else {
-        await createAppointmentAction(formData);
-        toast.success('Appointment created successfully');
+    const action = isEdit && appointment
+      ? updateAppointmentAction(appointment.id, formData)
+      : createAppointmentAction(formData);
+
+    toast.promise(
+      action.then(async (result) => {
+        await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+        onSuccess?.();
+        return result;
+      }),
+      {
+        loading: isEdit ? 'Updating appointment...' : 'Creating appointment...',
+        success: isEdit ? 'Appointment updated successfully' : 'Appointment created successfully',
+        error: "Changes couldn't be saved. Please try again.",
       }
-
-      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
-      onSuccess?.();
-    } catch {
-      toast.error("Changes couldn't be saved. Please try again.");
-    }
+    );
   }
 
   return (

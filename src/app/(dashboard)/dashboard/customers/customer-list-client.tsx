@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
 import { format, formatDistance } from 'date-fns';
 import { MoreHorizontal, Plus } from 'lucide-react';
@@ -57,7 +57,6 @@ export function CustomerListClient({
   const [createOpen, setCreateOpen] = useState(false);
   const [editCustomer, setEditCustomer] = useState<Customer | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const { data: customers = [] } = useQuery<Customer[]>({
     queryKey: ['customers'],
@@ -65,19 +64,21 @@ export function CustomerListClient({
     initialData: initialCustomers,
   });
 
-  async function handleDelete() {
-    if (!deleteId) return;
-    setIsDeleting(true);
-    try {
-      await deleteCustomerAction(deleteId);
-      await queryClient.invalidateQueries({ queryKey: ['customers'] });
-      toast.success('Customer deleted successfully');
-    } catch {
-      toast.error("Changes couldn't be saved. Please try again.");
-    } finally {
-      setIsDeleting(false);
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteCustomerAction(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
       setDeleteId(null);
-    }
+    },
+  });
+
+  function handleDelete() {
+    if (!deleteId) return;
+    toast.promise(deleteMutation.mutateAsync(deleteId), {
+      loading: 'Deleting customer...',
+      success: 'Customer deleted successfully',
+      error: "Changes couldn't be saved. Please try again.",
+    });
   }
 
   const columns: ColumnDef<Customer>[] = [
@@ -252,10 +253,10 @@ export function CustomerListClient({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              disabled={isDeleting}
+              disabled={deleteMutation.isPending}
               variant="destructive"
             >
-              {isDeleting ? 'Deleting...' : 'Delete'}
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

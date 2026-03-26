@@ -44,13 +44,15 @@ export function ContactsClient({ contacts }: ContactsClientProps) {
   const [isPending, startTransition] = useTransition();
 
   function handleStatusChange(id: string, status: string) {
-    startTransition(async () => {
-      try {
-        await updateContactStatusAction(id, status as 'NEW' | 'READ' | 'REPLIED' | 'RESOLVED');
-        toast.success('Status updated');
-      } catch {
-        toast.error('Failed to update status');
-      }
+    startTransition(() => {
+      toast.promise(
+        updateContactStatusAction(id, status as 'NEW' | 'READ' | 'REPLIED' | 'RESOLVED'),
+        {
+          loading: 'Updating status...',
+          success: 'Status updated',
+          error: 'Failed to update status',
+        }
+      );
     });
   }
 
