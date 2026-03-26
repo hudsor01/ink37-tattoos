@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   type ColumnDef,
   type SortingState,
   type ColumnFiltersState,
+  type VisibilityState,
+  type RowSelectionState,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
@@ -21,8 +23,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { SearchInput } from '@/components/dashboard/search-input';
-import { ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowUpDown, ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -30,6 +38,8 @@ interface DataTableProps<TData, TValue> {
   searchKey?: string;
   searchPlaceholder?: string;
   pageSize?: number;
+  enableRowSelection?: boolean;
+  onRowSelectionChange?: (selectedRows: TData[]) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -38,9 +48,13 @@ export function DataTable<TData, TValue>({
   searchKey,
   searchPlaceholder = 'Search...',
   pageSize = 10,
+  enableRowSelection,
+  onRowSelectionChange,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
   const table = useReactTable({
     data,
@@ -51,9 +65,14 @@ export function DataTable<TData, TValue>({
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    enableRowSelection: enableRowSelection ?? false,
+    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
       columnFilters,
+      columnVisibility,
+      ...(enableRowSelection ? { rowSelection } : {}),
     },
     initialState: {
       pagination: {
@@ -62,19 +81,52 @@ export function DataTable<TData, TValue>({
     },
   });
 
+  useEffect(() => {
+    if (onRowSelectionChange && enableRowSelection) {
+      const selectedRows = table.getFilteredSelectedRowModel().rows.map(r => r.original);
+      onRowSelectionChange(selectedRows);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rowSelection]);
+
   return (
     <div className="space-y-4">
-      {searchKey && (
-        <SearchInput
-          value={
-            (table.getColumn(searchKey)?.getFilterValue() as string) ?? ''
-          }
-          onChange={(value) =>
-            table.getColumn(searchKey)?.setFilterValue(value)
-          }
-          placeholder={searchPlaceholder}
-        />
-      )}
+      <div className="flex items-center justify-between gap-2">
+        {searchKey && (
+          <SearchInput
+            value={
+              (table.getColumn(searchKey)?.getFilterValue() as string) ?? ''
+            }
+            onChange={(value) =>
+              table.getColumn(searchKey)?.setFilterValue(value)
+            }
+            placeholder={searchPlaceholder}
+          />
+        )}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={<Button variant="outline" size="sm" className="ml-auto" />}
+          >
+            <SlidersHorizontal className="mr-2 h-4 w-4" />
+            View
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {table.getAllColumns()
+              .filter((column) => column.getCanHide())
+              .map((column) => (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  checked={column.getIsVisible()}
+                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                >
+                  {typeof column.columnDef.header === 'string'
+                    ? column.columnDef.header
+                    : column.id}
+                </DropdownMenuCheckboxItem>
+              ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       <div className="rounded-md border">
         <Table>
@@ -140,6 +192,9 @@ export function DataTable<TData, TValue>({
 
       <div className="flex items-center justify-between px-2">
         <p className="text-sm text-muted-foreground">
+          {enableRowSelection && (
+            <span>{table.getFilteredSelectedRowModel().rows.length} of{' '}</span>
+          )}
           {table.getFilteredRowModel().rows.length} row(s) total
         </p>
         <div className="flex items-center gap-2">
