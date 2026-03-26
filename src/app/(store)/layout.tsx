@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/sheet';
 import { CartIcon } from '@/components/store/cart-icon';
 import { CartDrawer } from '@/components/store/cart-drawer';
+import { PageTransition } from '@/components/page-transition';
 
 const navLinks = [
   { href: '/gallery', label: 'Gallery' },
@@ -181,7 +182,9 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
   return (
     <>
       <StoreNav />
-      <main className="pt-16 min-h-screen">{children}</main>
+      <main className="pt-16 min-h-screen">
+        <PageTransition>{children}</PageTransition>
+      </main>
       <StoreFooter />
       <CartDrawer />
     </>
