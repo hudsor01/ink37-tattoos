@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { format } from 'date-fns';
+import { format, formatDistance } from 'date-fns';
 import { Calendar, Palette, CreditCard, AlertCircle } from 'lucide-react';
 import { getPortalOverview } from '@/lib/dal/portal';
 import { StatusBadge } from '@/components/dashboard/status-badge';
@@ -111,8 +111,11 @@ export default async function PortalOverviewPage() {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {format(new Date(overview.recentPayment.createdAt), 'MMM d, yyyy')}
+                <p
+                  className="text-sm text-muted-foreground"
+                  title={format(new Date(overview.recentPayment.createdAt), 'MMM d, yyyy')}
+                >
+                  {formatDistance(new Date(overview.recentPayment.createdAt), new Date(), { addSuffix: true })}
                 </p>
               </div>
             ) : (
