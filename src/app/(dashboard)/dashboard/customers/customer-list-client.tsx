@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
-import { format } from 'date-fns';
+import { format, formatDistance } from 'date-fns';
 import { MoreHorizontal, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -106,8 +106,11 @@ export function CustomerListClient({
     {
       accessorKey: 'createdAt',
       header: 'Created',
-      cell: ({ row }) =>
-        format(new Date(row.original.createdAt), 'MMM d, yyyy'),
+      cell: ({ row }) => (
+        <span title={format(new Date(row.original.createdAt), 'MMM d, yyyy')}>
+          {formatDistance(new Date(row.original.createdAt), new Date(), { addSuffix: true })}
+        </span>
+      ),
     },
     {
       id: 'actions',

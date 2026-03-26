@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { format } from 'date-fns';
+import { format, formatDistance } from 'date-fns';
 import { MoreHorizontal, Eye, Truck, PackageCheck, XCircle, RotateCcw } from 'lucide-react';
 import Link from 'next/link';
 import { updateOrderStatusAction, refundOrderAction } from '@/lib/actions/order-actions';
@@ -216,8 +216,11 @@ export const orderColumns: ColumnDef<OrderWithItems, unknown>[] = [
   {
     accessorKey: 'createdAt',
     header: 'Date',
-    cell: ({ row }) =>
-      format(new Date(row.original.createdAt), 'MMM d, yyyy'),
+    cell: ({ row }) => (
+      <span title={format(new Date(row.original.createdAt), 'MMM d, yyyy')}>
+        {formatDistance(new Date(row.original.createdAt), new Date(), { addSuffix: true })}
+      </span>
+    ),
     enableSorting: true,
   },
   {
