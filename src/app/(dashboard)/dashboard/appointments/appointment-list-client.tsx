@@ -8,6 +8,7 @@ import { MoreHorizontal, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { DataTable } from '@/components/dashboard/data-table';
+import { SourceBadge } from '@/components/dashboard/source-badge';
 import { StatusBadge } from '@/components/dashboard/status-badge';
 import { AppointmentForm } from '@/components/dashboard/appointment-form';
 import { Button } from '@/components/ui/button';
@@ -54,6 +55,7 @@ interface Appointment {
   duration: number | null;
   status: string;
   type: string;
+  source: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -86,6 +88,12 @@ const STATUS_OPTIONS = [
   { value: 'NO_SHOW', label: 'No Show' },
 ] as const;
 
+const SOURCE_OPTIONS = [
+  { value: 'ALL', label: 'All Sources' },
+  { value: 'website', label: 'Manual' },
+  { value: 'cal.com', label: 'Cal.com' },
+] as const;
+
 export function AppointmentListClient({
   initialAppointments,
 }: AppointmentListClientProps) {
@@ -94,6 +102,7 @@ export function AppointmentListClient({
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [sourceFilter, setSourceFilter] = useState('ALL');
 
   const { data: appointments = [] } = useQuery<Appointment[]>({
     queryKey: ['appointments'],
@@ -101,10 +110,11 @@ export function AppointmentListClient({
     initialData: initialAppointments,
   });
 
-  const filteredAppointments =
-    statusFilter === 'ALL'
-      ? appointments
-      : appointments.filter((a) => a.status === statusFilter);
+  const filteredAppointments = appointments.filter((a) => {
+    if (statusFilter !== 'ALL' && a.status !== statusFilter) return false;
+    if (sourceFilter !== 'ALL' && (a.source ?? 'website') !== sourceFilter) return false;
+    return true;
+  });
 
   async function handleDelete() {
     if (!deleteId) return;
@@ -156,6 +166,13 @@ export function AppointmentListClient({
         <span className="capitalize">
           {row.original.type.replace(/_/g, ' ').toLowerCase()}
         </span>
+      ),
+    },
+    {
+      accessorKey: 'source',
+      header: 'Source',
+      cell: ({ row }) => (
+        <SourceBadge source={row.original.source ?? 'website'} />
       ),
     },
     {
@@ -276,6 +293,21 @@ export function AppointmentListClient({
           </SelectTrigger>
           <SelectContent>
             {STATUS_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={sourceFilter}
+          onValueChange={(val) => setSourceFilter(val ?? 'ALL')}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by source" />
+          </SelectTrigger>
+          <SelectContent>
+            {SOURCE_OPTIONS.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}
               </SelectItem>
