@@ -174,8 +174,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 09-01-PLAN.md — Cal.com webhook types, signature verification, route handler with customer matching and appointment upsert, unit tests
-- [ ] 09-02-PLAN.md — Admin appointment list source badge and source filter dropdown
+- [x] 09-01-PLAN.md — Cal.com webhook types, signature verification, route handler with customer matching and appointment upsert, unit tests
+- [x] 09-02-PLAN.md — Admin appointment list source badge and source filter dropdown
 
 ## Progress
 
