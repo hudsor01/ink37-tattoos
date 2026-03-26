@@ -10,6 +10,7 @@ import {
   Cell,
   XAxis,
   YAxis,
+  CartesianGrid,
 } from 'recharts';
 import {
   ChartContainer,
@@ -46,6 +47,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
   return (
     <ChartContainer config={revenueConfig} className="min-h-[250px] w-full">
       <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
         <XAxis
           dataKey="month"
           tickLine={false}
@@ -146,6 +148,7 @@ export function ClientAcquisitionChart({ data }: ClientAcquisitionChartProps) {
   return (
     <ChartContainer config={acquisitionConfig} className="min-h-[250px] w-full">
       <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
         <XAxis
           dataKey="month"
           tickLine={false}
