@@ -21,6 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 7: Store Integration Fixes** - Fix store download URLs, checkout guards, and gift card email (gap closure)
 - [x] **Phase 8: Drizzle Migration** - Replace Prisma ORM with Drizzle ORM, verify all functionality, clean up artifacts (completed 2026-03-24)
 - [ ] **Phase 9: Cal.com Integration** - Webhook sync for bookings, customer matching, appointment auto-creation, admin + portal visibility
+- [ ] **Phase 10: Tech Stack Audit & Full Integration** - Audit deps, activate underutilized features, add nuqs, leverage Next.js 16
 
 ## Phase Details
 
@@ -180,7 +181,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -193,3 +194,27 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 7. Store Integration Fixes | 0/1 | Not started | - |
 | 8. Drizzle Migration | 3/3 | Complete   | 2026-03-24 |
 | 9. Cal.com Integration | 0/2 | Not started | - |
+| 10. Tech Stack Audit & Full Integration | 0/3 | Not started | - |
+
+### Phase 10: Tech Stack Audit & Full Integration
+
+**Goal:** Extract maximum value from all 32 runtime dependencies by auditing usage vs available APIs, confirming no dead dependencies, activating underutilized features (TanStack Query useMutation, framer-motion transitions, date-fns formatting, sonner promise toasts, react-table enhancements), adding nuqs for URL state, and leveraging Next.js 16 features (after(), useOptimistic, granular caching)
+**Requirements**: STACK-01, STACK-02, STACK-03, STACK-04, STACK-05, STACK-06, STACK-07, STACK-08, STACK-09, STACK-10
+**Depends on:** Phase 9
+**Success Criteria** (what must be TRUE):
+  1. All 32 runtime dependencies are audited with documented used vs available APIs
+  2. Dead dependencies (ws, @radix-ui/react-slot if confirmed) are removed and build still passes
+  3. Gallery, store, and admin table filters use nuqs for URL state instead of manual useSearchParams
+  4. TanStack Query useQuery/useMutation hooks are used for client-side data operations with optimistic updates
+  5. framer-motion AnimatePresence provides page/list transitions beyond the current hero-only usage
+  6. date-fns relative timestamps and sonner promise toasts are used across dashboard and portal
+  7. Next.js 16 after() is used for post-response work (audit logging), useOptimistic for status mutations
+  8. react-table column visibility and row selection are available where useful
+  9. better-auth plugin ecosystem is evaluated for applicable plugins
+  10. `npx tsc --noEmit`, `npm run test`, and `npm run build` all pass
+**Plans:** 3 plans
+
+Plans:
+- [ ] 10-01-PLAN.md — Dependency audit report, nuqs install + provider setup, DataTable column visibility + row selection, better-auth plugin evaluation
+- [ ] 10-02-PLAN.md — framer-motion gallery stagger animations, date-fns relative timestamps across dashboard and portal
+- [ ] 10-03-PLAN.md — nuqs gallery filter rewrite, after() for audit logging, useMutation + toast.promise across dashboard mutations
