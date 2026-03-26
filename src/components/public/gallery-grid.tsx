@@ -3,8 +3,27 @@
 import { useMemo, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
 import { GalleryFilterBar } from '@/components/public/gallery-filter-bar';
 import dynamic from 'next/dynamic';
+
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.06,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] },
+  },
+};
 
 const GalleryLightbox = dynamic(() => import('@/components/public/gallery-lightbox').then(m => m.GalleryLightbox));
 
@@ -90,10 +109,17 @@ function GalleryClientInner({ initialDesigns }: GalleryClientProps) {
           </p>
         </div>
       ) : (
-        <div className="columns-1 md:columns-2 lg:columns-3 gap-3">
+        <motion.div
+          className="columns-1 md:columns-2 lg:columns-3 gap-3"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          key={`${activeFilters.style}-${activeFilters.placement}-${activeFilters.size}`}
+        >
           {filteredDesigns.map((design, index) => (
-            <div
+            <motion.div
               key={design.id}
+              variants={itemVariants}
               className="break-inside-avoid mb-3 cursor-pointer group"
               onClick={() => setLightboxIndex(index)}
               role="button"
@@ -117,9 +143,9 @@ function GalleryClientInner({ initialDesigns }: GalleryClientProps) {
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200" />
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       <GalleryLightbox
