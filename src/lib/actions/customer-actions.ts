@@ -4,6 +4,7 @@ import { CreateCustomerSchema, UpdateCustomerSchema } from '@/lib/security/valid
 import { createCustomer, updateCustomer, deleteCustomer } from '@/lib/dal/customers';
 import { logAudit } from '@/lib/dal/audit';
 import { getCurrentSession } from '@/lib/auth';
+import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
@@ -22,15 +23,17 @@ export async function createCustomerAction(formData: FormData) {
   const result = await createCustomer(validated);
 
   const hdrs = await headers();
-  logAudit({
-    userId: session.user.id,
-    action: 'CREATE',
-    resource: 'customer',
-    resourceId: result.id,
-    ip: hdrs.get('x-forwarded-for') ?? 'unknown',
-    userAgent: hdrs.get('user-agent') ?? 'unknown',
-    metadata: { changes: validated },
-  }).catch(() => {});
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'CREATE',
+      resource: 'customer',
+      resourceId: result.id,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+      metadata: { changes: validated },
+    })
+  );
 
   revalidatePath('/dashboard/customers');
   return result;
@@ -50,15 +53,17 @@ export async function updateCustomerAction(id: string, formData: FormData) {
   const result = await updateCustomer(id, validated);
 
   const hdrs = await headers();
-  logAudit({
-    userId: session.user.id,
-    action: 'UPDATE',
-    resource: 'customer',
-    resourceId: id,
-    ip: hdrs.get('x-forwarded-for') ?? 'unknown',
-    userAgent: hdrs.get('user-agent') ?? 'unknown',
-    metadata: { changes: validated },
-  }).catch(() => {});
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'UPDATE',
+      resource: 'customer',
+      resourceId: id,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+      metadata: { changes: validated },
+    })
+  );
 
   revalidatePath('/dashboard/customers');
   return result;
@@ -71,14 +76,16 @@ export async function deleteCustomerAction(id: string) {
   await deleteCustomer(id);
 
   const hdrs = await headers();
-  logAudit({
-    userId: session.user.id,
-    action: 'DELETE',
-    resource: 'customer',
-    resourceId: id,
-    ip: hdrs.get('x-forwarded-for') ?? 'unknown',
-    userAgent: hdrs.get('user-agent') ?? 'unknown',
-  }).catch(() => {});
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'DELETE',
+      resource: 'customer',
+      resourceId: id,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+    })
+  );
 
   revalidatePath('/dashboard/customers');
 }

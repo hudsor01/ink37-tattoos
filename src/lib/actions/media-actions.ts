@@ -3,6 +3,7 @@
 import { createMediaItem, updateMediaItem, deleteMediaItem, togglePublicVisibility } from '@/lib/dal/media';
 import { logAudit } from '@/lib/dal/audit';
 import { getCurrentSession } from '@/lib/auth';
+import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
@@ -26,15 +27,17 @@ export async function createMediaAction(formData: FormData) {
   const result = await createMediaItem(data);
 
   const hdrs = await headers();
-  logAudit({
-    userId: session.user.id,
-    action: 'CREATE',
-    resource: 'media',
-    resourceId: result.id,
-    ip: hdrs.get('x-forwarded-for') ?? 'unknown',
-    userAgent: hdrs.get('user-agent') ?? 'unknown',
-    metadata: { changes: data },
-  }).catch(() => {});
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'CREATE',
+      resource: 'media',
+      resourceId: result.id,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+      metadata: { changes: data },
+    })
+  );
 
   revalidatePath('/dashboard/media');
   return result;
@@ -61,15 +64,17 @@ export async function updateMediaAction(id: string, formData: FormData) {
   const result = await updateMediaItem(id, data);
 
   const hdrs = await headers();
-  logAudit({
-    userId: session.user.id,
-    action: 'UPDATE',
-    resource: 'media',
-    resourceId: id,
-    ip: hdrs.get('x-forwarded-for') ?? 'unknown',
-    userAgent: hdrs.get('user-agent') ?? 'unknown',
-    metadata: { changes: data },
-  }).catch(() => {});
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'UPDATE',
+      resource: 'media',
+      resourceId: id,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+      metadata: { changes: data },
+    })
+  );
 
   revalidatePath('/dashboard/media');
   return result;
@@ -82,14 +87,16 @@ export async function deleteMediaAction(id: string) {
   await deleteMediaItem(id);
 
   const hdrs = await headers();
-  logAudit({
-    userId: session.user.id,
-    action: 'DELETE',
-    resource: 'media',
-    resourceId: id,
-    ip: hdrs.get('x-forwarded-for') ?? 'unknown',
-    userAgent: hdrs.get('user-agent') ?? 'unknown',
-  }).catch(() => {});
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'DELETE',
+      resource: 'media',
+      resourceId: id,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+    })
+  );
 
   revalidatePath('/dashboard/media');
 }
@@ -101,15 +108,17 @@ export async function toggleVisibilityAction(id: string, isPublic: boolean) {
   const result = await togglePublicVisibility(id, isPublic);
 
   const hdrs = await headers();
-  logAudit({
-    userId: session.user.id,
-    action: 'UPDATE',
-    resource: 'media',
-    resourceId: id,
-    ip: hdrs.get('x-forwarded-for') ?? 'unknown',
-    userAgent: hdrs.get('user-agent') ?? 'unknown',
-    metadata: { isPublic },
-  }).catch(() => {});
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'UPDATE',
+      resource: 'media',
+      resourceId: id,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+      metadata: { isPublic },
+    })
+  );
 
   revalidatePath('/dashboard/media');
   return result;

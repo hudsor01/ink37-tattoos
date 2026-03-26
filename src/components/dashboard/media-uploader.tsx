@@ -108,30 +108,33 @@ export function MediaUploader({ onSuccess }: MediaUploaderProps) {
     }
 
     setSaving(true);
-    try {
-      const formData = new FormData();
-      formData.append('name', formFields.name);
-      formData.append('fileUrl', uploadedUrl);
-      formData.append('artistId', formFields.artistId);
-      if (formFields.designType) formData.append('designType', formFields.designType);
-      if (formFields.size) formData.append('size', formFields.size);
-      if (formFields.style) formData.append('style', formFields.style);
-      if (formFields.tags) {
-        formFields.tags
-          .split(',')
-          .map((t) => t.trim())
-          .filter(Boolean)
-          .forEach((tag) => formData.append('tags', tag));
-      }
-
-      await createMediaAction(formData);
-      toast.success('Media saved to portfolio');
-      onSuccess?.();
-    } catch {
-      toast.error("Changes couldn't be saved. Please try again.");
-    } finally {
-      setSaving(false);
+    const formData = new FormData();
+    formData.append('name', formFields.name);
+    formData.append('fileUrl', uploadedUrl);
+    formData.append('artistId', formFields.artistId);
+    if (formFields.designType) formData.append('designType', formFields.designType);
+    if (formFields.size) formData.append('size', formFields.size);
+    if (formFields.style) formData.append('style', formFields.style);
+    if (formFields.tags) {
+      formFields.tags
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean)
+        .forEach((tag) => formData.append('tags', tag));
     }
+
+    toast.promise(
+      createMediaAction(formData).then((result) => {
+        onSuccess?.();
+        return result;
+      }),
+      {
+        loading: 'Saving to portfolio...',
+        success: 'Media saved to portfolio',
+        error: "Changes couldn't be saved. Please try again.",
+      }
+    );
+    setSaving(false);
   };
 
   if (uploadedUrl) {

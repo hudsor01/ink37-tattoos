@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -51,25 +51,36 @@ export function MediaPageClient({
     initialData: initialMedia,
   });
 
-  async function handleToggleVisibility(id: string, current: boolean) {
-    try {
-      await toggleVisibilityAction(id, !current);
+  const visibilityMutation = useMutation({
+    mutationFn: ({ id, isPublic }: { id: string; isPublic: boolean }) =>
+      toggleVisibilityAction(id, isPublic),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['media'] });
-      toast.success(current ? 'Set to private' : 'Set to public');
-    } catch {
-      toast.error("Changes couldn't be saved. Please try again.");
-    }
-  }
+    },
+  });
 
-  async function handleDelete(id: string) {
-    try {
-      await deleteMediaAction(id);
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteMediaAction(id),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['media'] });
       setDeleteConfirm(null);
-      toast.success('Media deleted');
-    } catch {
-      toast.error("Changes couldn't be saved. Please try again.");
-    }
+    },
+  });
+
+  function handleToggleVisibility(id: string, current: boolean) {
+    toast.promise(visibilityMutation.mutateAsync({ id, isPublic: !current }), {
+      loading: current ? 'Setting to private...' : 'Setting to public...',
+      success: current ? 'Set to private' : 'Set to public',
+      error: "Changes couldn't be saved. Please try again.",
+    });
+  }
+
+  function handleDelete(id: string) {
+    toast.promise(deleteMutation.mutateAsync(id), {
+      loading: 'Deleting media...',
+      success: 'Media deleted',
+      error: "Changes couldn't be saved. Please try again.",
+    });
   }
 
   if (!media || media.length === 0) {

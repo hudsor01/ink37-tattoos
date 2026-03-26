@@ -5,6 +5,7 @@ import { getOrderById, updateOrderStatus } from '@/lib/dal/orders';
 import { UpdateOrderStatusSchema } from '@/lib/security/validation';
 import { logAudit } from '@/lib/dal/audit';
 import { getCurrentSession } from '@/lib/auth';
+import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
@@ -23,17 +24,19 @@ export async function updateOrderStatusAction(formData: FormData) {
 
   await updateOrderStatus(validated);
 
-  // Audit logging (fire-and-forget)
+  // Audit logging (runs after response)
   const hdrs = await headers();
-  logAudit({
-    userId: session.user.id,
-    action: 'UPDATE',
-    resource: 'order',
-    resourceId: validated.orderId,
-    ip: hdrs.get('x-forwarded-for') ?? 'unknown',
-    userAgent: hdrs.get('user-agent') ?? 'unknown',
-    metadata: { status: validated.status, notes: validated.notes },
-  }).catch(() => {});
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'UPDATE',
+      resource: 'order',
+      resourceId: validated.orderId,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+      metadata: { status: validated.status, notes: validated.notes },
+    })
+  );
 
   revalidatePath('/dashboard/orders');
 
@@ -69,17 +72,19 @@ export async function refundOrderAction(formData: FormData) {
     }),
   ]);
 
-  // Audit logging (fire-and-forget)
+  // Audit logging (runs after response)
   const hdrs = await headers();
-  logAudit({
-    userId: session.user.id,
-    action: 'REFUND',
-    resource: 'order',
-    resourceId: orderId,
-    ip: hdrs.get('x-forwarded-for') ?? 'unknown',
-    userAgent: hdrs.get('user-agent') ?? 'unknown',
-    metadata: { stripePaymentIntentId: order.stripePaymentIntentId },
-  }).catch(() => {});
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'REFUND',
+      resource: 'order',
+      resourceId: orderId,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+      metadata: { stripePaymentIntentId: order.stripePaymentIntentId },
+    })
+  );
 
   revalidatePath('/dashboard/orders');
 

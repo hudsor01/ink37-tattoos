@@ -1,10 +1,10 @@
 'use client';
 
-import { useMemo, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useMemo, useState } from 'react';
+import { useQueryStates } from 'nuqs';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { GalleryFilterBar } from '@/components/public/gallery-filter-bar';
+import { GalleryFilterBar, galleryFilterParsers } from '@/components/public/gallery-filter-bar';
 import dynamic from 'next/dynamic';
 
 const containerVariants = {
@@ -45,44 +45,38 @@ interface GalleryClientProps {
   initialDesigns: Design[];
 }
 
-function GalleryClientInner({ initialDesigns }: GalleryClientProps) {
-  const searchParams = useSearchParams();
+export function GalleryClient({ initialDesigns }: GalleryClientProps) {
+  const [filters] = useQueryStates(galleryFilterParsers);
   const [lightboxIndex, setLightboxIndex] = useState<number>(-1);
-
-  const activeFilters = {
-    style: searchParams.get('style') ?? undefined,
-    placement: searchParams.get('placement') ?? undefined,
-    size: searchParams.get('size') ?? undefined,
-  };
 
   const filteredDesigns = useMemo(() => {
     return initialDesigns.filter((design) => {
       // Style filter: matches designType or style field
-      if (activeFilters.style) {
+      if (filters.style) {
         const styleMatch =
-          design.designType?.toLowerCase() === activeFilters.style.toLowerCase() ||
-          design.style?.toLowerCase() === activeFilters.style.toLowerCase();
+          design.designType?.toLowerCase() === filters.style.toLowerCase() ||
+          design.style?.toLowerCase() === filters.style.toLowerCase();
         if (!styleMatch) return false;
       }
 
       // Placement filter: checks tags array
-      if (activeFilters.placement) {
+      if (filters.placement) {
         const placementMatch = (design.tags ?? []).some(
-          (tag) => tag.toLowerCase() === activeFilters.placement!.toLowerCase()
+          (tag) => tag.toLowerCase() === filters.placement!.toLowerCase()
         );
         if (!placementMatch) return false;
       }
 
       // Size filter: matches size field
-      if (activeFilters.size) {
+      if (filters.size) {
         const sizeMatch =
-          design.size?.toLowerCase() === activeFilters.size.toLowerCase();
+          design.size?.toLowerCase() === filters.size.toLowerCase();
         if (!sizeMatch) return false;
       }
 
       return true;
     });
-  }, [initialDesigns, activeFilters.style, activeFilters.placement, activeFilters.size]);
+  }, [initialDesigns, filters.style, filters.placement, filters.size]);
 
   // Empty state: no designs at all
   if (initialDesigns.length === 0) {
@@ -99,7 +93,7 @@ function GalleryClientInner({ initialDesigns }: GalleryClientProps) {
 
   return (
     <>
-      <GalleryFilterBar activeFilters={activeFilters} />
+      <GalleryFilterBar />
 
       {filteredDesigns.length === 0 ? (
         <div className="text-center py-24">
@@ -114,7 +108,7 @@ function GalleryClientInner({ initialDesigns }: GalleryClientProps) {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          key={`${activeFilters.style}-${activeFilters.placement}-${activeFilters.size}`}
+          key={`${filters.style}-${filters.placement}-${filters.size}`}
         >
           {filteredDesigns.map((design, index) => (
             <motion.div
@@ -158,13 +152,5 @@ function GalleryClientInner({ initialDesigns }: GalleryClientProps) {
         onNavigate={setLightboxIndex}
       />
     </>
-  );
-}
-
-export function GalleryClient({ initialDesigns }: GalleryClientProps) {
-  return (
-    <Suspense fallback={null}>
-      <GalleryClientInner initialDesigns={initialDesigns} />
-    </Suspense>
   );
 }

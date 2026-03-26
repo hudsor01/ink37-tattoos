@@ -86,6 +86,19 @@ Requirements for initial consolidated release. Each maps to roadmap phases.
 - [ ] **CAL-06**: Client portal displays Cal.com-synced appointments automatically without manual admin entry
 - [ ] **CAL-07**: Webhook signature verification using Cal.com signing secret for security
 
+### Tech Stack Audit & Full Integration
+
+- [ ] **STACK-01**: Audit all 32 runtime deps — document used vs available APIs per dependency
+- [ ] **STACK-02**: Remove unused dependencies (ws, @radix-ui/react-slot if confirmed dead)
+- [x] **STACK-03**: Add nuqs — replace manual useSearchParams in gallery, store filter, admin tables
+- [x] **STACK-04**: Activate TanStack Query — useQuery/useMutation for client-side data operations
+- [ ] **STACK-05**: Integrate framer-motion AnimatePresence for page/list transitions
+- [ ] **STACK-06**: Expand date-fns usage — relative timestamps, appointment proximity
+- [x] **STACK-07**: Leverage Next.js 16 features — after(), granular caching, useOptimistic
+- [x] **STACK-08**: Enhance sonner — promise toasts on all async mutations
+- [ ] **STACK-09**: Expand react-table features — column visibility, row selection where useful
+- [ ] **STACK-10**: Audit better-auth plugin ecosystem for applicable plugins
+
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
@@ -171,9 +184,20 @@ Deferred to future release. Tracked but not in current roadmap.
 | STORE-04 | Phase 5 | Complete |
 | STORE-05 | Phase 5 | Complete |
 
+| STACK-01 | Phase 10 | Not started |
+| STACK-02 | Phase 10 | Not started |
+| STACK-03 | Phase 10 | Not started |
+| STACK-04 | Phase 10 | Not started |
+| STACK-05 | Phase 10 | Not started |
+| STACK-06 | Phase 10 | Not started |
+| STACK-07 | Phase 10 | Not started |
+| STACK-08 | Phase 10 | Not started |
+| STACK-09 | Phase 10 | Not started |
+| STACK-10 | Phase 10 | Not started |
+
 **Coverage:**
-- v1 requirements: 45 total
-- Mapped to phases: 45
+- v1 requirements: 55 total
+- Mapped to phases: 55
 - Unmapped: 0
 
 ---

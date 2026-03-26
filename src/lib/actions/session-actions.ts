@@ -4,6 +4,7 @@ import { CreateSessionSchema, type CreateSessionData } from '@/lib/security/vali
 import { createSession, updateSession, deleteSession } from '@/lib/dal/sessions';
 import { logAudit } from '@/lib/dal/audit';
 import { getCurrentSession } from '@/lib/auth';
+import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
@@ -24,15 +25,17 @@ export async function createSessionAction(formData: FormData) {
   const result = await createSession(validated);
 
   const hdrs = await headers();
-  logAudit({
-    userId: session.user.id,
-    action: 'CREATE',
-    resource: 'session',
-    resourceId: result.id,
-    ip: hdrs.get('x-forwarded-for') ?? 'unknown',
-    userAgent: hdrs.get('user-agent') ?? 'unknown',
-    metadata: { changes: validated },
-  }).catch(() => {});
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'CREATE',
+      resource: 'session',
+      resourceId: result.id,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+      metadata: { changes: validated },
+    })
+  );
 
   revalidatePath('/dashboard/sessions');
   return result;
@@ -53,15 +56,17 @@ export async function updateSessionAction(id: string, formData: FormData) {
   const result = await updateSession(id, data as Partial<CreateSessionData>);
 
   const hdrs = await headers();
-  logAudit({
-    userId: session.user.id,
-    action: 'UPDATE',
-    resource: 'session',
-    resourceId: id,
-    ip: hdrs.get('x-forwarded-for') ?? 'unknown',
-    userAgent: hdrs.get('user-agent') ?? 'unknown',
-    metadata: { changes: data },
-  }).catch(() => {});
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'UPDATE',
+      resource: 'session',
+      resourceId: id,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+      metadata: { changes: data },
+    })
+  );
 
   revalidatePath('/dashboard/sessions');
   return result;
@@ -74,14 +79,16 @@ export async function deleteSessionAction(id: string) {
   await deleteSession(id);
 
   const hdrs = await headers();
-  logAudit({
-    userId: session.user.id,
-    action: 'DELETE',
-    resource: 'session',
-    resourceId: id,
-    ip: hdrs.get('x-forwarded-for') ?? 'unknown',
-    userAgent: hdrs.get('user-agent') ?? 'unknown',
-  }).catch(() => {});
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'DELETE',
+      resource: 'session',
+      resourceId: id,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+    })
+  );
 
   revalidatePath('/dashboard/sessions');
 }

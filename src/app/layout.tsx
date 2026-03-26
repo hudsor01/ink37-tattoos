@@ -8,7 +8,7 @@ const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    (process.env.NEXT_PUBLIC_APP_URL ?? 'https://ink37tattoos.com').trim()
+    process.env.NEXT_PUBLIC_APP_URL || 'https://ink37tattoos.com'
   ),
   title: {
     default: 'Ink 37 Tattoos | Custom Tattoo Art by Fernando Govea',
@@ -41,7 +41,7 @@ const jsonLd = {
   name: 'Ink 37 Tattoos',
   description:
     'Professional tattoo artistry in a clean, comfortable studio.',
-  url: (process.env.NEXT_PUBLIC_APP_URL ?? 'https://ink37tattoos.com').trim(),
+  url: process.env.NEXT_PUBLIC_APP_URL || 'https://ink37tattoos.com',
 };
 
 export default function RootLayout({

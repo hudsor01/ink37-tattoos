@@ -48,35 +48,41 @@ function OrderActions({ order }: { order: OrderWithItems }) {
   const [isPending, startTransition] = useTransition();
 
   function handleStatusUpdate(status: string) {
-    startTransition(async () => {
-      try {
-        const formData = new FormData();
-        formData.append('orderId', order.id);
-        formData.append('status', status);
-        const result = await updateOrderStatusAction(formData);
-        if (result.success) {
-          toast.success(`Order marked as ${status.toLowerCase()}.`);
+    startTransition(() => {
+      const formData = new FormData();
+      formData.append('orderId', order.id);
+      formData.append('status', status);
+      toast.promise(
+        updateOrderStatusAction(formData).then((result) => {
+          if (!result.success) throw new Error('Failed');
           router.refresh();
+          return result;
+        }),
+        {
+          loading: 'Updating order...',
+          success: `Order marked as ${status.toLowerCase()}.`,
+          error: "Changes couldn't be saved. Please try again.",
         }
-      } catch {
-        toast.error("Changes couldn't be saved. Please try again.");
-      }
+      );
     });
   }
 
   function handleRefund() {
-    startTransition(async () => {
-      try {
-        const formData = new FormData();
-        formData.append('orderId', order.id);
-        const result = await refundOrderAction(formData);
-        if (result.success) {
-          toast.success('Refund processed successfully.');
+    startTransition(() => {
+      const formData = new FormData();
+      formData.append('orderId', order.id);
+      toast.promise(
+        refundOrderAction(formData).then((result) => {
+          if (!result.success) throw new Error('Failed');
           router.refresh();
+          return result;
+        }),
+        {
+          loading: 'Processing refund...',
+          success: 'Refund processed successfully.',
+          error: "Changes couldn't be saved. Please try again.",
         }
-      } catch {
-        toast.error("Changes couldn't be saved. Please try again.");
-      }
+      );
     });
   }
 

@@ -5,6 +5,7 @@ import { createProduct, updateProduct, deleteProduct, getProductById } from '@/l
 import { CreateProductSchema, UpdateProductSchema } from '@/lib/security/validation';
 import { logAudit } from '@/lib/dal/audit';
 import { getCurrentSession } from '@/lib/auth';
+import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
@@ -48,17 +49,19 @@ export async function createProductAction(formData: FormData) {
     stripePriceId: stripePrice.id,
   });
 
-  // Audit logging (fire-and-forget)
+  // Audit logging (runs after response)
   const hdrs = await headers();
-  logAudit({
-    userId: session.user.id,
-    action: 'CREATE',
-    resource: 'product',
-    resourceId: product.id,
-    ip: hdrs.get('x-forwarded-for') ?? 'unknown',
-    userAgent: hdrs.get('user-agent') ?? 'unknown',
-    metadata: { name: validated.name, price: validated.price, productType: validated.productType },
-  }).catch(() => {});
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'CREATE',
+      resource: 'product',
+      resourceId: product.id,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+      metadata: { name: validated.name, price: validated.price, productType: validated.productType },
+    })
+  );
 
   revalidatePath('/dashboard/products');
 
@@ -121,17 +124,19 @@ export async function updateProductAction(formData: FormData) {
     ...(newStripePriceId && { stripePriceId: newStripePriceId }),
   });
 
-  // Audit logging (fire-and-forget)
+  // Audit logging (runs after response)
   const hdrs = await headers();
-  logAudit({
-    userId: session.user.id,
-    action: 'UPDATE',
-    resource: 'product',
-    resourceId: validated.id,
-    ip: hdrs.get('x-forwarded-for') ?? 'unknown',
-    userAgent: hdrs.get('user-agent') ?? 'unknown',
-    metadata: { changes: validated },
-  }).catch(() => {});
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'UPDATE',
+      resource: 'product',
+      resourceId: validated.id,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+      metadata: { changes: validated },
+    })
+  );
 
   revalidatePath('/dashboard/products');
 
@@ -159,17 +164,19 @@ export async function deleteProductAction(formData: FormData) {
     await stripe.products.update(existing.stripeProductId, { active: false });
   }
 
-  // Audit logging (fire-and-forget)
+  // Audit logging (runs after response)
   const hdrs = await headers();
-  logAudit({
-    userId: session.user.id,
-    action: 'DELETE',
-    resource: 'product',
-    resourceId: productId,
-    ip: hdrs.get('x-forwarded-for') ?? 'unknown',
-    userAgent: hdrs.get('user-agent') ?? 'unknown',
-    metadata: { name: existing.name },
-  }).catch(() => {});
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'DELETE',
+      resource: 'product',
+      resourceId: productId,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+      metadata: { name: existing.name },
+    })
+  );
 
   revalidatePath('/dashboard/products');
 

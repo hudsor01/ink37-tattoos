@@ -14,6 +14,7 @@ import {
 import { logAudit } from '@/lib/dal/audit';
 import { getCurrentSession } from '@/lib/auth';
 import { validateGiftCard } from '@/lib/dal/gift-cards';
+import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { env } from '@/lib/env';
@@ -116,21 +117,23 @@ export async function requestDepositAction(formData: FormData) {
     });
   }
 
-  // Audit logging (fire-and-forget)
+  // Audit logging (runs after response)
   const hdrs = await headers();
-  logAudit({
-    userId: session.user.id,
-    action: 'CREATE',
-    resource: 'payment',
-    resourceId: checkoutSession.id,
-    ip: hdrs.get('x-forwarded-for') ?? 'unknown',
-    userAgent: hdrs.get('user-agent') ?? 'unknown',
-    metadata: {
-      type: 'DEPOSIT',
-      amount: validated.amount,
-      tattooSessionId: validated.sessionId,
-    },
-  }).catch(() => {});
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'CREATE',
+      resource: 'payment',
+      resourceId: checkoutSession.id,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+      metadata: {
+        type: 'DEPOSIT',
+        amount: validated.amount,
+        tattooSessionId: validated.sessionId,
+      },
+    })
+  );
 
   revalidatePath('/dashboard/payments');
 
@@ -243,21 +246,23 @@ export async function requestBalanceAction(formData: FormData) {
     });
   }
 
-  // Audit logging (fire-and-forget)
+  // Audit logging (runs after response)
   const hdrs = await headers();
-  logAudit({
-    userId: session.user.id,
-    action: 'CREATE',
-    resource: 'payment',
-    resourceId: checkoutSession.id,
-    ip: hdrs.get('x-forwarded-for') ?? 'unknown',
-    userAgent: hdrs.get('user-agent') ?? 'unknown',
-    metadata: {
-      type: 'SESSION_BALANCE',
-      amount: remainingBalance,
-      tattooSessionId: validated.sessionId,
-    },
-  }).catch(() => {});
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'CREATE',
+      resource: 'payment',
+      resourceId: checkoutSession.id,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+      metadata: {
+        type: 'SESSION_BALANCE',
+        amount: remainingBalance,
+        tattooSessionId: validated.sessionId,
+      },
+    })
+  );
 
   revalidatePath('/dashboard/payments');
 

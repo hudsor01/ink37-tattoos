@@ -82,30 +82,32 @@ export function CustomerForm({ customer, onSuccess }: CustomerFormProps) {
   });
 
   async function onSubmit(data: CreateCustomerData) {
-    try {
-      const formData = new FormData();
-      Object.entries(data).forEach(([key, value]) => {
-        if (value === undefined || value === null) return;
-        if (Array.isArray(value)) {
-          value.forEach((v) => formData.append(key, v));
-        } else {
-          formData.append(key, String(value));
-        }
-      });
-
-      if (isEdit && customer) {
-        await updateCustomerAction(customer.id, formData);
-        toast.success('Customer updated successfully');
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value === undefined || value === null) return;
+      if (Array.isArray(value)) {
+        value.forEach((v) => formData.append(key, v));
       } else {
-        await createCustomerAction(formData);
-        toast.success('Customer created successfully');
+        formData.append(key, String(value));
       }
+    });
 
-      await queryClient.invalidateQueries({ queryKey: ['customers'] });
-      onSuccess?.();
-    } catch {
-      toast.error("Changes couldn't be saved. Please try again.");
-    }
+    const action = isEdit && customer
+      ? updateCustomerAction(customer.id, formData)
+      : createCustomerAction(formData);
+
+    toast.promise(
+      action.then(async (result) => {
+        await queryClient.invalidateQueries({ queryKey: ['customers'] });
+        onSuccess?.();
+        return result;
+      }),
+      {
+        loading: isEdit ? 'Updating customer...' : 'Creating customer...',
+        success: isEdit ? 'Customer updated successfully' : 'Customer created successfully',
+        error: "Changes couldn't be saved. Please try again.",
+      }
+    );
   }
 
   return (

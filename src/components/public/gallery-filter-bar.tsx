@@ -1,7 +1,6 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback } from 'react';
+import { useQueryStates, parseAsString } from 'nuqs';
 
 const FILTER_GROUPS = {
   style: {
@@ -31,26 +30,20 @@ const FILTER_GROUPS = {
 
 type FilterGroup = keyof typeof FILTER_GROUPS;
 
-interface GalleryFilterBarProps {
-  activeFilters: Record<string, string | undefined>;
-}
+export const galleryFilterParsers = {
+  style: parseAsString,
+  placement: parseAsString,
+  size: parseAsString,
+};
 
-export function GalleryFilterBar({ activeFilters }: GalleryFilterBarProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+export function GalleryFilterBar() {
+  const [filters, setFilters] = useQueryStates(galleryFilterParsers, {
+    shallow: false,
+  });
 
-  const handleFilter = useCallback(
-    (group: FilterGroup, value: string | null) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (value === null) {
-        params.delete(group);
-      } else {
-        params.set(group, value);
-      }
-      router.push(`/gallery?${params.toString()}`, { scroll: false });
-    },
-    [router, searchParams]
-  );
+  const handleFilter = (group: FilterGroup, value: string | null) => {
+    setFilters({ [group]: value });
+  };
 
   return (
     <div className="space-y-3 mb-8">
@@ -64,7 +57,7 @@ export function GalleryFilterBar({ activeFilters }: GalleryFilterBarProps) {
               <button
                 onClick={() => handleFilter(group, null)}
                 className={`shrink-0 rounded-full px-3 py-1 text-sm font-medium transition-colors ${
-                  !activeFilters[group]
+                  !filters[group]
                     ? 'bg-[--brand-accent] text-white'
                     : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                 }`}
@@ -76,7 +69,7 @@ export function GalleryFilterBar({ activeFilters }: GalleryFilterBarProps) {
                   key={option}
                   onClick={() => handleFilter(group, option)}
                   className={`shrink-0 rounded-full px-3 py-1 text-sm font-medium transition-colors ${
-                    activeFilters[group] === option
+                    filters[group] === option
                       ? 'bg-[--brand-accent] text-white'
                       : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                   }`}
