@@ -247,3 +247,34 @@ export const UpdateOrderStatusSchema = z.object({
   notes: z.string().max(1000).optional(),
 });
 
+
+// ============================================================================
+// CAL.COM WEBHOOK
+// ============================================================================
+
+export const CalWebhookPayloadSchema = z.object({
+  triggerEvent: z.enum(['BOOKING_CREATED', 'BOOKING_RESCHEDULED', 'BOOKING_CANCELLED']),
+  createdAt: z.string(),
+  payload: z.object({
+    uid: z.string().min(1),
+    bookingId: z.number(),
+    eventTypeId: z.number(),
+    startTime: z.string(),
+    endTime: z.string(),
+    length: z.number(),
+    attendees: z.array(z.object({
+      name: z.string(),
+      email: z.string().email(),
+      timeZone: z.string(),
+      language: z.object({ locale: z.string() }),
+    })).min(1),
+    responses: z.object({
+      phone: z.object({ value: z.string() }).optional(),
+    }).passthrough().optional(),
+    metadata: z.record(z.unknown()).optional(),
+    videoCallData: z.object({ url: z.string().optional() }).optional(),
+    rescheduleUid: z.string().optional(),
+    cancellationReason: z.string().optional(),
+  }).passthrough(),
+});
+
