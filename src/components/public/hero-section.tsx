@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { LazyMotion, domAnimation, m } from "framer-motion";
 
 export function HeroSection() {
   return (
+    <LazyMotion features={domAnimation}>
     <section className="relative flex min-h-[70vh] items-center justify-center bg-neutral-950 px-4">
-      <motion.div
+      <m.div
         className="mx-auto max-w-4xl text-center"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -33,7 +34,8 @@ export function HeroSection() {
             View Gallery
           </Link>
         </div>
-      </motion.div>
+      </m.div>
     </section>
+    </LazyMotion>
   );
 }
