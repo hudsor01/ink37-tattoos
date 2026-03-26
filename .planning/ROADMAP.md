@@ -159,10 +159,28 @@ Plans:
 - [x] 08-02-PLAN.md — Rewrite all 82 Prisma queries across DAL, actions, routes, and tests to Drizzle
 - [x] 08-03-PLAN.md — Delete Prisma artifacts, update scripts, verify build/test/audit, update documentation
 
+### Phase 10: Tech Stack Audit & Full Integration
+**Goal:** Audit all 32 runtime dependencies to document used vs available APIs, install nuqs for URL state management, enhance DataTable with column visibility/row selection, and systematically activate underutilized features across the codebase.
+**Depends on:** Phase 8
+**Requirements**: STACK-01, STACK-02, STACK-03, STACK-09, STACK-10
+**Success Criteria** (what must be TRUE):
+  1. All 32 runtime dependencies are documented with used vs available APIs
+  2. ws and @radix-ui/react-slot confirmed as needed with documented justification
+  3. nuqs is installed and NuqsAdapter wraps the provider tree
+  4. DataTable supports column visibility toggle dropdown
+  5. better-auth plugin ecosystem is evaluated with recommendations
+  6. Build passes, tests pass
+**Plans**: 3 plans
+
+Plans:
+- [x] 10-01-PLAN.md — Dependency audit, nuqs install + NuqsAdapter, DataTable enhancements, better-auth plugin evaluation
+- [ ] 10-02-PLAN.md — TBD
+- [ ] 10-03-PLAN.md — TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -174,3 +192,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 6. UI Stub Closure + UX Wiring | 0/0 | Not started | - |
 | 7. Store Integration Fixes | 0/1 | Not started | - |
 | 8. Drizzle Migration | 3/3 | Complete   | 2026-03-24 |
+| 10. Tech Stack Audit | 1/3 | In progress | - |
