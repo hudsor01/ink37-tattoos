@@ -4,6 +4,7 @@ import { UpdateSettingsSchema } from '@/lib/security/validation';
 import { upsertSetting } from '@/lib/dal/settings';
 import { logAudit } from '@/lib/dal/audit';
 import { getCurrentSession } from '@/lib/auth';
+import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
@@ -30,15 +31,17 @@ export async function upsertSettingAction(formData: FormData) {
   const result = await upsertSetting(validated);
 
   const hdrs = await headers();
-  logAudit({
-    userId: session.user.id,
-    action: 'UPSERT',
-    resource: 'settings',
-    resourceId: validated.key,
-    ip: hdrs.get('x-forwarded-for') ?? 'unknown',
-    userAgent: hdrs.get('user-agent') ?? 'unknown',
-    metadata: { changes: validated },
-  }).catch(() => {});
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'UPSERT',
+      resource: 'settings',
+      resourceId: validated.key,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+      metadata: { changes: validated },
+    })
+  );
 
   revalidatePath('/dashboard/settings');
   return result;
