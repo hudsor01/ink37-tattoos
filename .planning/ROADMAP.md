@@ -15,10 +15,10 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation** - Unified schema, DAL, auth, route groups, shared UI, and package alignment
 - [x] **Phase 2: Public Site + Admin Dashboard** - Reconstruct both existing apps in unified codebase with security hardening
 - [x] **Phase 3: Payments** - Stripe integration for deposits, session payments, and invoicing
-- [ ] **Phase 4: Client Portal** - Client-facing authenticated experience for appointments, designs, and history
+- [x] **Phase 4: Client Portal** - Client-facing authenticated experience for appointments, designs, and history (completed 2026-03-22)
 - [x] **Phase 5: Online Store** - E-commerce for merchandise, prints, and gift cards (completed 2026-03-22)
-- [ ] **Phase 6: UI Stub Closure + UX Wiring** - Close Phase 2 UI stubs and fix cross-phase UX gaps (gap closure)
-- [ ] **Phase 7: Store Integration Fixes** - Fix store download URLs, checkout guards, and gift card email (gap closure)
+- [x] **Phase 6: UI Stub Closure + UX Wiring** - Close Phase 2 UI stubs and fix cross-phase UX gaps (completed 2026-03-23)
+- [x] **Phase 7: Store Integration Fixes** - Fix store download URLs, checkout guards, and gift card email (completed 2026-03-23)
 - [x] **Phase 8: Drizzle Migration** - Replace Prisma ORM with Drizzle ORM, verify all functionality, clean up artifacts (completed 2026-03-24)
 
 ## Phase Details
@@ -175,7 +175,7 @@ Plans:
 Plans:
 - [x] 10-01-PLAN.md — Dependency audit, nuqs install + NuqsAdapter, DataTable enhancements, better-auth plugin evaluation
 - [x] 10-02-PLAN.md — TBD
-- [ ] 10-03-PLAN.md — TBD
+- [x] 10-03-PLAN.md — nuqs gallery + useMutation + toast.promise + after() integration
 
 ## Progress
 
@@ -187,13 +187,14 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 1. Foundation | 3/3 | Complete   | 2026-03-20 |
 | 2. Public Site + Admin Dashboard | 7/7 | Complete | 2026-03-21 |
 | 3. Payments | 3/3 | Complete | 2026-03-21 |
-| 4. Client Portal | 0/2 | Not started | - |
-| 5. Online Store | 5/5 | Complete   | 2026-03-22 |
-| 6. UI Stub Closure + UX Wiring | 0/0 | Not started | - |
-| 7. Store Integration Fixes | 0/1 | Not started | - |
-| 8. Drizzle Migration | 3/3 | Complete   | 2026-03-24 |
-| 10. Tech Stack Audit | 2/3 | In Progress|  |
-| 11. Full Stack Integration | 0/6 | Not started | - |
+| 4. Client Portal | 2/2 | Complete | 2026-03-22 |
+| 5. Online Store | 5/5 | Complete | 2026-03-22 |
+| 6. UI Stub Closure + UX Wiring | 1/1 | Complete | 2026-03-23 |
+| 7. Store Integration Fixes | 1/1 | Complete | 2026-03-23 |
+| 8. Drizzle Migration | 3/3 | Complete | 2026-03-24 |
+| 9. Cal.com Integration | 2/2 | Complete | 2026-03-25 |
+| 10. Tech Stack Audit | 3/3 | Complete | 2026-03-26 |
+| 11. Full Stack Integration | 6/6 | Complete | 2026-03-27 |
 
 ### Phase 11: Full Stack Integration
 
@@ -214,9 +215,9 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 **Plans**: 6 plans
 
 Plans:
-- [ ] 11-01-PLAN.md — Install 16 shadcn/ui components, React 19 Context-as-provider, framer-motion LazyMotion fix
-- [ ] 11-02-PLAN.md — Route group loading/error/not-found, remove force-dynamic, resource preloading, SubmitButton
-- [ ] 11-03-PLAN.md — TanStack Query HydrationBoundary SSR, DataTable global+faceted filters
-- [ ] 11-04-PLAN.md — Recharts ComposedChart+trends, Drizzle arrayContains+prepare+between
-- [ ] 11-05-PLAN.md — Stripe setupIntents, Resend bounce webhook, Vercel Blob client uploads
-- [ ] 11-06-PLAN.md — Sonner toast types polish, date-fns duration/proximity/conflict detection
+- [x] 11-01-PLAN.md — Install 15 shadcn/ui components, React 19 Context-as-provider, framer-motion LazyMotion
+- [x] 11-02-PLAN.md — Route group loading/error/not-found, remove force-dynamic, resource preloading, SubmitButton
+- [x] 11-03-PLAN.md — TanStack Query HydrationBoundary SSR, DataTable global+faceted filters
+- [x] 11-04-PLAN.md — Recharts ComposedChart+trends, Drizzle arrayContains+prepare+between
+- [x] 11-05-PLAN.md — Stripe setupIntents, Resend bounce webhook, Vercel Blob client uploads
+- [x] 11-06-PLAN.md — Sonner toast types polish, date-fns duration/proximity/conflict detection
