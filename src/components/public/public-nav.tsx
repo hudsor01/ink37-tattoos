@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
@@ -48,14 +47,10 @@ export function PublicNav() {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link href="/" className="relative z-20 shrink-0">
-              <Image
-                src="/logo.png"
-                alt="Ink 37 Tattoos"
-                width={96}
-                height={96}
-                className="h-14 sm:h-18 md:h-22 w-auto"
-                priority
-              />
+              <span className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
+                <span className="fernando-gradient">INK</span>
+                <span className="text-white ml-1">37</span>
+              </span>
             </Link>
 
             {/* Desktop Navigation */}
