@@ -1,15 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Hoisted mocks
-const { mockGetCurrentSession, mockHandleUpload } = vi.hoisted(() => ({
-  mockGetCurrentSession: vi.fn(),
-  mockHandleUpload: vi.fn(),
-}));
+// Module-scope mocks (replaces vi.hoisted)
+const mockGetCurrentSession = vi.fn();
+const mockHandleUpload = vi.fn();
 
 vi.mock('server-only', () => ({}));
 
 vi.mock('@/lib/auth', () => ({
-  getCurrentSession: mockGetCurrentSession,
+  getCurrentSession: (...args: unknown[]) => mockGetCurrentSession(...args),
 }));
 
 vi.mock('@vercel/blob/client', () => ({
@@ -36,7 +34,6 @@ function makeRequest(body: object = {}): Request {
 describe('Upload Token Endpoint', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.resetModules();
   });
 
   it('returns 400 when handleUpload throws', async () => {
@@ -50,14 +47,12 @@ describe('Upload Token Endpoint', () => {
 
   it('rejects unauthenticated users (no session)', async () => {
     mockGetCurrentSession.mockResolvedValue(null);
-    // Capture onBeforeGenerateToken callback
     let capturedCallback: (() => Promise<unknown>) | null = null;
     mockHandleUpload.mockImplementation(async (opts: { onBeforeGenerateToken: () => Promise<unknown> }) => {
       capturedCallback = opts.onBeforeGenerateToken;
       return await opts.onBeforeGenerateToken();
     });
     const { POST } = await import('@/app/api/upload/token/route');
-    // handleUpload will call onBeforeGenerateToken which should throw
     const response = await POST(makeRequest());
     expect(response.status).toBe(400);
     expect(capturedCallback).not.toBeNull();
