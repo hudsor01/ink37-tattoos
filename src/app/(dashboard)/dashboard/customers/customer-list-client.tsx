@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
@@ -59,6 +59,10 @@ export function CustomerListClient() {
     'q',
     parseAsString.withDefault('')
   );
+
+  useEffect(() => {
+    return () => { toast.dismiss(); };
+  }, []);
 
   const { data: customers = [] } = useQuery(customersQueryOptions);
 
