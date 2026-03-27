@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+import { mediaQueryOptions } from '@/lib/query-options';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -36,20 +37,12 @@ interface MediaItem {
   createdAt: string | Date;
 }
 
-export function MediaPageClient({
-  initialMedia,
-}: {
-  initialMedia: MediaItem[];
-}) {
+export function MediaPageClient() {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  const { data: media } = useQuery({
-    queryKey: ['media'],
-    queryFn: () => fetch('/api/admin/media').then((r) => r.json()),
-    initialData: initialMedia,
-  });
+  const { data: media = [] } = useQuery(mediaQueryOptions);
 
   const visibilityMutation = useMutation({
     mutationFn: ({ id, isPublic }: { id: string; isPublic: boolean }) =>

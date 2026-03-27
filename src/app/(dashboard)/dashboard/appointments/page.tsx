@@ -1,18 +1,19 @@
 import { connection } from 'next/server';
+import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
 import { getAppointments } from '@/lib/dal/appointments';
 import { AppointmentListClient } from './appointment-list-client';
 
 export default async function AppointmentsPage() {
   await connection();
-  const appointments = await getAppointments();
+  const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 60 * 1000 } } });
+  await queryClient.prefetchQuery({
+    queryKey: ['appointments'],
+    queryFn: () => getAppointments(),
+  });
 
-  // Serialize dates for client component
-  const serialized = appointments.map((a: (typeof appointments)[number]) => ({
-    ...a,
-    scheduledDate: a.scheduledDate.toISOString(),
-    createdAt: a.createdAt.toISOString(),
-    updatedAt: a.updatedAt.toISOString(),
-  }));
-
-  return <AppointmentListClient initialAppointments={serialized} />;
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <AppointmentListClient />
+    </HydrationBoundary>
+  );
 }

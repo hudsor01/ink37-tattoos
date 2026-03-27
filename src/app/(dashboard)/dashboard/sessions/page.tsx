@@ -1,10 +1,16 @@
 import { connection } from 'next/server';
+import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
 import { getSessions } from '@/lib/dal/sessions';
 import { SessionListClient } from './session-list-client';
 
 export default async function SessionsPage() {
   await connection();
-  const sessions = await getSessions();
+  const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 60 * 1000 } } });
+  await queryClient.prefetchQuery({
+    queryKey: ['sessions'],
+    queryFn: () => getSessions(),
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -13,7 +19,9 @@ export default async function SessionsPage() {
           Manage tattoo sessions, pricing, and consent tracking.
         </p>
       </div>
-      <SessionListClient initialSessions={JSON.parse(JSON.stringify(sessions))} />
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <SessionListClient />
+      </HydrationBoundary>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DataTable, type ColumnDef } from '@/components/dashboard/data-table';
 import { StatusBadge } from '@/components/dashboard/status-badge';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { SessionForm } from '@/components/dashboard/session-form';
 import { deleteSessionAction } from '@/lib/actions/session-actions';
+import { sessionsQueryOptions } from '@/lib/query-options';
 import { Plus, Check, X, Trash2, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -106,21 +107,12 @@ const columns: ColumnDef<SessionWithRelations, unknown>[] = [
   },
 ];
 
-export function SessionListClient({
-  initialSessions,
-}: {
-  initialSessions: SessionWithRelations[];
-}) {
+export function SessionListClient() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailSession, setDetailSession] = useState<SessionWithRelations | null>(null);
   const queryClient = useQueryClient();
 
-  const { data: sessions } = useQuery({
-    queryKey: ['sessions'],
-    queryFn: () => fetch('/api/admin/sessions').then((r) => r.json()),
-    initialData: initialSessions,
-    placeholderData: keepPreviousData,
-  });
+  const { data: sessions = [] } = useQuery(sessionsQueryOptions);
 
   async function handleDelete(id: string) {
     if (!confirm('Are you sure you want to delete this session?')) return;
