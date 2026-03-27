@@ -1,14 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { MoreHorizontal, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { useQueryState, parseAsString } from 'nuqs';
 
 import { DataTable } from '@/components/dashboard/data-table';
+import { SearchInput } from '@/components/dashboard/search-input';
 import { CustomerForm } from '@/components/dashboard/customer-form';
 import { Button } from '@/components/ui/button';
 import {
@@ -58,12 +60,27 @@ export function CustomerListClient({
   const [editCustomer, setEditCustomer] = useState<Customer | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [search, setSearch] = useQueryState(
+    'q',
+    parseAsString.withDefault('')
+  );
 
   const { data: customers = [] } = useQuery<Customer[]>({
     queryKey: ['customers'],
     queryFn: () => fetch('/api/admin/customers').then((r) => r.json()),
     initialData: initialCustomers,
   });
+
+  const filteredCustomers = useMemo(() => {
+    if (!search) return customers;
+    const q = search.toLowerCase();
+    return customers.filter(
+      (c) =>
+        c.firstName.toLowerCase().includes(q) ||
+        c.lastName.toLowerCase().includes(q) ||
+        c.email?.toLowerCase().includes(q)
+    );
+  }, [customers, search]);
 
   async function handleDelete() {
     if (!deleteId) return;
@@ -207,11 +224,15 @@ export function CustomerListClient({
         </Dialog>
       </div>
 
+      <SearchInput
+        value={search}
+        onChange={(v) => setSearch(v || null)}
+        placeholder="Search by name or email..."
+      />
+
       <DataTable
         columns={columns}
-        data={customers}
-        searchKey="lastName"
-        searchPlaceholder="Search by name..."
+        data={filteredCustomers}
       />
 
       {/* Edit Dialog */}
