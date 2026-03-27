@@ -81,6 +81,9 @@ export async function sendPaymentRequestEmail(data: {
     to: data.to,
     subject: `Payment Request - ${data.type === 'deposit' ? 'Deposit' : 'Session Balance'} - Ink 37 Tattoos`,
     html: paymentRequestTemplate(data),
+    headers: {
+      'X-Entity-Ref-ID': `payment-${data.type}-${Date.now()}`,
+    },
   });
 
   return { sent: !!result.data?.id };
@@ -109,6 +112,9 @@ export async function sendOrderConfirmationEmail(data: {
     to: data.to,
     subject: 'Order Confirmation - Ink 37 Tattoos',
     html: orderConfirmationTemplate({ email: data.to, ...data }),
+    headers: {
+      'X-Entity-Ref-ID': `order-${data.orderId}`,
+    },
   });
 
   return { sent: !!result.data?.id };
