@@ -8,6 +8,10 @@ import {
   PieChart,
   Pie,
   Cell,
+  ComposedChart,
+  Line,
+  LineChart,
+  Brush,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -170,6 +174,120 @@ export function ClientAcquisitionChart({ data }: ClientAcquisitionChartProps) {
           radius={[4, 4, 0, 0]}
         />
       </BarChart>
+    </ChartContainer>
+  );
+}
+
+// Revenue Composed Chart — dual Y-axis with revenue bars + session count line
+interface RevenueComposedChartProps {
+  data: { month: string; revenue: number; count: number }[];
+}
+
+const composedConfig: ChartConfig = {
+  revenue: { label: 'Revenue', color: 'hsl(var(--chart-1, 220 70% 50%))' },
+  count: { label: 'Sessions', color: 'hsl(var(--chart-2, 160 60% 45%))' },
+};
+
+function formatMonth(value: string) {
+  const [year, month] = value.split('-');
+  const date = new Date(Number(year), Number(month) - 1);
+  return date.toLocaleDateString('en-US', { month: 'short' });
+}
+
+export function RevenueComposedChart({ data }: RevenueComposedChartProps) {
+  return (
+    <ChartContainer config={composedConfig} className="min-h-[300px] w-full">
+      <ComposedChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+        <XAxis
+          dataKey="month"
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+          tickFormatter={formatMonth}
+        />
+        <YAxis
+          yAxisId="left"
+          tickLine={false}
+          axisLine={false}
+          tickFormatter={(value) => `$${(value as number).toLocaleString()}`}
+        />
+        <YAxis
+          yAxisId="right"
+          orientation="right"
+          tickLine={false}
+          axisLine={false}
+        />
+        <ChartTooltip
+          content={
+            <ChartTooltipContent
+              formatter={(value, name) =>
+                name === 'revenue'
+                  ? `$${(value as number).toLocaleString()}`
+                  : `${value} sessions`
+              }
+            />
+          }
+        />
+        <ChartLegend content={<ChartLegendContent />} />
+        <Bar
+          yAxisId="left"
+          dataKey="revenue"
+          fill="var(--color-revenue)"
+          radius={[4, 4, 0, 0]}
+          barSize={20}
+        />
+        <Line
+          yAxisId="right"
+          type="monotone"
+          dataKey="count"
+          stroke="var(--color-count)"
+          strokeWidth={2}
+          dot={{ r: 3, fill: 'var(--color-count)' }}
+        />
+        {data.length > 6 && (
+          <Brush dataKey="month" height={30} stroke="hsl(var(--primary))" tickFormatter={formatMonth} />
+        )}
+      </ComposedChart>
+    </ChartContainer>
+  );
+}
+
+// Booking Trends LineChart — bookings vs cancellations over time
+interface BookingTrendsChartProps {
+  data: { week: string; bookings: number; cancellations: number }[];
+}
+
+const trendsConfig: ChartConfig = {
+  bookings: { label: 'Bookings', color: 'hsl(var(--chart-1, 220 70% 50%))' },
+  cancellations: { label: 'Cancellations', color: 'hsl(var(--destructive, 0 84% 60%))' },
+};
+
+export function BookingTrendsChart({ data }: BookingTrendsChartProps) {
+  return (
+    <ChartContainer config={trendsConfig} className="min-h-[250px] w-full">
+      <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+        <XAxis dataKey="week" tickLine={false} axisLine={false} tickMargin={8} />
+        <YAxis tickLine={false} axisLine={false} />
+        <ChartTooltip content={<ChartTooltipContent />} />
+        <ChartLegend content={<ChartLegendContent />} />
+        <Line
+          type="monotone"
+          dataKey="bookings"
+          stroke="var(--color-bookings)"
+          strokeWidth={2}
+          dot={{ r: 3, fill: 'var(--color-bookings)' }}
+        />
+        <Line
+          type="monotone"
+          dataKey="cancellations"
+          stroke="var(--color-cancellations)"
+          strokeWidth={2}
+          strokeDasharray="5 5"
+          dot={{ r: 3, fill: 'var(--color-cancellations)' }}
+        />
+      </LineChart>
     </ChartContainer>
   );
 }

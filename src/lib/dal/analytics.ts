@@ -3,7 +3,8 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { eq, gte, and, sql, desc, asc, count, sum } from 'drizzle-orm';
+import { eq, gte, and, between, sql, desc, asc, count, sum } from 'drizzle-orm';
+import { startOfWeek, format } from 'date-fns';
 import { customer, appointment, tattooSession } from '@/lib/db/schema';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
@@ -17,15 +18,27 @@ async function requireStaffRole() {
   return session;
 }
 
+// Prepared statements for hot-path dashboard count queries
+const customerCountStmt = db.select({ count: count() }).from(customer).prepare('customer_count');
+const appointmentCountStmt = db.select({ count: count() }).from(appointment).prepare('appointment_count');
+const completedSessionCountStmt = db.select({ count: count() })
+  .from(tattooSession)
+  .where(eq(tattooSession.status, 'COMPLETED'))
+  .prepare('completed_session_count');
+const revenueStmt = db.select({ total: sum(tattooSession.totalCost) })
+  .from(tattooSession)
+  .where(eq(tattooSession.status, 'COMPLETED'))
+  .prepare('total_revenue');
+
 export const getDashboardStats = cache(async () => {
   await requireStaffRole();
 
   const [totalCustomersResult, totalAppointmentsResult, completedSessionsResult, revenueResult, recentAppointments] =
     await Promise.all([
-      db.select({ count: count() }).from(customer),
-      db.select({ count: count() }).from(appointment),
-      db.select({ count: count() }).from(tattooSession).where(eq(tattooSession.status, 'COMPLETED')),
-      db.select({ total: sum(tattooSession.totalCost) }).from(tattooSession).where(eq(tattooSession.status, 'COMPLETED')),
+      customerCountStmt.execute(),
+      appointmentCountStmt.execute(),
+      completedSessionCountStmt.execute(),
+      revenueStmt.execute(),
       db.query.appointment.findMany({
         orderBy: [desc(appointment.scheduledDate)],
         limit: 5,
@@ -119,5 +132,39 @@ export const getAppointmentTypeBreakdown = cache(async () => {
   return breakdown.map((item) => ({
     type: item.type,
     count: item.count,
+  }));
+});
+
+export const getBookingTrends = cache(async (months: number = 6) => {
+  await requireStaffRole();
+  const startDate = new Date();
+  startDate.setMonth(startDate.getMonth() - months);
+  const endDate = new Date();
+
+  const appointments = await db.select({
+    scheduledDate: appointment.scheduledDate,
+    status: appointment.status,
+  })
+    .from(appointment)
+    .where(between(appointment.scheduledDate, startDate, endDate))
+    .orderBy(asc(appointment.scheduledDate));
+
+  const weeklyData = new Map<string, { bookings: number; cancellations: number }>();
+
+  for (const apt of appointments) {
+    const weekKey = format(startOfWeek(apt.scheduledDate, { weekStartsOn: 1 }), 'MMM d');
+    const existing = weeklyData.get(weekKey) ?? { bookings: 0, cancellations: 0 };
+    if (apt.status === 'CANCELLED' || apt.status === 'NO_SHOW') {
+      existing.cancellations += 1;
+    } else {
+      existing.bookings += 1;
+    }
+    weeklyData.set(weekKey, existing);
+  }
+
+  return Array.from(weeklyData.entries()).map(([week, data]) => ({
+    week,
+    bookings: data.bookings,
+    cancellations: data.cancellations,
   }));
 });

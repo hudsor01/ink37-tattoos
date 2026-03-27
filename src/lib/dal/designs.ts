@@ -3,17 +3,20 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, arrayContains } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 
 // PUBLIC -- no auth required (gallery content is public per locked decision)
-export const getPublicDesigns = cache(async (filters?: { style?: string }) => {
+export const getPublicDesigns = cache(async (filters?: { style?: string; tags?: string[] }) => {
   const conditions = [
     eq(schema.tattooDesign.isApproved, true),
     eq(schema.tattooDesign.isPublic, true),
   ];
   if (filters?.style) {
     conditions.push(eq(schema.tattooDesign.designType, filters.style));
+  }
+  if (filters?.tags && filters.tags.length > 0) {
+    conditions.push(arrayContains(schema.tattooDesign.tags, filters.tags));
   }
 
   return db.query.tattooDesign.findMany({
