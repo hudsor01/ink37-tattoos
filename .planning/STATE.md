@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Admin Panel
-status: Not Started
-stopped_at: v1.0 archived, v2.0 pending
+status: Defining Requirements
+stopped_at: Audit complete, defining requirements
 last_updated: "2026-03-27T20:15:00.000Z"
 progress:
   total_phases: 0
@@ -23,8 +23,10 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 
 ## Current Position
 
-Phase: None — awaiting v2.0 milestone planning
-Plan: N/A
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-27 — Milestone v2.0 started, audit complete
 
 ## Previous Milestone
 

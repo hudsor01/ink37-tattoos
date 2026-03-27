@@ -51,17 +51,34 @@ The tattoo artist manages their entire business from one app while clients get a
 
 ### Active
 
-(Defined during v2.0 milestone planning)
+(Defined in v2.0 REQUIREMENTS.md)
 
 ### Out of Scope
 
 - Mobile native app — web-first, responsive design handles mobile
-- Multi-artist marketplace — single-studio platform
+- Multi-staff management — solo artist studio, no team scheduling
 - Real-time chat — Cal.com and contact form cover communication
 - Custom CMS — admin dashboard handles content management
 - Video consultations — Cal.com handles meeting links
 - Inventory management — insufficient physical products to justify
 - POS/in-person payments — not needed for web platform
+
+## Current Milestone: v2.0 Admin Panel
+
+**Goal:** Rebuild the admin dashboard from a functional CRUD scaffold into a production-grade solo tattoo studio management platform — fixing all security gaps, data layer inconsistencies, UI quality issues, missing features, and testing coverage identified in the v2.0 audit.
+
+**Key context:** This is a **solo artist** studio. No multi-staff features. "Staff management" becomes "Artist Profile" (the owner's bio, specialties, portfolio settings). RBAC stays for admin access control but simplified for single-operator use.
+
+**Target areas:**
+- Security hardening (layout auth, rate limiting, input sanitization)
+- Data layer fixes (pagination, N+1 queries, consistent error handling, missing DAL functions)
+- Missing pages (artist profile, calendar view, financial reports, gift card management, contacts management)
+- UI quality (loading/error/empty states, responsive design, accessibility, form validation)
+- Feature depth on existing pages (bulk actions, export, search, inline edit, confirmation dialogs)
+- Business workflows (deposit tracking, consent management, aftercare, appointment reminders)
+- Analytics depth (custom date ranges, export, more KPIs, booking trends)
+- Testing coverage (server actions, API routes, E2E flows)
+- Tech debt resolution (TD-01 through TD-04)
 
 ## Tech Stack
 
@@ -109,5 +126,22 @@ The tattoo artist manages their entire business from one app while clients get a
 - TD-03: BLOB_PRIVATE_READ_WRITE_TOKEN not in Zod env schema
 - TD-04: In-memory rate limiter resets per serverless instance (burst protection only)
 
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd:transition`):
+1. Requirements invalidated? Move to Out of Scope with reason
+2. Requirements validated? Move to Validated with phase reference
+3. New requirements emerged? Add to Active
+4. Decisions to log? Add to Key Decisions
+5. "What This Is" still accurate? Update if drifted
+
+**After each milestone** (via `/gsd:complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
 ---
-*Last updated: 2026-03-27 after v1.0 milestone*
+*Last updated: 2026-03-27 after v2.0 milestone start*
