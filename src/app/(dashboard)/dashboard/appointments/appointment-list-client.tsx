@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { MoreHorizontal, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { useQueryState, parseAsString } from 'nuqs';
 
 import { DataTable } from '@/components/dashboard/data-table';
 import { StatusBadge } from '@/components/dashboard/status-badge';
@@ -93,7 +94,14 @@ export function AppointmentListClient({
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [statusFilter, setStatusFilter] = useQueryState(
+    'status',
+    parseAsString.withDefault('ALL')
+  );
+  const [search, setSearch] = useQueryState(
+    'q',
+    parseAsString.withDefault('')
+  );
 
   const { data: appointments = [] } = useQuery<Appointment[]>({
     queryKey: ['appointments'],
@@ -101,10 +109,22 @@ export function AppointmentListClient({
     initialData: initialAppointments,
   });
 
-  const filteredAppointments =
-    statusFilter === 'ALL'
-      ? appointments
-      : appointments.filter((a) => a.status === statusFilter);
+  const filteredAppointments = useMemo(() => {
+    let result = appointments;
+    if (statusFilter !== 'ALL') {
+      result = result.filter((a) => a.status === statusFilter);
+    }
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (a) =>
+          a.customer.firstName.toLowerCase().includes(q) ||
+          a.customer.lastName.toLowerCase().includes(q) ||
+          a.customer.email?.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [appointments, statusFilter, search]);
 
   async function handleDelete() {
     if (!deleteId) return;
@@ -269,7 +289,7 @@ export function AppointmentListClient({
       <div className="flex items-center gap-4">
         <Select
           value={statusFilter}
-          onValueChange={(val) => setStatusFilter(val ?? 'ALL')}
+          onValueChange={(val) => setStatusFilter(val === 'ALL' ? null : val)}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by status" />
