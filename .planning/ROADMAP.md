@@ -180,7 +180,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -193,13 +193,30 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 7. Store Integration Fixes | 0/1 | Not started | - |
 | 8. Drizzle Migration | 3/3 | Complete   | 2026-03-24 |
 | 10. Tech Stack Audit | 2/3 | In Progress|  |
+| 11. Full Stack Integration | 0/6 | Not started | - |
 
 ### Phase 11: Full Stack Integration
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Maximize utilization of every major dependency -- install missing shadcn/ui components, complete Next.js 16 route conventions (loading/error/not-found), adopt React 19 features (resource preloading, Context-as-provider, useFormStatus), replace TanStack Query initialData with HydrationBoundary SSR pattern, add Recharts ComposedChart with dual Y-axes, optimize Drizzle queries with arrayContains/prepare/between, extend Stripe with setupIntents, add Resend bounce webhooks, optimize framer-motion and Vercel Blob uploads, and polish with proper Sonner toast types and date-fns duration formatting.
 **Depends on:** Phase 10
-**Plans:** 0 plans
+**Requirements**: STACK-11, STACK-12, STACK-13, STACK-14, STACK-15, STACK-16, STACK-17, STACK-18, STACK-19, STACK-20, STACK-21, STACK-22, STACK-23
+**Success Criteria** (what must be TRUE):
+  1. All 16 missing shadcn/ui components installed and importable
+  2. Every route group has loading.tsx, error.tsx with retry, and not-found.tsx
+  3. Zero force-dynamic exports remain (removed from all 7 files)
+  4. All 5 dashboard list pages use HydrationBoundary+dehydrate (zero initialData props)
+  5. DataTable supports global filter and faceted filters with counts
+  6. RevenueComposedChart with dual Y-axes and Brush zoom renders on analytics page
+  7. Gallery tag filtering uses Drizzle arrayContains (server-side, not client-side JS)
+  8. Stripe setupIntents for saved payment methods, Resend bounce webhook handler
+  9. Vercel Blob client-side direct uploads with Progress component
+  10. Proper Sonner toast types (warning/info/dismiss) and date-fns duration formatting
+**Plans**: 6 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 11 to break down)
+- [ ] 11-01-PLAN.md — Install 16 shadcn/ui components, React 19 Context-as-provider, framer-motion LazyMotion fix
+- [ ] 11-02-PLAN.md — Route group loading/error/not-found, remove force-dynamic, resource preloading, SubmitButton
+- [ ] 11-03-PLAN.md — TanStack Query HydrationBoundary SSR, DataTable global+faceted filters
+- [ ] 11-04-PLAN.md — Recharts ComposedChart+trends, Drizzle arrayContains+prepare+between
+- [ ] 11-05-PLAN.md — Stripe setupIntents, Resend bounce webhook, Vercel Blob client uploads
+- [ ] 11-06-PLAN.md — Sonner toast types polish, date-fns duration/proximity/conflict detection

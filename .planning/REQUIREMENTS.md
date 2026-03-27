@@ -99,6 +99,22 @@ Requirements for initial consolidated release. Each maps to roadmap phases.
 - [ ] **STACK-09**: Expand react-table features — column visibility, row selection where useful
 - [ ] **STACK-10**: Audit better-auth plugin ecosystem for applicable plugins
 
+### Full Stack Integration (Phase 11)
+
+- [ ] **STACK-11**: Install all missing shadcn/ui components (calendar, date-picker, drawer, command, popover, checkbox, progress, avatar, scroll-area, collapsible, radio-group, slider, toggle, toggle-group, input-otp, hover-card)
+- [ ] **STACK-12**: Optimize framer-motion bundle -- fix gallery-grid.tsx to use LazyMotion+m pattern, update React 19 Context-as-provider in form/chart/sidebar
+- [ ] **STACK-13**: Next.js 16 route conventions -- loading.tsx, error.tsx, not-found.tsx for every route group, remove all force-dynamic exports
+- [ ] **STACK-14**: React 19 features -- resource preloading (prefetchDNS, preconnect) in public layout, useFormStatus SubmitButton component
+- [ ] **STACK-15**: TanStack Query SSR -- replace initialData with HydrationBoundary+dehydrate on all dashboard list pages
+- [ ] **STACK-16**: TanStack Table full -- global filter (multi-column search), faceted filters with getFacetedRowModel and getFacetedUniqueValues
+- [ ] **STACK-17**: Recharts full -- ComposedChart with dual Y-axes (revenue bars + session count line), Brush zoom, BookingTrendsChart with LineChart
+- [ ] **STACK-18**: Drizzle ORM full -- arrayContains for gallery tag filtering, .prepare() on hot DAL queries, between() for analytics date ranges
+- [ ] **STACK-19**: Stripe full -- setupIntents for saved payment methods, listPaymentMethods for portal
+- [ ] **STACK-20**: External services -- Resend bounce webhook handler, Vercel Blob client-side direct uploads with handleUpload token endpoint
+- [ ] **STACK-21**: Sonner full -- toast.warning for cancellations/conflicts, toast.info for status updates, toast.dismiss for navigation cleanup
+- [ ] **STACK-22**: date-fns full -- formatDuration/intervalToDuration for session durations, differenceInDays for appointment proximity, isWithinInterval for scheduling conflicts
+- [ ] **STACK-23**: Resend idempotency -- X-Entity-Ref-ID headers on transactional emails to prevent duplicate sends
+
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
@@ -186,20 +202,33 @@ Deferred to future release. Tracked but not in current roadmap.
 
 | STACK-01 | Phase 10 | Not started |
 | STACK-02 | Phase 10 | Not started |
-| STACK-03 | Phase 10 | Not started |
-| STACK-04 | Phase 10 | Not started |
+| STACK-03 | Phase 10 | Complete |
+| STACK-04 | Phase 10 | Complete |
 | STACK-05 | Phase 10 | Not started |
 | STACK-06 | Phase 10 | Not started |
-| STACK-07 | Phase 10 | Not started |
-| STACK-08 | Phase 10 | Not started |
+| STACK-07 | Phase 10 | Complete |
+| STACK-08 | Phase 10 | Complete |
 | STACK-09 | Phase 10 | Not started |
 | STACK-10 | Phase 10 | Not started |
+| STACK-11 | Phase 11 | Not started |
+| STACK-12 | Phase 11 | Not started |
+| STACK-13 | Phase 11 | Not started |
+| STACK-14 | Phase 11 | Not started |
+| STACK-15 | Phase 11 | Not started |
+| STACK-16 | Phase 11 | Not started |
+| STACK-17 | Phase 11 | Not started |
+| STACK-18 | Phase 11 | Not started |
+| STACK-19 | Phase 11 | Not started |
+| STACK-20 | Phase 11 | Not started |
+| STACK-21 | Phase 11 | Not started |
+| STACK-22 | Phase 11 | Not started |
+| STACK-23 | Phase 11 | Not started |
 
 **Coverage:**
-- v1 requirements: 55 total
-- Mapped to phases: 55
+- v1 requirements: 68 total
+- Mapped to phases: 68
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-20*
-*Last updated: 2026-03-20 after initial definition*
+*Last updated: 2026-03-26 after Phase 11 planning*
