@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: UI Stub Closure + UX Wiring** - Close Phase 2 UI stubs and fix cross-phase UX gaps (completed 2026-03-23)
 - [x] **Phase 7: Store Integration Fixes** - Fix store download URLs, checkout guards, and gift card email (completed 2026-03-23)
 - [x] **Phase 8: Drizzle Migration** - Replace Prisma ORM with Drizzle ORM, verify all functionality, clean up artifacts (completed 2026-03-24)
-- [ ] **Phase 12: Testing Foundation** - Unit tests for all server-side logic + integration tests for API routes, webhooks, auth flows
+- [x] **Phase 12: Testing Foundation** - Unit tests for all server-side logic + integration tests for API routes, webhooks, auth flows (completed 2026-03-27)
 
 ## Phase Details
 
@@ -196,7 +196,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 9. Cal.com Integration | 2/2 | Complete | 2026-03-25 |
 | 10. Tech Stack Audit | 3/3 | Complete | 2026-03-26 |
 | 11. Full Stack Integration | 6/6 | Complete | 2026-03-27 |
-| 12. Testing Foundation | 1/3 | In Progress|  |
+| 12. Testing Foundation | 3/3 | Complete | 2026-03-27 |
 
 ### Phase 11: Full Stack Integration
 
@@ -241,5 +241,7 @@ Plans:
 
 Plans:
 - [x] 12-01-PLAN.md — Email service unit tests, Stripe SDK unit tests, Resend webhook integration tests
-- [ ] 12-02-PLAN.md — Server action integration tests, upload token endpoint integration tests
-- [ ] 12-03-PLAN.md — DAL business logic unit tests, auth databaseHooks portal linking tests
+- [x] 12-02-PLAN.md — Server action integration tests, upload token endpoint integration tests
+- [x] 12-03-PLAN.md — DAL business logic unit tests, auth databaseHooks portal linking tests
+- [x] Bonus: Zod schema validation tests (107 tests, 100% coverage of 18 schemas)
+- [x] Bonus: MSW integration tests (21 tests, Stripe + Resend HTTP boundary)
