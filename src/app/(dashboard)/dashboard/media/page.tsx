@@ -1,10 +1,16 @@
 import { connection } from 'next/server';
+import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
 import { getMediaItems } from '@/lib/dal/media';
 import { MediaPageClient } from './media-page-client';
 
 export default async function MediaPage() {
   await connection();
-  const media = await getMediaItems();
+  const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 60 * 1000 } } });
+  await queryClient.prefetchQuery({
+    queryKey: ['media'],
+    queryFn: () => getMediaItems(),
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -13,7 +19,9 @@ export default async function MediaPage() {
           Upload and manage your portfolio photos and videos.
         </p>
       </div>
-      <MediaPageClient initialMedia={JSON.parse(JSON.stringify(media))} />
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <MediaPageClient />
+      </HydrationBoundary>
     </div>
   );
 }

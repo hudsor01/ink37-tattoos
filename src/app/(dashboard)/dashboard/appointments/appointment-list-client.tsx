@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useOptimistic, useTransition } from 'react';
-import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { MoreHorizontal, Plus } from 'lucide-react';
@@ -47,6 +47,7 @@ import {
   deleteAppointmentAction,
   updateAppointmentAction,
 } from '@/lib/actions/appointment-actions';
+import { appointmentsQueryOptions } from '@/lib/query-options';
 
 interface Appointment {
   id: string;
@@ -72,10 +73,6 @@ interface Appointment {
   };
 }
 
-interface AppointmentListClientProps {
-  initialAppointments: Appointment[];
-}
-
 const STATUS_OPTIONS = [
   { value: 'ALL', label: 'All Statuses' },
   { value: 'PENDING', label: 'Pending' },
@@ -87,9 +84,7 @@ const STATUS_OPTIONS = [
   { value: 'NO_SHOW', label: 'No Show' },
 ] as const;
 
-export function AppointmentListClient({
-  initialAppointments,
-}: AppointmentListClientProps) {
+export function AppointmentListClient() {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -105,12 +100,7 @@ export function AppointmentListClient({
 
   const [isPending, startTransition] = useTransition();
 
-  const { data: appointments = [] } = useQuery<Appointment[]>({
-    queryKey: ['appointments'],
-    queryFn: () => fetch('/api/admin/appointments').then((r) => r.json()),
-    initialData: initialAppointments,
-    placeholderData: keepPreviousData,
-  });
+  const { data: appointments = [] } = useQuery(appointmentsQueryOptions);
 
   // Optimistic status updates: show new status immediately before server confirms
   const [optimisticAppointments, setOptimisticStatus] = useOptimistic(

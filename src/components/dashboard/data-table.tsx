@@ -11,6 +11,8 @@ import {
   getCoreRowModel,
   getSortedRowModel,
   getFilteredRowModel,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table';
@@ -29,8 +31,14 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
 import { SearchInput } from '@/components/dashboard/search-input';
-import { ArrowUpDown, ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
+import { ArrowUpDown, ChevronLeft, ChevronRight, SlidersHorizontal, X } from 'lucide-react';
+
+interface FacetFilter {
+  columnId: string;
+  title: string;
+}
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -40,6 +48,8 @@ interface DataTableProps<TData, TValue> {
   pageSize?: number;
   enableRowSelection?: boolean;
   onRowSelectionChange?: (selectedRows: TData[]) => void;
+  globalSearch?: boolean;
+  facetFilters?: FacetFilter[];
 }
 
 export function DataTable<TData, TValue>({
@@ -50,11 +60,14 @@ export function DataTable<TData, TValue>({
   pageSize = 10,
   enableRowSelection,
   onRowSelectionChange,
+  globalSearch,
+  facetFilters,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [globalFilter, setGlobalFilter] = useState('');
 
   const table = useReactTable({
     data,
@@ -62,16 +75,21 @@ export function DataTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: 'includesString',
     enableRowSelection: enableRowSelection ?? false,
     onRowSelectionChange: setRowSelection,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
+      globalFilter,
       ...(enableRowSelection ? { rowSelection } : {}),
     },
     initialState: {
@@ -92,7 +110,13 @@ export function DataTable<TData, TValue>({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2">
-        {searchKey && (
+        {globalSearch ? (
+          <SearchInput
+            value={globalFilter}
+            onChange={setGlobalFilter}
+            placeholder={searchPlaceholder}
+          />
+        ) : searchKey ? (
           <SearchInput
             value={
               (table.getColumn(searchKey)?.getFilterValue() as string) ?? ''
@@ -102,6 +126,66 @@ export function DataTable<TData, TValue>({
             }
             placeholder={searchPlaceholder}
           />
+        ) : null}
+        {facetFilters && facetFilters.length > 0 && (
+          <div className="flex items-center gap-2">
+            {facetFilters.map((filter) => {
+              const column = table.getColumn(filter.columnId);
+              const facetedValues = column?.getFacetedUniqueValues();
+              const selectedValues = new Set(
+                (column?.getFilterValue() as string[] | undefined) ?? []
+              );
+              return (
+                <DropdownMenu key={filter.columnId}>
+                  <DropdownMenuTrigger
+                    render={<Button variant="outline" size="sm" />}
+                  >
+                    {filter.title}
+                    {selectedValues.size > 0 && (
+                      <Badge variant="secondary" className="ml-1 px-1 text-xs">
+                        {selectedValues.size}
+                      </Badge>
+                    )}
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    {facetedValues &&
+                      Array.from(facetedValues.entries())
+                        .sort(([, a], [, b]) => b - a)
+                        .map(([value, count]) => {
+                          const isSelected = selectedValues.has(String(value));
+                          return (
+                            <DropdownMenuCheckboxItem
+                              key={String(value)}
+                              checked={isSelected}
+                              onCheckedChange={() => {
+                                const next = new Set(selectedValues);
+                                if (isSelected) next.delete(String(value));
+                                else next.add(String(value));
+                                column?.setFilterValue(
+                                  next.size ? Array.from(next) : undefined
+                                );
+                              }}
+                            >
+                              {String(value)} ({count})
+                            </DropdownMenuCheckboxItem>
+                          );
+                        })}
+                    {selectedValues.size > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full justify-start"
+                        onClick={() => column?.setFilterValue(undefined)}
+                      >
+                        <X className="mr-2 h-3 w-3" />
+                        Clear
+                      </Button>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              );
+            })}
+          </div>
         )}
         <DropdownMenu>
           <DropdownMenuTrigger

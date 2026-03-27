@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { MoreHorizontal, Plus } from 'lucide-react';
@@ -38,6 +38,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { deleteCustomerAction } from '@/lib/actions/customer-actions';
+import { customersQueryOptions } from '@/lib/query-options';
 
 interface Customer {
   id: string;
@@ -48,13 +49,7 @@ interface Customer {
   createdAt: string | Date;
 }
 
-interface CustomerListClientProps {
-  initialCustomers: Customer[];
-}
-
-export function CustomerListClient({
-  initialCustomers,
-}: CustomerListClientProps) {
+export function CustomerListClient() {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [editCustomer, setEditCustomer] = useState<Customer | null>(null);
@@ -65,12 +60,7 @@ export function CustomerListClient({
     parseAsString.withDefault('')
   );
 
-  const { data: customers = [] } = useQuery<Customer[]>({
-    queryKey: ['customers'],
-    queryFn: () => fetch('/api/admin/customers').then((r) => r.json()),
-    initialData: initialCustomers,
-    placeholderData: keepPreviousData,
-  });
+  const { data: customers = [] } = useQuery(customersQueryOptions);
 
   const filteredCustomers = useMemo(() => {
     if (!search) return customers;
