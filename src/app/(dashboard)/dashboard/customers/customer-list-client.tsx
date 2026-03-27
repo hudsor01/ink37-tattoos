@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { MoreHorizontal, Plus } from 'lucide-react';
@@ -69,6 +69,7 @@ export function CustomerListClient({
     queryKey: ['customers'],
     queryFn: () => fetch('/api/admin/customers').then((r) => r.json()),
     initialData: initialCustomers,
+    placeholderData: keepPreviousData,
   });
 
   const filteredCustomers = useMemo(() => {

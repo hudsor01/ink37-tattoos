@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { MoreHorizontal, Plus } from 'lucide-react';
@@ -107,6 +107,7 @@ export function AppointmentListClient({
     queryKey: ['appointments'],
     queryFn: () => fetch('/api/admin/appointments').then((r) => r.json()),
     initialData: initialAppointments,
+    placeholderData: keepPreviousData,
   });
 
   const filteredAppointments = useMemo(() => {
