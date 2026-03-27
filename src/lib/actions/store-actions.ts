@@ -5,7 +5,6 @@ import { db } from '@/lib/db';
 import { eq, and, inArray } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 import { validateGiftCard } from '@/lib/dal/gift-cards';
-import { createOrder } from '@/lib/dal/orders';
 import { StoreCheckoutSchema } from '@/lib/security/validation';
 import { SHIPPING_RATE_CENTS, FREE_SHIPPING_THRESHOLD } from '@/lib/store-helpers';
 import { env } from '@/lib/env';
@@ -125,20 +124,10 @@ export async function storeCheckoutAction(data: {
     ];
   }
 
-  // Validate gift card and create pending order in parallel
-  const [giftCard, order] = await Promise.all([
-    validated.giftCardCode ? validateGiftCard(validated.giftCardCode) : Promise.resolve(null),
-    createOrder({
-      email: '',  // Will be filled by webhook from Stripe session
-      subtotal: cartTotal,
-      shippingAmount: 0,  // Will be determined at Stripe checkout
-      discountAmount: 0,  // Updated below if gift card is valid
-      total: cartTotal,  // Updated below if gift card is valid
-      stripeCheckoutSessionId: '',  // Will be updated after session creation
-      giftCardCode: validated.giftCardCode,
-      items: orderItems,
-    }),
-  ]);
+  // Validate gift card if provided
+  const giftCard = validated.giftCardCode
+    ? await validateGiftCard(validated.giftCardCode)
+    : null;
 
   let discountAmount = 0;
   if (giftCard?.valid) {
@@ -152,26 +141,50 @@ export async function storeCheckoutAction(data: {
     sessionParams.discounts = [{ coupon: coupon.id }];
   }
 
-  // Add orderId to metadata
-  sessionParams.metadata!.orderId = order.id;
   if (validated.giftCardCode) {
     sessionParams.metadata!.giftCardCode = validated.giftCardCode;
     sessionParams.metadata!.discountAmount = String(discountAmount);
   }
 
-  // Create Stripe Checkout Session
-  const checkoutSession = await stripe.checkout.sessions.create(sessionParams);
+  // Use a transaction to atomically create order + Stripe session + link them.
+  // If Stripe session creation fails, the order is rolled back.
+  const result = await db.transaction(async (tx) => {
+    // 1. Create order inside the transaction
+    const [order] = await tx.insert(schema.order).values({
+      email: '',  // Will be filled by webhook from Stripe session
+      subtotal: cartTotal,
+      shippingAmount: 0,  // Will be determined at Stripe checkout
+      discountAmount,
+      total: cartTotal - discountAmount,
+      stripeCheckoutSessionId: '',  // Will be updated after session creation
+      giftCardCode: validated.giftCardCode,
+    }).returning();
 
-  // Update order with Stripe session ID and finalized discount
-  await db.update(schema.order)
-    .set({
-      stripeCheckoutSessionId: checkoutSession.id,
-      ...(discountAmount > 0 && {
-        discountAmount,
-        total: cartTotal - discountAmount,
-      }),
-    })
-    .where(eq(schema.order.id, order.id));
+    // 2. Create order items
+    await Promise.all(
+      orderItems.map((item) =>
+        tx.insert(schema.orderItem).values({
+          orderId: order.id,
+          productId: item.productId,
+          productName: item.productName,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          totalPrice: item.totalPrice,
+        })
+      )
+    );
 
-  return { success: true, checkoutUrl: checkoutSession.url };
+    // 3. Create Stripe session with orderId in metadata
+    sessionParams.metadata!.orderId = order.id;
+    const checkoutSession = await stripe.checkout.sessions.create(sessionParams);
+
+    // 4. Link Stripe session ID back to order
+    await tx.update(schema.order)
+      .set({ stripeCheckoutSessionId: checkoutSession.id })
+      .where(eq(schema.order.id, order.id));
+
+    return { checkoutUrl: checkoutSession.url };
+  });
+
+  return { success: true, checkoutUrl: result.checkoutUrl };
 }

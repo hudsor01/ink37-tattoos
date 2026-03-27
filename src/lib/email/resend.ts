@@ -34,25 +34,31 @@ export async function sendContactNotification(data: {
     return { adminSent: false, customerSent: false };
   }
 
-  const [adminResult, customerResult] = await Promise.allSettled([
-    getResend().emails.send({
+  // Use batch send for a single API call instead of two separate requests
+  const { data: batchResult, error } = await getResend().batch.send([
+    {
       from: FROM_EMAIL,
       to: adminEmail,
       replyTo: data.email,
       subject: `New Contact: ${data.name}`,
       html: contactAdminTemplate(data),
-    }),
-    getResend().emails.send({
+    },
+    {
       from: FROM_EMAIL,
       to: data.email,
       subject: 'Thank you for contacting Ink 37 Tattoos',
       html: contactConfirmationTemplate(data.name),
-    }),
+    },
   ]);
 
+  if (error) {
+    console.error('[Email] Batch send failed:', error);
+    return { adminSent: false, customerSent: false };
+  }
+
   return {
-    adminSent: adminResult.status === 'fulfilled',
-    customerSent: customerResult.status === 'fulfilled',
+    adminSent: !!batchResult?.data?.[0]?.id,
+    customerSent: !!batchResult?.data?.[1]?.id,
   };
 }
 

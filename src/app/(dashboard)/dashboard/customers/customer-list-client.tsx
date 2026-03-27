@@ -1,14 +1,16 @@
 'use client';
 
-import { useState } from 'react';
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+import { useState, useMemo } from 'react';
+import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
-import { format, formatDistance } from 'date-fns';
+import { format } from 'date-fns';
 import { MoreHorizontal, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { useQueryState, parseAsString } from 'nuqs';
 
 import { DataTable } from '@/components/dashboard/data-table';
+import { SearchInput } from '@/components/dashboard/search-input';
 import { CustomerForm } from '@/components/dashboard/customer-form';
 import { Button } from '@/components/ui/button';
 import {
@@ -57,28 +59,43 @@ export function CustomerListClient({
   const [createOpen, setCreateOpen] = useState(false);
   const [editCustomer, setEditCustomer] = useState<Customer | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [search, setSearch] = useQueryState(
+    'q',
+    parseAsString.withDefault('')
+  );
 
   const { data: customers = [] } = useQuery<Customer[]>({
     queryKey: ['customers'],
     queryFn: () => fetch('/api/admin/customers').then((r) => r.json()),
     initialData: initialCustomers,
+    placeholderData: keepPreviousData,
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteCustomerAction(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['customers'] });
-      setDeleteId(null);
-    },
-  });
+  const filteredCustomers = useMemo(() => {
+    if (!search) return customers;
+    const q = search.toLowerCase();
+    return customers.filter(
+      (c) =>
+        c.firstName.toLowerCase().includes(q) ||
+        c.lastName.toLowerCase().includes(q) ||
+        c.email?.toLowerCase().includes(q)
+    );
+  }, [customers, search]);
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!deleteId) return;
-    toast.promise(deleteMutation.mutateAsync(deleteId), {
-      loading: 'Deleting customer...',
-      success: 'Customer deleted successfully',
-      error: "Changes couldn't be saved. Please try again.",
-    });
+    setIsDeleting(true);
+    try {
+      await deleteCustomerAction(deleteId);
+      await queryClient.invalidateQueries({ queryKey: ['customers'] });
+      toast.success('Customer deleted successfully');
+    } catch {
+      toast.error("Changes couldn't be saved. Please try again.");
+    } finally {
+      setIsDeleting(false);
+      setDeleteId(null);
+    }
   }
 
   const columns: ColumnDef<Customer>[] = [
@@ -107,11 +124,8 @@ export function CustomerListClient({
     {
       accessorKey: 'createdAt',
       header: 'Created',
-      cell: ({ row }) => (
-        <span title={format(new Date(row.original.createdAt), 'MMM d, yyyy')}>
-          {formatDistance(new Date(row.original.createdAt), new Date(), { addSuffix: true })}
-        </span>
-      ),
+      cell: ({ row }) =>
+        format(new Date(row.original.createdAt), 'MMM d, yyyy'),
     },
     {
       id: 'actions',
@@ -211,11 +225,15 @@ export function CustomerListClient({
         </Dialog>
       </div>
 
+      <SearchInput
+        value={search}
+        onChange={(v) => setSearch(v || null)}
+        placeholder="Search by name or email..."
+      />
+
       <DataTable
         columns={columns}
-        data={customers}
-        searchKey="lastName"
-        searchPlaceholder="Search by name..."
+        data={filteredCustomers}
       />
 
       {/* Edit Dialog */}
@@ -253,10 +271,10 @@ export function CustomerListClient({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              disabled={deleteMutation.isPending}
+              disabled={isDeleting}
               variant="destructive"
             >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              {isDeleting ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
