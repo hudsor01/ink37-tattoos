@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: All phases complete
-stopped_at: Completed Phase 11 (all 11 phases done)
-last_updated: "2026-03-27T06:50:00.000Z"
+status: Ready to execute
+stopped_at: Completed 12-01-PLAN.md
+last_updated: "2026-03-27T07:30:03.779Z"
 progress:
   total_phases: 11
-  completed_phases: 11
+  completed_phases: 10
   total_plans: 37
-  completed_plans: 37
+  completed_plans: 35
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** The tattoo artist manages their entire business from one app while clients get a polished experience for discovering, booking, paying, and tracking their tattoo journey.
-**Current focus:** All phases complete — v1.0 milestone ready
+**Current focus:** Phase 12 — testing-foundation
 
 ## Current Position
 
-Phase: 11 (final)
-Plan: 6 of 6 complete — all 11 phases done
+Phase: 12 (testing-foundation) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Plan: 6 of 6 complete — all 11 phases done
 | Phase 08 P03 | 10min | 2 tasks | 15 files |
 | Phase 10 P01 | 27min | 2 tasks | 4 files |
 | Phase 10 P03 | 11min | 2 tasks | 25 files |
+| Phase 12 P01 | 3min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,8 @@ Recent decisions affecting current work:
 - [Phase 10]: ws confirmed KEEP -- required by Neon serverless WebSocket transport in db/index.ts
 - [Phase 10]: @radix-ui/react-slot confirmed KEEP -- used by Shadcn FormControl Slot component in form.tsx
 - [Phase 10]: Gallery uses nuqs shared parsers; after() for all audit logging; useMutation for dashboard list mutations; toast.promise in 15 files
+- [Phase 12]: env() mocked as vi.fn() (not plain object) because resend.ts calls env() as function invocation
+- [Phase 12]: Resend webhook tests use computed HMAC signatures in-test for cryptographic correctness
 
 ### Pending Todos
 
@@ -119,6 +122,7 @@ None yet.
 - Phase 9 added: Cal.com integration
 - Phase 11 added: Full Stack Integration — shadcn/ui + base-ui, TanStack Form, Next.js 16 + React 19.2, recharts full library, Stripe + Resend APIs, all dep maximization
 - Phase 10 added: Tech stack audit and full integration
+- Phase 12 added: Testing Foundation — unit tests for server-side logic + integration tests for API routes, webhooks, auth flows
 
 ### Blockers/Concerns
 
@@ -128,6 +132,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-27T06:50:00.000Z
-Stopped at: All 11 phases complete — v1.0 milestone done
+Last session: 2026-03-27T07:30:03.776Z
+Stopped at: Completed 12-01-PLAN.md
 Resume file: None
