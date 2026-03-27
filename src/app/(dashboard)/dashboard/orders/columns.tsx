@@ -57,7 +57,11 @@ function OrderActions({ order }: { order: OrderWithItems }) {
         formData.append('status', status);
         const result = await updateOrderStatusAction(formData);
         if (result.success) {
-          toast.success(`Order marked as ${status.toLowerCase()}.`);
+          if (status === 'CANCELLED') {
+            toast.warning('Order cancelled');
+          } else {
+            toast.info(`Order marked as ${status.toLowerCase()}`);
+          }
           router.refresh();
         }
       } catch {
@@ -73,7 +77,7 @@ function OrderActions({ order }: { order: OrderWithItems }) {
         formData.append('orderId', order.id);
         const result = await refundOrderAction(formData);
         if (result.success) {
-          toast.success('Refund processed successfully.');
+          toast.warning('Refund processed');
           router.refresh();
         }
       } catch {

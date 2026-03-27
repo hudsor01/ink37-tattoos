@@ -3,7 +3,8 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { eq, and, gte, lte, desc, asc, sql } from 'drizzle-orm';
+import { eq, and, gte, lte, desc, asc, sql, not, inArray } from 'drizzle-orm';
+import { isWithinInterval, addHours } from 'date-fns';
 import * as schema from '@/lib/db/schema';
 import type { CreateAppointmentData, UpdateAppointmentData } from '@/lib/security/validation';
 
@@ -89,3 +90,24 @@ export const getAppointmentStats = cache(async () => {
     .from(schema.appointment)
     .groupBy(schema.appointment.status);
 });
+
+export async function checkSchedulingConflict(
+  proposedDate: Date,
+  durationHours: number = 2
+): Promise<boolean> {
+  await requireStaffRole();
+  const proposedEnd = addHours(proposedDate, durationHours);
+
+  const existing = await db.query.appointment.findMany({
+    where: and(
+      not(inArray(schema.appointment.status, ['CANCELLED', 'NO_SHOW'])),
+      gte(schema.appointment.scheduledDate, new Date(proposedDate.getTime() - durationHours * 60 * 60 * 1000)),
+      lte(schema.appointment.scheduledDate, proposedEnd),
+    ),
+    columns: { scheduledDate: true },
+  });
+
+  return existing.some((appt) =>
+    isWithinInterval(appt.scheduledDate, { start: proposedDate, end: proposedEnd })
+  );
+}

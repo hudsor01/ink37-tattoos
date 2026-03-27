@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { mediaQueryOptions } from '@/lib/query-options';
 import { Button } from '@/components/ui/button';
@@ -41,6 +41,10 @@ export function MediaPageClient() {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    return () => { toast.dismiss(); };
+  }, []);
 
   const { data: media = [] } = useQuery(mediaQueryOptions);
 

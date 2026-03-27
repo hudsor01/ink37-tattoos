@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useMemo, useOptimistic, useTransition } from 'react';
+import { useState, useMemo, useOptimistic, useTransition, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
-import { format } from 'date-fns';
+import { format, differenceInDays, differenceInHours } from 'date-fns';
 import { MoreHorizontal, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryState, parseAsString } from 'nuqs';
@@ -47,6 +47,7 @@ import {
   deleteAppointmentAction,
   updateAppointmentAction,
 } from '@/lib/actions/appointment-actions';
+import { Badge } from '@/components/ui/badge';
 import { appointmentsQueryOptions } from '@/lib/query-options';
 
 interface Appointment {
@@ -84,11 +85,29 @@ const STATUS_OPTIONS = [
   { value: 'NO_SHOW', label: 'No Show' },
 ] as const;
 
+function getProximityLabel(scheduledDate: Date): { label: string; variant: 'destructive' | 'secondary' } | null {
+  const now = new Date();
+  const daysUntil = differenceInDays(scheduledDate, now);
+  if (daysUntil < 0) return null;
+  if (daysUntil === 0) {
+    const hoursUntil = differenceInHours(scheduledDate, now);
+    if (hoursUntil <= 0) return null;
+    return { label: `In ${hoursUntil}h`, variant: 'destructive' };
+  }
+  if (daysUntil === 1) return { label: 'Tomorrow', variant: 'destructive' };
+  if (daysUntil <= 7) return { label: `In ${daysUntil} days`, variant: 'secondary' };
+  return null;
+}
+
 export function AppointmentListClient() {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    return () => { toast.dismiss(); };
+  }, []);
   const [statusFilter, setStatusFilter] = useQueryState(
     'status',
     parseAsString.withDefault('ALL')
@@ -132,7 +151,7 @@ export function AppointmentListClient() {
     try {
       await deleteAppointmentAction(deleteId);
       await queryClient.invalidateQueries({ queryKey: ['appointments'] });
-      toast.success('Appointment cancelled successfully');
+      toast.warning('Appointment cancelled');
     } catch {
       toast.error("Changes couldn't be saved. Please try again.");
     } finally {
@@ -149,7 +168,11 @@ export function AppointmentListClient() {
         formData.append('status', status);
         await updateAppointmentAction(id, formData);
         await queryClient.invalidateQueries({ queryKey: ['appointments'] });
-        toast.success('Status updated successfully');
+        if (status === 'CANCELLED' || status === 'NO_SHOW') {
+          toast.warning(`Appointment marked as ${status.replace('_', ' ').toLowerCase()}`);
+        } else {
+          toast.success('Status updated');
+        }
       } catch {
         toast.error("Changes couldn't be saved. Please try again.");
       }
@@ -169,8 +192,20 @@ export function AppointmentListClient() {
     {
       accessorKey: 'scheduledDate',
       header: 'Date',
-      cell: ({ row }) =>
-        format(new Date(row.original.scheduledDate), 'MMM d, yyyy h:mm a'),
+      cell: ({ row }) => {
+        const date = new Date(row.original.scheduledDate);
+        const proximity = getProximityLabel(date);
+        return (
+          <div className="flex items-center gap-2">
+            <span>{format(date, 'MMM d, yyyy h:mm a')}</span>
+            {proximity && (
+              <Badge variant={proximity.variant} className="text-xs">
+                {proximity.label}
+              </Badge>
+            )}
+          </div>
+        );
+      },
     },
     {
       accessorKey: 'type',

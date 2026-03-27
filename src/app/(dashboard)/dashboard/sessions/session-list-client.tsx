@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DataTable, type ColumnDef } from '@/components/dashboard/data-table';
 import { StatusBadge } from '@/components/dashboard/status-badge';
@@ -15,6 +15,7 @@ import {
 import { SessionForm } from '@/components/dashboard/session-form';
 import { deleteSessionAction } from '@/lib/actions/session-actions';
 import { sessionsQueryOptions } from '@/lib/query-options';
+import { formatDuration, intervalToDuration } from 'date-fns';
 import { Plus, Check, X, Trash2, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -73,6 +74,16 @@ const columns: ColumnDef<SessionWithRelations, unknown>[] = [
     header: 'Size',
   },
   {
+    accessorKey: 'duration',
+    header: 'Duration',
+    cell: ({ row }) => {
+      const mins = row.original.duration;
+      if (!mins) return '--';
+      const dur = intervalToDuration({ start: 0, end: mins * 60 * 1000 });
+      return formatDuration(dur, { format: ['hours', 'minutes'] }) || `${mins}m`;
+    },
+  },
+  {
     accessorKey: 'status',
     header: 'Status',
     cell: ({ row }) => <StatusBadge status={row.original.status} />,
@@ -111,6 +122,10 @@ export function SessionListClient() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailSession, setDetailSession] = useState<SessionWithRelations | null>(null);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    return () => { toast.dismiss(); };
+  }, []);
 
   const { data: sessions = [] } = useQuery(sessionsQueryOptions);
 
