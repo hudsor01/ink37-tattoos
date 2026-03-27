@@ -1,3 +1,4 @@
+import { connection } from 'next/server';
 import { getDashboardStats, getRevenueData } from '@/lib/dal/analytics';
 import { KPICard } from '@/components/dashboard/kpi-card';
 import { RevenueChart } from '@/components/dashboard/analytics-chart';
@@ -32,6 +33,7 @@ const currencyFormatter = new Intl.NumberFormat('en-US', {
 });
 
 export default async function DashboardPage() {
+  await connection();
   const [stats, revenueData] = await Promise.all([
     getDashboardStats(),
     getRevenueData(6),

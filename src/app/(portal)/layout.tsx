@@ -1,5 +1,4 @@
-export const dynamic = 'force-dynamic';
-
+import { connection } from 'next/server';
 import type { Metadata } from 'next';
 import { PortalHeader } from '@/components/portal/portal-header';
 import { PortalNav } from '@/components/portal/portal-nav';
@@ -9,7 +8,8 @@ export const metadata: Metadata = {
   title: 'Client Portal | Ink 37 Tattoos',
 };
 
-export default function PortalLayout({ children }: { children: React.ReactNode }) {
+export default async function PortalLayout({ children }: { children: React.ReactNode }) {
+  await connection();
   return (
     <div className="min-h-screen bg-gray-50">
       <PortalHeader />

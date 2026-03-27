@@ -1,3 +1,4 @@
+import { connection } from 'next/server';
 import { getOrderById } from '@/lib/dal/orders';
 import { OrderDetail } from '@/components/dashboard/order-detail';
 import { notFound } from 'next/navigation';
@@ -15,6 +16,7 @@ export default async function OrderDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await connection();
   const { id } = await params;
   const order = await getOrderById(id);
 

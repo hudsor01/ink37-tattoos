@@ -1,3 +1,4 @@
+import { connection } from 'next/server';
 import { getProducts } from '@/lib/dal/products';
 import { DataTable } from '@/components/dashboard/data-table';
 import { productColumns } from './columns';
@@ -12,6 +13,7 @@ import { Plus, Package } from 'lucide-react';
 import Link from 'next/link';
 
 export default async function ProductsPage() {
+  await connection();
   const products = await getProducts();
 
   return (

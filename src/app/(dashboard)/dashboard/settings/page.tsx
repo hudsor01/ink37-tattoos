@@ -1,7 +1,9 @@
+import { connection } from 'next/server';
 import { getSettings } from '@/lib/dal/settings';
 import { SettingsPageClient } from './settings-page-client';
 
 export default async function SettingsPage() {
+  await connection();
   const settings = await getSettings();
 
   // Transform settings array into a keyed map for easy access

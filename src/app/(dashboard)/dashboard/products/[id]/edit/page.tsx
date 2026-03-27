@@ -1,3 +1,4 @@
+import { connection } from 'next/server';
 import { getProductById } from '@/lib/dal/products';
 import { ProductForm } from '@/components/dashboard/product-form';
 import { notFound } from 'next/navigation';
@@ -15,6 +16,7 @@ export default async function EditProductPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await connection();
   const { id } = await params;
   const product = await getProductById(id);
 

@@ -1,3 +1,4 @@
+import { connection } from 'next/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   getRevenueData,
@@ -11,6 +12,7 @@ import {
 } from '@/components/dashboard/analytics-chart';
 
 export default async function AnalyticsPage() {
+  await connection();
   const [revenueData, clientData, appointmentTypes] = await Promise.all([
     getRevenueData(6),
     getClientAcquisitionData(6),

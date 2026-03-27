@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useQueryStates } from 'nuqs';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { LazyMotion, domAnimation, m } from 'framer-motion';
 import { GalleryFilterBar, galleryFilterParsers } from '@/components/public/gallery-filter-bar';
 import dynamic from 'next/dynamic';
 
@@ -25,7 +25,7 @@ const itemVariants = {
   },
 };
 
-const GalleryLightbox = dynamic(() => import('@/components/public/gallery-lightbox').then(m => m.GalleryLightbox));
+const GalleryLightbox = dynamic(() => import('@/components/public/gallery-lightbox').then(mod => mod.GalleryLightbox));
 
 interface Design {
   id: string;
@@ -95,52 +95,54 @@ export function GalleryClient({ initialDesigns }: GalleryClientProps) {
     <>
       <GalleryFilterBar />
 
-      {filteredDesigns.length === 0 ? (
-        <div className="text-center py-24">
-          <h2 className="text-xl font-semibold mb-2">No designs match your filters</h2>
-          <p className="text-muted-foreground">
-            Try adjusting your filter criteria to see more work.
-          </p>
-        </div>
-      ) : (
-        <motion.div
-          className="columns-1 md:columns-2 lg:columns-3 gap-3"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          key={`${filters.style}-${filters.placement}-${filters.size}`}
-        >
-          {filteredDesigns.map((design, index) => (
-            <motion.div
-              key={design.id}
-              variants={itemVariants}
-              className="break-inside-avoid mb-3 cursor-pointer group"
-              onClick={() => setLightboxIndex(index)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  setLightboxIndex(index);
-                }
-              }}
-            >
-              <div className="relative overflow-hidden rounded-lg transition-transform duration-200 ease-out group-hover:scale-[1.02]">
-                <Image
-                  src={design.thumbnailUrl ?? design.fileUrl}
-                  alt={design.name}
-                  width={400}
-                  height={0}
-                  style={{ height: 'auto' }}
-                  className="w-full"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200" />
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
-      )}
+      <LazyMotion features={domAnimation}>
+        {filteredDesigns.length === 0 ? (
+          <div className="text-center py-24">
+            <h2 className="text-xl font-semibold mb-2">No designs match your filters</h2>
+            <p className="text-muted-foreground">
+              Try adjusting your filter criteria to see more work.
+            </p>
+          </div>
+        ) : (
+          <m.div
+            className="columns-1 md:columns-2 lg:columns-3 gap-3"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            key={`${filters.style}-${filters.placement}-${filters.size}`}
+          >
+            {filteredDesigns.map((design, index) => (
+              <m.div
+                key={design.id}
+                variants={itemVariants}
+                className="break-inside-avoid mb-3 cursor-pointer group"
+                onClick={() => setLightboxIndex(index)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setLightboxIndex(index);
+                  }
+                }}
+              >
+                <div className="relative overflow-hidden rounded-lg transition-transform duration-200 ease-out group-hover:scale-[1.02]">
+                  <Image
+                    src={design.thumbnailUrl ?? design.fileUrl}
+                    alt={design.name}
+                    width={400}
+                    height={0}
+                    style={{ height: 'auto' }}
+                    className="w-full"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200" />
+                </div>
+              </m.div>
+            ))}
+          </m.div>
+        )}
+      </LazyMotion>
 
       <GalleryLightbox
         designs={filteredDesigns}

@@ -1,7 +1,9 @@
+import { connection } from 'next/server';
 import { getSessions } from '@/lib/dal/sessions';
 import { SessionListClient } from './session-list-client';
 
 export default async function SessionsPage() {
+  await connection();
   const sessions = await getSessions();
   return (
     <div className="space-y-6">

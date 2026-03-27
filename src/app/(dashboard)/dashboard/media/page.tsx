@@ -1,7 +1,9 @@
+import { connection } from 'next/server';
 import { getMediaItems } from '@/lib/dal/media';
 import { MediaPageClient } from './media-page-client';
 
 export default async function MediaPage() {
+  await connection();
   const media = await getMediaItems();
   return (
     <div className="space-y-6">

@@ -1,7 +1,9 @@
+import { connection } from 'next/server';
 import { getCustomers } from '@/lib/dal/customers';
 import { CustomerListClient } from './customer-list-client';
 
 export default async function CustomersPage() {
+  await connection();
   const customers = await getCustomers();
 
   // Serialize dates for client component

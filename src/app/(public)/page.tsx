@@ -1,5 +1,4 @@
-export const dynamic = 'force-dynamic';
-
+import { connection } from "next/server";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -47,6 +46,7 @@ const services = [
 ];
 
 export default async function HomePage() {
+  await connection();
   const designs = await getPublicDesigns();
   const previewDesigns = designs.slice(0, 6);
   return (
