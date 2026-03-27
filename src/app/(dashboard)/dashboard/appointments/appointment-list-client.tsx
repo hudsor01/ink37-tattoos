@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useOptimistic, useTransition } from 'react';
 import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
@@ -103,6 +103,8 @@ export function AppointmentListClient({
     parseAsString.withDefault('')
   );
 
+  const [isPending, startTransition] = useTransition();
+
   const { data: appointments = [] } = useQuery<Appointment[]>({
     queryKey: ['appointments'],
     queryFn: () => fetch('/api/admin/appointments').then((r) => r.json()),
@@ -110,8 +112,15 @@ export function AppointmentListClient({
     placeholderData: keepPreviousData,
   });
 
+  // Optimistic status updates: show new status immediately before server confirms
+  const [optimisticAppointments, setOptimisticStatus] = useOptimistic(
+    appointments,
+    (current, { id, status }: { id: string; status: string }) =>
+      current.map((a) => (a.id === id ? { ...a, status } : a))
+  );
+
   const filteredAppointments = useMemo(() => {
-    let result = appointments;
+    let result = optimisticAppointments;
     if (statusFilter !== 'ALL') {
       result = result.filter((a) => a.status === statusFilter);
     }
@@ -125,7 +134,7 @@ export function AppointmentListClient({
       );
     }
     return result;
-  }, [appointments, statusFilter, search]);
+  }, [optimisticAppointments, statusFilter, search]);
 
   async function handleDelete() {
     if (!deleteId) return;
@@ -142,16 +151,19 @@ export function AppointmentListClient({
     }
   }
 
-  async function handleStatusUpdate(id: string, status: string) {
-    try {
-      const formData = new FormData();
-      formData.append('status', status);
-      await updateAppointmentAction(id, formData);
-      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
-      toast.success('Status updated successfully');
-    } catch {
-      toast.error("Changes couldn't be saved. Please try again.");
-    }
+  function handleStatusUpdate(id: string, status: string) {
+    startTransition(async () => {
+      setOptimisticStatus({ id, status });
+      try {
+        const formData = new FormData();
+        formData.append('status', status);
+        await updateAppointmentAction(id, formData);
+        await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+        toast.success('Status updated successfully');
+      } catch {
+        toast.error("Changes couldn't be saved. Please try again.");
+      }
+    });
   }
 
   const columns: ColumnDef<Appointment>[] = [
