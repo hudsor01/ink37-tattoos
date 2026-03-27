@@ -1,25 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Hoisted mocks
-const { mockSend, mockBatchSend, mockEnv } = vi.hoisted(() => ({
-  mockSend: vi.fn(),
-  mockBatchSend: vi.fn(),
-  mockEnv: vi.fn((): Record<string, string | undefined> => ({
-    RESEND_API_KEY: 'test-key',
-    ADMIN_EMAIL: 'admin@test.com',
-  })),
+// Module-scope mocks (replaces vi.hoisted)
+const mockSend = vi.fn();
+const mockBatchSend = vi.fn();
+const mockEnv = vi.fn((): Record<string, string | undefined> => ({
+  RESEND_API_KEY: 'test-key',
+  ADMIN_EMAIL: 'admin@test.com',
 }));
 
 vi.mock('server-only', () => ({}));
 
 vi.mock('@/lib/env', () => ({
-  env: mockEnv,
+  env: () => mockEnv(),
 }));
 
 vi.mock('resend', () => ({
   Resend: vi.fn().mockImplementation(() => ({
-    emails: { send: mockSend },
-    batch: { send: mockBatchSend },
+    emails: { send: (...args: unknown[]) => mockSend(...args) },
+    batch: { send: (...args: unknown[]) => mockBatchSend(...args) },
   })),
 }));
 
@@ -35,7 +33,6 @@ vi.mock('@/lib/email/templates', () => ({
 describe('Email Service', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.resetModules();
     mockEnv.mockReturnValue({
       RESEND_API_KEY: 'test-key',
       ADMIN_EMAIL: 'admin@test.com',
@@ -94,7 +91,6 @@ describe('Email Service', () => {
       mockBatchSend.mockResolvedValue({ data: null, error: null });
       const { sendContactNotification } = await import('@/lib/email/resend');
       const result = await sendContactNotification(contactData);
-      // batchResult is null, so !!batchResult?.data?.[0]?.id is false
       expect(result).toEqual({ adminSent: false, customerSent: false });
     });
   });

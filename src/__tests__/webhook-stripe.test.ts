@@ -1,5 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+// Module-scope mocks (replaces vi.hoisted)
+const mockConstructEvent = vi.fn();
+const mockFindFirst = vi.fn();
+const mockInsertValues = vi.fn().mockReturnThis();
+const mockInsertReturning = vi.fn();
+const mockInsert = vi.fn((_table?: unknown) => ({
+  values: (...args: unknown[]) => {
+    mockInsertValues(...args);
+    return { returning: (...rArgs: unknown[]) => mockInsertReturning(...rArgs) };
+  },
+}));
+
 // Mock server-only (no-op in test environment)
 vi.mock('server-only', () => ({}));
 
@@ -24,8 +36,28 @@ vi.mock('@/lib/auth', () => ({
 // Mock email module to avoid Resend client initialization
 vi.mock('@/lib/email/resend', () => ({
   sendContactNotification: vi.fn(),
-  sendPaymentConfirmation: vi.fn(),
-  sendAppointmentReminder: vi.fn(),
+  sendPaymentRequestEmail: vi.fn(),
+  sendOrderConfirmationEmail: vi.fn(),
+  sendGiftCardEmail: vi.fn(),
+  sendGiftCardPurchaseConfirmationEmail: vi.fn(),
+}));
+
+// Mock DAL modules imported by stripe route
+vi.mock('@/lib/dal/orders', () => ({
+  getOrderByCheckoutSessionId: vi.fn(),
+}));
+
+vi.mock('@/lib/dal/gift-cards', () => ({
+  createGiftCard: vi.fn(),
+  redeemGiftCard: vi.fn(),
+}));
+
+// Mock drizzle-orm operators
+vi.mock('drizzle-orm', () => ({
+  eq: vi.fn((...args: unknown[]) => args),
+  and: vi.fn((...args: unknown[]) => args),
+  or: vi.fn((...args: unknown[]) => args),
+  sql: vi.fn(),
 }));
 
 // Mock next/server
@@ -45,7 +77,7 @@ vi.mock('next/server', () => ({
 vi.mock('@/lib/stripe', () => ({
   stripe: {
     webhooks: {
-      constructEvent: vi.fn(),
+      constructEvent: (...args: unknown[]) => mockConstructEvent(...args),
     },
     paymentIntents: { retrieve: vi.fn() },
     charges: { retrieve: vi.fn() },
@@ -54,31 +86,17 @@ vi.mock('@/lib/stripe', () => ({
 }));
 
 // Mock the db module with Drizzle API shape
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { mockFindFirst, mockInsertValues, mockInsertReturning, mockInsert } = vi.hoisted(() => {
-  const mockFindFirst = vi.fn();
-  const mockInsertValues = vi.fn().mockReturnThis();
-  const mockInsertReturning = vi.fn();
-  const mockInsert = vi.fn(() => ({
-    values: (...args: unknown[]) => {
-      mockInsertValues(...args);
-      return { returning: mockInsertReturning };
-    },
-  }));
-  return { mockFindFirst, mockInsertValues, mockInsertReturning, mockInsert };
-});
-
 vi.mock('@/lib/db', () => ({
   db: {
     query: {
       stripeEvent: {
-        findFirst: mockFindFirst,
+        findFirst: (...args: unknown[]) => mockFindFirst(...args),
       },
       payment: {
         findFirst: vi.fn(),
       },
     },
-    insert: mockInsert,
+    insert: (table: unknown) => mockInsert(table),
     update: vi.fn(() => ({
       set: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
@@ -103,14 +121,9 @@ vi.mock('@/lib/db/schema', () => ({
   order: { id: 'id', stripeCheckoutSessionId: 'stripeCheckoutSessionId', status: 'status' },
 }));
 
-import { stripe } from '@/lib/stripe';
-import '@/lib/db';
-
 describe('Stripe Webhook Security', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset module registry so each test gets fresh POST import
-    vi.resetModules();
   });
 
   it('rejects requests with missing stripe-signature header', async () => {
@@ -129,7 +142,7 @@ describe('Stripe Webhook Security', () => {
   });
 
   it('rejects requests with invalid signature', async () => {
-    vi.mocked(stripe.webhooks.constructEvent).mockImplementation(() => {
+    mockConstructEvent.mockImplementation(() => {
       throw new Error('No signatures found matching the expected signature');
     });
 
@@ -154,7 +167,7 @@ describe('Stripe Webhook Security', () => {
       data: { object: {} },
     };
 
-    vi.mocked(stripe.webhooks.constructEvent).mockReturnValue(mockEvent as never);
+    mockConstructEvent.mockReturnValue(mockEvent as never);
     mockFindFirst.mockResolvedValue({
       id: '1',
       stripeEventId: 'evt_123',

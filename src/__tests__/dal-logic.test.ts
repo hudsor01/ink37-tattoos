@@ -1,48 +1,39 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Hoisted mocks
-const {
-  mockGetCurrentSession,
-  mockRedirect,
-  mockPreparedExecute,
-  mockSelectTerminal,
-  mockAppointmentFindMany,
-  mockCustomerFindFirst,
-} = vi.hoisted(() => ({
-  mockGetCurrentSession: vi.fn(),
-  mockRedirect: vi.fn((url: string) => {
-    throw new Error(`REDIRECT:${url}`);
-  }),
-  mockPreparedExecute: vi.fn(),
-  mockSelectTerminal: vi.fn().mockResolvedValue([]),
-  mockAppointmentFindMany: vi.fn().mockResolvedValue([]),
-  mockCustomerFindFirst: vi.fn().mockResolvedValue(null),
-}));
+// Module-scope mocks (replaces vi.hoisted)
+const mockGetCurrentSession = vi.fn();
+const mockRedirect = vi.fn((url: string) => {
+  throw new Error(`REDIRECT:${url}`);
+});
+const mockPreparedExecute = vi.fn();
+const mockSelectTerminal = vi.fn().mockResolvedValue([]);
+const mockAppointmentFindMany = vi.fn().mockResolvedValue([]);
+const mockCustomerFindFirst = vi.fn().mockResolvedValue(null);
 
 vi.mock('server-only', () => ({}));
 vi.mock('react', () => ({ cache: (fn: Function) => fn }));
-vi.mock('@/lib/auth', () => ({ getCurrentSession: mockGetCurrentSession }));
-vi.mock('next/navigation', () => ({ redirect: mockRedirect }));
+vi.mock('@/lib/auth', () => ({ getCurrentSession: (...args: unknown[]) => mockGetCurrentSession(...args) }));
+vi.mock('next/navigation', () => ({ redirect: (url: string) => mockRedirect(url) }));
 
 vi.mock('@/lib/db', () => ({
   db: {
     select: vi.fn(() => ({
       from: vi.fn(() => ({
         where: vi.fn(() => ({
-          prepare: vi.fn(() => ({ execute: mockPreparedExecute })),
-          orderBy: mockSelectTerminal,
+          prepare: vi.fn(() => ({ execute: (...args: unknown[]) => mockPreparedExecute(...args) })),
+          orderBy: (...args: unknown[]) => mockSelectTerminal(...args),
         })),
-        prepare: vi.fn(() => ({ execute: mockPreparedExecute })),
-        orderBy: mockSelectTerminal,
+        prepare: vi.fn(() => ({ execute: (...args: unknown[]) => mockPreparedExecute(...args) })),
+        orderBy: (...args: unknown[]) => mockSelectTerminal(...args),
       })),
     })),
     query: {
       appointment: {
-        findMany: mockAppointmentFindMany,
+        findMany: (...args: unknown[]) => mockAppointmentFindMany(...args),
         findFirst: vi.fn().mockResolvedValue(null),
       },
       customer: {
-        findFirst: mockCustomerFindFirst,
+        findFirst: (...args: unknown[]) => mockCustomerFindFirst(...args),
       },
     },
   },
@@ -74,7 +65,6 @@ const staffSession = { user: { id: 'u1', role: 'staff', email: 'staff@test.com' 
 describe('checkSchedulingConflict', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.resetModules();
     mockGetCurrentSession.mockResolvedValue(staffSession);
   });
 
@@ -119,7 +109,6 @@ describe('checkSchedulingConflict', () => {
 describe('getDashboardStats', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.resetModules();
     mockGetCurrentSession.mockResolvedValue(staffSession);
     mockAppointmentFindMany.mockResolvedValue([]);
   });
@@ -170,7 +159,6 @@ describe('getDashboardStats', () => {
 describe('getRevenueData', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.resetModules();
     mockGetCurrentSession.mockResolvedValue(staffSession);
     mockSelectTerminal.mockResolvedValue([]);
   });
@@ -203,7 +191,6 @@ describe('getRevenueData', () => {
 describe('getBookingTrends', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.resetModules();
     mockGetCurrentSession.mockResolvedValue(staffSession);
     mockSelectTerminal.mockResolvedValue([]);
   });
@@ -241,7 +228,6 @@ describe('getBookingTrends', () => {
 describe('Portal Auth', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.resetModules();
   });
 
   it('redirects to /login when no session', async () => {

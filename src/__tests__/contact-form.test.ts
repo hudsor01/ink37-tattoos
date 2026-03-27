@@ -20,22 +20,28 @@ vi.mock('@/lib/dal/contacts', () => ({
 }));
 
 // Mock the email module
+const mockSendContactNotification = vi.fn().mockResolvedValue({
+  adminSent: true,
+  customerSent: true,
+});
+
 vi.mock('@/lib/email/resend', () => ({
-  sendContactNotification: vi.fn().mockResolvedValue({
-    adminSent: true,
-    customerSent: true,
-  }),
+  sendContactNotification: (...args: unknown[]) => mockSendContactNotification(...args),
 }));
 
 // Mock the rate limiter
+const mockRateLimit = vi.fn().mockReturnValue(true);
+
 vi.mock('@/lib/security/rate-limiter', () => ({
-  rateLimit: vi.fn().mockReturnValue(true),
+  rateLimit: (...args: unknown[]) => mockRateLimit(...args),
 }));
 
 // Mock next/headers
+const mockHeadersGet = vi.fn().mockReturnValue('127.0.0.1');
+
 vi.mock('next/headers', () => ({
   headers: vi.fn().mockResolvedValue({
-    get: vi.fn().mockReturnValue('127.0.0.1'),
+    get: (...args: unknown[]) => mockHeadersGet(...args),
   }),
 }));
 
@@ -100,13 +106,12 @@ describe('ContactFormSchema validation', () => {
 });
 
 describe('submitContactForm Server Action', () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.clearAllMocks();
 
     // Re-establish default mock return values after clearing
-    const rateLimiterMod = await import('@/lib/security/rate-limiter');
-    vi.mocked(rateLimiterMod.rateLimit).mockReturnValue(true);
-
+    mockRateLimit.mockReturnValue(true);
+    mockHeadersGet.mockReturnValue('127.0.0.1');
     mockCreateContact.mockResolvedValue({
       id: 'test-id',
       name: 'John Doe',
@@ -116,17 +121,10 @@ describe('submitContactForm Server Action', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
-
-    const emailMod = await import('@/lib/email/resend');
-    vi.mocked(emailMod.sendContactNotification).mockResolvedValue({
+    mockSendContactNotification.mockResolvedValue({
       adminSent: true,
       customerSent: true,
     });
-
-    const headersMod = await import('next/headers');
-    vi.mocked(headersMod.headers).mockResolvedValue({
-      get: vi.fn().mockReturnValue('127.0.0.1'),
-    } as any);
   });
 
   it('returns success for valid submission', async () => {
@@ -192,8 +190,7 @@ describe('submitContactForm Server Action', () => {
   });
 
   it('returns rate limit error when rate limited', async () => {
-    const { rateLimit } = await import('@/lib/security/rate-limiter');
-    vi.mocked(rateLimit).mockReturnValue(false);
+    mockRateLimit.mockReturnValue(false);
 
     const { submitContactForm } = await import(
       '@/lib/actions/contact-actions'
@@ -248,10 +245,8 @@ describe('submitContactForm Server Action', () => {
     // Wait for the non-blocking email send
     await new Promise((resolve) => setTimeout(resolve, 50));
 
-    const { sendContactNotification } = await import('@/lib/email/resend');
-    expect(sendContactNotification).toHaveBeenCalled();
-    const callArgs = vi.mocked(sendContactNotification).mock.calls[0][0];
-    expect(callArgs).toMatchObject({
+    expect(mockSendContactNotification).toHaveBeenCalled();
+    expect(mockSendContactNotification.mock.calls[0][0]).toMatchObject({
       name: 'John Doe',
       email: 'john@example.com',
       message: 'I want a tattoo.',

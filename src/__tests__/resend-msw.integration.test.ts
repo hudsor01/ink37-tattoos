@@ -33,17 +33,24 @@ beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }));
 
 afterEach(() => {
   server.resetHandlers();
-  vi.resetModules();
   capturedRequests.length = 0;
   msgCounter = 0;
 });
 
 afterAll(() => server.close());
 
+// Helper to import email functions — uses dynamic import so vi.mock
+// for 'server-only' and '@/lib/env' are applied before module evaluation.
+// Module is cached after first import so all tests share the same Resend client,
+// which is fine because MSW intercepts at the network level.
+async function getEmailModule() {
+  return import('@/lib/email/resend');
+}
+
 describe('Resend Email via MSW (network-level)', () => {
   describe('sendContactNotification', () => {
     it('sends batch request with admin + customer emails', async () => {
-      const { sendContactNotification } = await import('@/lib/email/resend');
+      const { sendContactNotification } = await getEmailModule();
       const result = await sendContactNotification({
         name: 'Jane Doe',
         email: 'jane@example.com',
@@ -62,7 +69,7 @@ describe('Resend Email via MSW (network-level)', () => {
     });
 
     it('includes reply_to on admin email for direct replies', async () => {
-      const { sendContactNotification } = await import('@/lib/email/resend');
+      const { sendContactNotification } = await getEmailModule();
       await sendContactNotification({
         name: 'Bob',
         email: 'bob@example.com',
@@ -83,7 +90,7 @@ describe('Resend Email via MSW (network-level)', () => {
         }),
       );
 
-      const { sendContactNotification } = await import('@/lib/email/resend');
+      const { sendContactNotification } = await getEmailModule();
       const result = await sendContactNotification({
         name: 'Err',
         email: 'err@example.com',
@@ -97,7 +104,7 @@ describe('Resend Email via MSW (network-level)', () => {
 
   describe('sendPaymentRequestEmail', () => {
     it('sends deposit email via single send endpoint', async () => {
-      const { sendPaymentRequestEmail } = await import('@/lib/email/resend');
+      const { sendPaymentRequestEmail } = await getEmailModule();
       const result = await sendPaymentRequestEmail({
         to: 'client@example.com',
         customerName: 'Alice',
@@ -117,7 +124,7 @@ describe('Resend Email via MSW (network-level)', () => {
     });
 
     it('sends balance email with correct subject', async () => {
-      const { sendPaymentRequestEmail } = await import('@/lib/email/resend');
+      const { sendPaymentRequestEmail } = await getEmailModule();
       await sendPaymentRequestEmail({
         to: 'client@example.com',
         customerName: 'Alice',
@@ -131,7 +138,7 @@ describe('Resend Email via MSW (network-level)', () => {
     });
 
     it('includes X-Entity-Ref-ID header in request body', async () => {
-      const { sendPaymentRequestEmail } = await import('@/lib/email/resend');
+      const { sendPaymentRequestEmail } = await getEmailModule();
       await sendPaymentRequestEmail({
         to: 'client@example.com',
         customerName: 'Alice',
@@ -148,7 +155,7 @@ describe('Resend Email via MSW (network-level)', () => {
 
   describe('sendGiftCardEmail', () => {
     it('sends gift card delivery email', async () => {
-      const { sendGiftCardEmail } = await import('@/lib/email/resend');
+      const { sendGiftCardEmail } = await getEmailModule();
       const result = await sendGiftCardEmail({
         to: 'recipient@example.com',
         recipientName: 'Alice',
@@ -166,7 +173,7 @@ describe('Resend Email via MSW (network-level)', () => {
 
   describe('sendOrderConfirmationEmail', () => {
     it('sends order confirmation with correct subject', async () => {
-      const { sendOrderConfirmationEmail } = await import('@/lib/email/resend');
+      const { sendOrderConfirmationEmail } = await getEmailModule();
       const result = await sendOrderConfirmationEmail({
         to: 'buyer@example.com',
         orderId: 'ord-msw-001',
@@ -185,7 +192,7 @@ describe('Resend Email via MSW (network-level)', () => {
     });
 
     it('includes order-specific X-Entity-Ref-ID', async () => {
-      const { sendOrderConfirmationEmail } = await import('@/lib/email/resend');
+      const { sendOrderConfirmationEmail } = await getEmailModule();
       await sendOrderConfirmationEmail({
         to: 'buyer@example.com',
         orderId: 'ord-ref-test',
@@ -205,7 +212,7 @@ describe('Resend Email via MSW (network-level)', () => {
 
   describe('sendGiftCardPurchaseConfirmationEmail', () => {
     it('sends purchase confirmation', async () => {
-      const { sendGiftCardPurchaseConfirmationEmail } = await import('@/lib/email/resend');
+      const { sendGiftCardPurchaseConfirmationEmail } = await getEmailModule();
       const result = await sendGiftCardPurchaseConfirmationEmail({
         to: 'buyer@example.com',
         amount: 100,
@@ -229,7 +236,7 @@ describe('Resend Email via MSW (network-level)', () => {
         }),
       );
 
-      const { sendPaymentRequestEmail } = await import('@/lib/email/resend');
+      const { sendPaymentRequestEmail } = await getEmailModule();
       const result = await sendPaymentRequestEmail({
         to: 'err@example.com',
         customerName: 'Err',
@@ -248,7 +255,7 @@ describe('Resend Email via MSW (network-level)', () => {
         }),
       );
 
-      const { sendPaymentRequestEmail } = await import('@/lib/email/resend');
+      const { sendPaymentRequestEmail } = await getEmailModule();
       const result = await sendPaymentRequestEmail({
         to: 'net@example.com',
         customerName: 'Net',

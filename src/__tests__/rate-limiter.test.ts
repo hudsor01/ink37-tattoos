@@ -1,13 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { rateLimit } from '@/lib/security/rate-limiter';
+
+// Access the global store directly for test isolation
+const getStore = () =>
+  (globalThis as unknown as { __rateLimitStore: Map<string, unknown> })
+    .__rateLimitStore;
 
 describe('rateLimit', () => {
-  // We need to reimport for each test to get fresh module state
-  let rateLimit: (identifier: string, maxRequests: number, windowMs: number) => boolean;
-
-  beforeEach(async () => {
-    vi.resetModules();
-    const mod = await import('@/lib/security/rate-limiter');
-    rateLimit = mod.rateLimit;
+  beforeEach(() => {
+    getStore().clear();
   });
 
   it('allows requests within the limit', () => {

@@ -1,42 +1,30 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Hoisted mocks
-const {
-  mockGetCurrentSession,
-  mockCreateCustomer,
-  mockUpdateCustomer,
-  mockDeleteCustomer,
-  mockLogAudit,
-  mockRevalidatePath,
-  mockCustomerFindFirst,
-  mockTattooSessionFindFirst,
-  mockDbUpdateSetWhere,
-} = vi.hoisted(() => ({
-  mockGetCurrentSession: vi.fn(),
-  mockCreateCustomer: vi.fn(),
-  mockUpdateCustomer: vi.fn(),
-  mockDeleteCustomer: vi.fn(),
-  mockLogAudit: vi.fn(),
-  mockRevalidatePath: vi.fn(),
-  mockCustomerFindFirst: vi.fn(),
-  mockTattooSessionFindFirst: vi.fn(),
-  mockDbUpdateSetWhere: vi.fn().mockResolvedValue(undefined),
-}));
+// Module-scope mocks (replaces vi.hoisted)
+const mockGetCurrentSession = vi.fn();
+const mockCreateCustomer = vi.fn();
+const mockUpdateCustomer = vi.fn();
+const mockDeleteCustomer = vi.fn();
+const mockLogAudit = vi.fn();
+const mockRevalidatePath = vi.fn();
+const mockCustomerFindFirst = vi.fn();
+const mockTattooSessionFindFirst = vi.fn();
+const mockDbUpdateSetWhere = vi.fn().mockResolvedValue(undefined);
 
 vi.mock('server-only', () => ({}));
 
 vi.mock('@/lib/auth', () => ({
-  getCurrentSession: mockGetCurrentSession,
+  getCurrentSession: (...args: unknown[]) => mockGetCurrentSession(...args),
 }));
 
 vi.mock('@/lib/dal/customers', () => ({
-  createCustomer: mockCreateCustomer,
-  updateCustomer: mockUpdateCustomer,
-  deleteCustomer: mockDeleteCustomer,
+  createCustomer: (...args: unknown[]) => mockCreateCustomer(...args),
+  updateCustomer: (...args: unknown[]) => mockUpdateCustomer(...args),
+  deleteCustomer: (...args: unknown[]) => mockDeleteCustomer(...args),
 }));
 
 vi.mock('@/lib/dal/audit', () => ({
-  logAudit: mockLogAudit,
+  logAudit: (...args: unknown[]) => mockLogAudit(...args),
 }));
 
 vi.mock('next/headers', () => ({
@@ -46,7 +34,7 @@ vi.mock('next/headers', () => ({
 }));
 
 vi.mock('next/cache', () => ({
-  revalidatePath: mockRevalidatePath,
+  revalidatePath: (...args: unknown[]) => mockRevalidatePath(...args),
 }));
 
 vi.mock('next/server', () => ({
@@ -56,12 +44,12 @@ vi.mock('next/server', () => ({
 vi.mock('@/lib/db', () => ({
   db: {
     query: {
-      customer: { findFirst: mockCustomerFindFirst },
-      tattooSession: { findFirst: mockTattooSessionFindFirst },
+      customer: { findFirst: (...args: unknown[]) => mockCustomerFindFirst(...args) },
+      tattooSession: { findFirst: (...args: unknown[]) => mockTattooSessionFindFirst(...args) },
     },
     update: vi.fn(() => ({
       set: vi.fn(() => ({
-        where: mockDbUpdateSetWhere,
+        where: (...args: unknown[]) => mockDbUpdateSetWhere(...args),
       })),
     })),
   },
@@ -83,7 +71,6 @@ const TEST_SESSION_UUID = '550e8400-e29b-41d4-a716-446655440000';
 describe('Customer Actions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.resetModules();
   });
 
   it('createCustomerAction throws Unauthorized when no session', async () => {
@@ -164,7 +151,6 @@ describe('Customer Actions', () => {
 describe('Portal Actions - signConsentAction', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.resetModules();
   });
 
   it('returns error when no session', async () => {
@@ -179,7 +165,6 @@ describe('Portal Actions - signConsentAction', () => {
     mockGetCurrentSession.mockResolvedValue(staffSession);
     const { signConsentAction } = await import('@/lib/actions/portal-actions');
     const formData = new FormData();
-    // Missing sessionId, signedName, acknowledged
     const result = await signConsentAction(formData);
     expect(result.success).toBe(false);
     expect(result.error).toBeDefined();
@@ -240,7 +225,6 @@ describe('Portal Actions - signConsentAction', () => {
 describe('Portal Actions - updateProfileAction', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.resetModules();
   });
 
   it('returns error when no session', async () => {

@@ -1,6 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import crypto from 'crypto';
 
+// Module-scope mocks (replaces vi.hoisted)
+const mockVerifyCalSignature = vi.fn();
+const mockCustomerFindFirst = vi.fn();
+const mockSettingsFindFirst = vi.fn();
+const mockInsertValues = vi.fn();
+const mockInsertOnConflict = vi.fn();
+const mockInsertReturning = vi.fn();
+const mockUpdateSet = vi.fn();
+const mockUpdateWhere = vi.fn();
+const mockUpdateReturning = vi.fn();
+
 // Mock server-only (no-op in test environment)
 vi.mock('server-only', () => ({}));
 
@@ -35,45 +46,15 @@ vi.mock('next/server', () => ({
 
 // Mock Cal.com verification
 vi.mock('@/lib/cal/verify', () => ({
-  verifyCalSignature: vi.fn(),
+  verifyCalSignature: (...args: unknown[]) => mockVerifyCalSignature(...args),
 }));
 
 // Mock db with Drizzle API shape
-const {
-  mockCustomerFindFirst,
-  mockSettingsFindFirst,
-  mockInsertValues,
-  mockInsertOnConflict,
-  mockInsertReturning,
-  mockUpdateSet,
-  mockUpdateWhere,
-  mockUpdateReturning,
-} = vi.hoisted(() => {
-  const mockCustomerFindFirst = vi.fn();
-  const mockSettingsFindFirst = vi.fn();
-  const mockInsertValues = vi.fn();
-  const mockInsertOnConflict = vi.fn();
-  const mockInsertReturning = vi.fn();
-  const mockUpdateSet = vi.fn();
-  const mockUpdateWhere = vi.fn();
-  const mockUpdateReturning = vi.fn();
-  return {
-    mockCustomerFindFirst,
-    mockSettingsFindFirst,
-    mockInsertValues,
-    mockInsertOnConflict,
-    mockInsertReturning,
-    mockUpdateSet,
-    mockUpdateWhere,
-    mockUpdateReturning,
-  };
-});
-
 vi.mock('@/lib/db', () => ({
   db: {
     query: {
-      customer: { findFirst: mockCustomerFindFirst },
-      settings: { findFirst: mockSettingsFindFirst },
+      customer: { findFirst: (...args: unknown[]) => mockCustomerFindFirst(...args) },
+      settings: { findFirst: (...args: unknown[]) => mockSettingsFindFirst(...args) },
     },
     insert: vi.fn(() => ({
       values: (...args: unknown[]) => {
@@ -175,7 +156,6 @@ function makeRequest(body: string, headers: Record<string, string> = {}) {
 describe('Cal.com Webhook Signature Verification', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.resetModules();
     process.env.CAL_WEBHOOK_SECRET = 'cal_test_secret';
   });
 
@@ -188,8 +168,7 @@ describe('Cal.com Webhook Signature Verification', () => {
   });
 
   it('rejects requests with invalid signature', async () => {
-    const { verifyCalSignature } = await import('@/lib/cal/verify');
-    vi.mocked(verifyCalSignature).mockReturnValue(false);
+    mockVerifyCalSignature.mockReturnValue(false);
 
     const { POST } = await import('@/app/api/webhooks/cal/route');
     const payload = JSON.stringify(buildCalPayload());
@@ -216,7 +195,6 @@ describe('Cal.com Webhook Signature Verification', () => {
 describe('Cal.com Webhook Event Handling', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.resetModules();
     process.env.CAL_WEBHOOK_SECRET = 'cal_test_secret';
     mockSettingsFindFirst.mockResolvedValue({ value: {} });
     mockInsertReturning.mockResolvedValue([{ id: 'new-customer-id', firstName: 'John', lastName: 'Doe', email: 'john@example.com' }]);
@@ -224,8 +202,7 @@ describe('Cal.com Webhook Event Handling', () => {
   });
 
   async function sendValidEvent(payload: Record<string, unknown> = {}) {
-    const { verifyCalSignature } = await import('@/lib/cal/verify');
-    vi.mocked(verifyCalSignature).mockReturnValue(true);
+    mockVerifyCalSignature.mockReturnValue(true);
 
     const { POST } = await import('@/app/api/webhooks/cal/route');
     const body = JSON.stringify(buildCalPayload(payload));
