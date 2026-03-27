@@ -20,6 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: UI Stub Closure + UX Wiring** - Close Phase 2 UI stubs and fix cross-phase UX gaps (completed 2026-03-23)
 - [x] **Phase 7: Store Integration Fixes** - Fix store download URLs, checkout guards, and gift card email (completed 2026-03-23)
 - [x] **Phase 8: Drizzle Migration** - Replace Prisma ORM with Drizzle ORM, verify all functionality, clean up artifacts (completed 2026-03-24)
+- [ ] **Phase 12: Testing Foundation** - Unit tests for all server-side logic + integration tests for API routes, webhooks, auth flows
 
 ## Phase Details
 
@@ -180,7 +181,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -195,6 +196,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 9. Cal.com Integration | 2/2 | Complete | 2026-03-25 |
 | 10. Tech Stack Audit | 3/3 | Complete | 2026-03-26 |
 | 11. Full Stack Integration | 6/6 | Complete | 2026-03-27 |
+| 12. Testing Foundation | 0/3 | Planned | — |
 
 ### Phase 11: Full Stack Integration
 
@@ -221,3 +223,23 @@ Plans:
 - [x] 11-04-PLAN.md — Recharts ComposedChart+trends, Drizzle arrayContains+prepare+between
 - [x] 11-05-PLAN.md — Stripe setupIntents, Resend bounce webhook, Vercel Blob client uploads
 - [x] 11-06-PLAN.md — Sonner toast types polish, date-fns duration/proximity/conflict detection
+
+### Phase 12: Testing Foundation
+
+**Goal:** Expand unit test coverage to all server-side logic (Stripe helpers, email service, DAL edge cases, webhook signature verification, scheduling conflicts, auth utilities), then add integration tests for API routes (webhook handlers, upload endpoints), server actions (mutations with mocked DB), and auth flows (role enforcement, portal linking) -- using Vitest mocks for external service isolation
+**Depends on:** Phase 11
+**Requirements**: TEST-01, TEST-02, TEST-03, TEST-04, TEST-05, TEST-06, TEST-07
+**Success Criteria** (what must be TRUE):
+  1. All 5 email service functions have unit tests covering happy path, missing API key, and error handling
+  2. Stripe SDK wrapper functions (createSetupIntent, listPaymentMethods) have unit tests with mocked Stripe
+  3. Resend webhook handler has integration tests for Svix HMAC verification, bounce/complaint events, and edge cases
+  4. Server actions (customer, appointment, portal) have integration tests with mocked auth + DAL
+  5. Upload token endpoint has integration tests for RBAC enforcement (user rejected, staff+ accepted)
+  6. DAL business logic (scheduling conflict, analytics aggregation, portal auth) has unit tests with mocked DB
+  7. Auth databaseHooks portal linking logic has unit tests covering link/create/skip/error branches
+**Plans**: 3 plans
+
+Plans:
+- [ ] 12-01-PLAN.md — Email service unit tests, Stripe SDK unit tests, Resend webhook integration tests
+- [ ] 12-02-PLAN.md — Server action integration tests, upload token endpoint integration tests
+- [ ] 12-03-PLAN.md — DAL business logic unit tests, auth databaseHooks portal linking tests
