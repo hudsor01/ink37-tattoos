@@ -1,14 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+import { useState, useMemo, useOptimistic, useTransition } from 'react';
+import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { MoreHorizontal, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { useQueryState, parseAsString } from 'nuqs';
 
 import { DataTable } from '@/components/dashboard/data-table';
-import { SourceBadge } from '@/components/dashboard/source-badge';
 import { StatusBadge } from '@/components/dashboard/status-badge';
 import { AppointmentForm } from '@/components/dashboard/appointment-form';
 import { Button } from '@/components/ui/button';
@@ -55,7 +55,6 @@ interface Appointment {
   duration: number | null;
   status: string;
   type: string;
-  source: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -88,66 +87,82 @@ const STATUS_OPTIONS = [
   { value: 'NO_SHOW', label: 'No Show' },
 ] as const;
 
-const SOURCE_OPTIONS = [
-  { value: 'ALL', label: 'All Sources' },
-  { value: 'website', label: 'Manual' },
-  { value: 'cal.com', label: 'Cal.com' },
-] as const;
-
 export function AppointmentListClient({
   initialAppointments,
 }: AppointmentListClientProps) {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState('ALL');
-  const [sourceFilter, setSourceFilter] = useState('ALL');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [statusFilter, setStatusFilter] = useQueryState(
+    'status',
+    parseAsString.withDefault('ALL')
+  );
+  const [search, setSearch] = useQueryState(
+    'q',
+    parseAsString.withDefault('')
+  );
+
+  const [isPending, startTransition] = useTransition();
 
   const { data: appointments = [] } = useQuery<Appointment[]>({
     queryKey: ['appointments'],
     queryFn: () => fetch('/api/admin/appointments').then((r) => r.json()),
     initialData: initialAppointments,
+    placeholderData: keepPreviousData,
   });
 
-  const filteredAppointments = appointments.filter((a) => {
-    if (statusFilter !== 'ALL' && a.status !== statusFilter) return false;
-    if (sourceFilter !== 'ALL' && (a.source ?? 'website') !== sourceFilter) return false;
-    return true;
-  });
+  // Optimistic status updates: show new status immediately before server confirms
+  const [optimisticAppointments, setOptimisticStatus] = useOptimistic(
+    appointments,
+    (current, { id, status }: { id: string; status: string }) =>
+      current.map((a) => (a.id === id ? { ...a, status } : a))
+  );
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteAppointmentAction(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
-      setDeleteId(null);
-    },
-  });
+  const filteredAppointments = useMemo(() => {
+    let result = optimisticAppointments;
+    if (statusFilter !== 'ALL') {
+      result = result.filter((a) => a.status === statusFilter);
+    }
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (a) =>
+          a.customer.firstName.toLowerCase().includes(q) ||
+          a.customer.lastName.toLowerCase().includes(q) ||
+          a.customer.email?.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [optimisticAppointments, statusFilter, search]);
 
-  const statusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) => {
-      const formData = new FormData();
-      formData.append('status', status);
-      return updateAppointmentAction(id, formData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
-    },
-  });
-
-  function handleDelete() {
+  async function handleDelete() {
     if (!deleteId) return;
-    toast.promise(deleteMutation.mutateAsync(deleteId), {
-      loading: 'Cancelling appointment...',
-      success: 'Appointment cancelled successfully',
-      error: "Changes couldn't be saved. Please try again.",
-    });
+    setIsDeleting(true);
+    try {
+      await deleteAppointmentAction(deleteId);
+      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      toast.success('Appointment cancelled successfully');
+    } catch {
+      toast.error("Changes couldn't be saved. Please try again.");
+    } finally {
+      setIsDeleting(false);
+      setDeleteId(null);
+    }
   }
 
   function handleStatusUpdate(id: string, status: string) {
-    toast.promise(statusMutation.mutateAsync({ id, status }), {
-      loading: 'Updating status...',
-      success: 'Status updated successfully',
-      error: "Changes couldn't be saved. Please try again.",
+    startTransition(async () => {
+      setOptimisticStatus({ id, status });
+      try {
+        const formData = new FormData();
+        formData.append('status', status);
+        await updateAppointmentAction(id, formData);
+        await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+        toast.success('Status updated successfully');
+      } catch {
+        toast.error("Changes couldn't be saved. Please try again.");
+      }
     });
   }
 
@@ -174,13 +189,6 @@ export function AppointmentListClient({
         <span className="capitalize">
           {row.original.type.replace(/_/g, ' ').toLowerCase()}
         </span>
-      ),
-    },
-    {
-      accessorKey: 'source',
-      header: 'Source',
-      cell: ({ row }) => (
-        <SourceBadge source={row.original.source ?? 'website'} />
       ),
     },
     {
@@ -294,28 +302,13 @@ export function AppointmentListClient({
       <div className="flex items-center gap-4">
         <Select
           value={statusFilter}
-          onValueChange={(val) => setStatusFilter(val ?? 'ALL')}
+          onValueChange={(val) => setStatusFilter(val === 'ALL' ? null : val)}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
             {STATUS_OPTIONS.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          value={sourceFilter}
-          onValueChange={(val) => setSourceFilter(val ?? 'ALL')}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by source" />
-          </SelectTrigger>
-          <SelectContent>
-            {SOURCE_OPTIONS.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}
               </SelectItem>
@@ -348,10 +341,10 @@ export function AppointmentListClient({
             <AlertDialogCancel>Keep Appointment</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              disabled={deleteMutation.isPending}
+              disabled={isDeleting}
               variant="destructive"
             >
-              {deleteMutation.isPending ? 'Cancelling...' : 'Cancel Appointment'}
+              {isDeleting ? 'Cancelling...' : 'Cancel Appointment'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

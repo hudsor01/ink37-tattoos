@@ -9,6 +9,8 @@ import {
   BreadcrumbItem,
   BreadcrumbPage,
 } from '@/components/ui/breadcrumb';
+import { ThemeToggle } from '@/components/dashboard/theme-toggle';
+import { PageTransition } from '@/components/page-transition';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -25,8 +27,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
+          <div className="ml-auto">
+            <ThemeToggle />
+          </div>
         </header>
-        <main className="p-6">{children}</main>
+        <main className="p-6">
+          <PageTransition>{children}</PageTransition>
+        </main>
       </SidebarInset>
     </SidebarProvider>
   );

@@ -21,13 +21,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { format, formatDistance } from 'date-fns';
+import { format } from 'date-fns';
 import { MoreHorizontal, Eye, Truck, PackageCheck, XCircle, RotateCcw } from 'lucide-react';
 import Link from 'next/link';
 import { updateOrderStatusAction, refundOrderAction } from '@/lib/actions/order-actions';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
+import { useTransition, useOptimistic } from 'react';
 
 type OrderWithItems = {
   id: string;
@@ -46,50 +46,46 @@ const currencyFormatter = new Intl.NumberFormat('en-US', {
 function OrderActions({ order }: { order: OrderWithItems }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [optimisticStatus, setOptimisticStatus] = useOptimistic(order.status);
 
   function handleStatusUpdate(status: string) {
-    startTransition(() => {
-      const formData = new FormData();
-      formData.append('orderId', order.id);
-      formData.append('status', status);
-      toast.promise(
-        updateOrderStatusAction(formData).then((result) => {
-          if (!result.success) throw new Error('Failed');
+    startTransition(async () => {
+      setOptimisticStatus(status);
+      try {
+        const formData = new FormData();
+        formData.append('orderId', order.id);
+        formData.append('status', status);
+        const result = await updateOrderStatusAction(formData);
+        if (result.success) {
+          toast.success(`Order marked as ${status.toLowerCase()}.`);
           router.refresh();
-          return result;
-        }),
-        {
-          loading: 'Updating order...',
-          success: `Order marked as ${status.toLowerCase()}.`,
-          error: "Changes couldn't be saved. Please try again.",
         }
-      );
+      } catch {
+        toast.error("Changes couldn't be saved. Please try again.");
+      }
     });
   }
 
   function handleRefund() {
-    startTransition(() => {
-      const formData = new FormData();
-      formData.append('orderId', order.id);
-      toast.promise(
-        refundOrderAction(formData).then((result) => {
-          if (!result.success) throw new Error('Failed');
+    startTransition(async () => {
+      try {
+        const formData = new FormData();
+        formData.append('orderId', order.id);
+        const result = await refundOrderAction(formData);
+        if (result.success) {
+          toast.success('Refund processed successfully.');
           router.refresh();
-          return result;
-        }),
-        {
-          loading: 'Processing refund...',
-          success: 'Refund processed successfully.',
-          error: "Changes couldn't be saved. Please try again.",
         }
-      );
+      } catch {
+        toast.error("Changes couldn't be saved. Please try again.");
+      }
     });
   }
 
-  const canShip = order.status === 'PAID';
-  const canDeliver = order.status === 'SHIPPED';
-  const canCancel = order.status === 'PENDING' || order.status === 'PAID';
-  const canRefund = ['PAID', 'SHIPPED', 'DELIVERED'].includes(order.status);
+  const canShip = optimisticStatus === 'PAID';
+  const canDeliver = optimisticStatus === 'SHIPPED';
+  const canCancel = optimisticStatus === 'PENDING' || optimisticStatus === 'PAID';
+  const canRefund = ['PAID', 'SHIPPED', 'DELIVERED'].includes(optimisticStatus);
 
   return (
     <DropdownMenu>
@@ -222,11 +218,8 @@ export const orderColumns: ColumnDef<OrderWithItems, unknown>[] = [
   {
     accessorKey: 'createdAt',
     header: 'Date',
-    cell: ({ row }) => (
-      <span title={format(new Date(row.original.createdAt), 'MMM d, yyyy')}>
-        {formatDistance(new Date(row.original.createdAt), new Date(), { addSuffix: true })}
-      </span>
-    ),
+    cell: ({ row }) =>
+      format(new Date(row.original.createdAt), 'MMM d, yyyy'),
     enableSorting: true,
   },
   {

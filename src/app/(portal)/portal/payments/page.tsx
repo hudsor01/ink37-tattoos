@@ -2,6 +2,7 @@ import { format } from 'date-fns';
 import { CreditCard, ExternalLink } from 'lucide-react';
 import { getPortalPayments } from '@/lib/dal/portal';
 import { StatusBadge } from '@/components/dashboard/status-badge';
+import { BillingPortalButton } from '@/components/portal/billing-portal-button';
 import {
   Card,
   CardHeader,
@@ -36,7 +37,10 @@ export default async function PortalPaymentsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Payments</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Payments</h1>
+        <BillingPortalButton />
+      </div>
 
       {/* Payment table (desktop) */}
       <div className="hidden overflow-hidden rounded-lg border bg-white md:block">
