@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const { mockSend, mockBatchSend, mockEnv } = vi.hoisted(() => ({
   mockSend: vi.fn(),
   mockBatchSend: vi.fn(),
-  mockEnv: vi.fn(() => ({
+  mockEnv: vi.fn((): Record<string, string | undefined> => ({
     RESEND_API_KEY: 'test-key',
     ADMIN_EMAIL: 'admin@test.com',
   })),
