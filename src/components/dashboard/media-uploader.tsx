@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useCallback, useRef, type KeyboardEvent } from 'react';
+import { upload } from '@vercel/blob/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
 import { createMediaAction } from '@/lib/actions/media-actions';
-import { Upload, FileImage } from 'lucide-react';
+import { Upload as UploadIcon, FileImage } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface MediaUploaderProps {
@@ -17,6 +19,7 @@ const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 export function MediaUploader({ onSuccess }: MediaUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
   const [fileName, setFileName] = useState('');
   const [saving, setSaving] = useState(false);
@@ -49,30 +52,26 @@ export function MediaUploader({ onSuccess }: MediaUploaderProps) {
     }
 
     setUploading(true);
+    setUploadProgress(0);
     setFileName(file.name);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
+      const blob = await upload(file.name, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload/token',
+        onUploadProgress: ({ percentage }) => {
+          setUploadProgress(percentage);
+        },
       });
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Upload failed');
-      }
-
-      const { url } = await res.json();
-      setUploadedUrl(url);
+      setUploadedUrl(blob.url);
       setFormFields((prev) => ({ ...prev, name: file.name.replace(/\.[^.]+$/, '') }));
       toast.success('File uploaded');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Upload failed');
     } finally {
       setUploading(false);
+      setUploadProgress(0);
     }
   }, []);
 
@@ -238,10 +237,13 @@ export function MediaUploader({ onSuccess }: MediaUploaderProps) {
       role="button"
       tabIndex={0}
     >
-      <Upload className="h-10 w-10 text-muted-foreground/50 mb-3" />
+      <UploadIcon className="h-10 w-10 text-muted-foreground/50 mb-3" />
       <p className="text-sm font-medium">
         {uploading ? 'Uploading...' : 'Drag and drop or click to browse'}
       </p>
+      {uploading && uploadProgress > 0 && (
+        <Progress value={uploadProgress} className="w-48 mt-2" />
+      )}
       <p className="text-xs text-muted-foreground mt-1">
         JPEG, PNG, WebP, or MP4 (max 10MB)
       </p>

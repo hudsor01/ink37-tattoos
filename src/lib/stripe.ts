@@ -23,3 +23,26 @@ export function dollarsToStripeCents(dollars: number): number {
 export function stripeCentsToDollars(cents: number): number {
   return cents / 100;
 }
+
+/** Create a SetupIntent for saving a payment method to a Stripe customer. */
+export async function createSetupIntent(stripeCustomerId: string) {
+  return stripe.setupIntents.create({
+    customer: stripeCustomerId,
+    payment_method_types: ['card'],
+  });
+}
+
+/** List saved payment methods (cards) for a Stripe customer. */
+export async function listPaymentMethods(stripeCustomerId: string) {
+  const methods = await stripe.paymentMethods.list({
+    customer: stripeCustomerId,
+    type: 'card',
+  });
+  return methods.data.map((pm) => ({
+    id: pm.id,
+    brand: pm.card?.brand ?? 'unknown',
+    last4: pm.card?.last4 ?? '****',
+    expMonth: pm.card?.exp_month,
+    expYear: pm.card?.exp_year,
+  }));
+}
