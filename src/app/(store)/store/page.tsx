@@ -1,5 +1,4 @@
-export const dynamic = 'force-dynamic';
-
+import { connection } from 'next/server';
 import { getActiveProducts } from '@/lib/dal/products';
 import { ProductGrid } from '@/components/store/product-grid';
 import type { Metadata } from 'next';
@@ -10,6 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function StorePage() {
+  await connection();
   const products = await getActiveProducts();
 
   return (

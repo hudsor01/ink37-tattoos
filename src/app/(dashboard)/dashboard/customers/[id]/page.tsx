@@ -1,3 +1,4 @@
+import { connection } from 'next/server';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -29,6 +30,7 @@ interface CustomerDetailPageProps {
 export default async function CustomerDetailPage({
   params,
 }: CustomerDetailPageProps) {
+  await connection();
   const { id } = await params;
   const customer = await getCustomerWithDetails(id);
 

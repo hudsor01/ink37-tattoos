@@ -1,3 +1,4 @@
+import { connection } from 'next/server';
 import { format } from 'date-fns';
 import { CreditCard, ExternalLink } from 'lucide-react';
 import { getPortalPayments } from '@/lib/dal/portal';
@@ -16,6 +17,7 @@ const currencyFormat = new Intl.NumberFormat('en-US', {
 });
 
 export default async function PortalPaymentsPage() {
+  await connection();
   const payments = await getPortalPayments();
 
   if (payments.length === 0) {

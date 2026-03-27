@@ -1,3 +1,4 @@
+import { connection } from 'next/server';
 import Image from 'next/image';
 import { format, formatDistance } from 'date-fns';
 import { Palette, CheckCircle2, ShieldCheck } from 'lucide-react';
@@ -17,6 +18,7 @@ const currencyFormat = new Intl.NumberFormat('en-US', {
 });
 
 export default async function PortalTattoosPage() {
+  await connection();
   const [sessions, designs] = await Promise.all([
     getPortalSessions(),
     getPortalDesigns(),

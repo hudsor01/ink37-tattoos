@@ -1,3 +1,4 @@
+import { connection } from 'next/server';
 import { getPayments, getPaymentStats } from '@/lib/dal/payments';
 import { getSessions } from '@/lib/dal/sessions';
 import { DataTable } from '@/components/dashboard/data-table';
@@ -14,6 +15,7 @@ const currencyFormatter = new Intl.NumberFormat('en-US', {
 });
 
 export default async function PaymentsPage() {
+  await connection();
   const [payments, stats, sessions] = await Promise.all([
     getPayments(),
     getPaymentStats(),

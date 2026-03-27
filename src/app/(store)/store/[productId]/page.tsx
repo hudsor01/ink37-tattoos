@@ -1,5 +1,4 @@
-export const dynamic = 'force-dynamic';
-
+import { connection } from 'next/server';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -22,6 +21,7 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  await connection();
   const { productId } = await params;
   const product = await getProductById(productId);
   if (!product) return { title: 'Product Not Found' };

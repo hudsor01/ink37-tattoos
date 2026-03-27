@@ -1,3 +1,4 @@
+import { connection } from 'next/server';
 import { getOrders, getOrderStats } from '@/lib/dal/orders';
 import { DataTable } from '@/components/dashboard/data-table';
 import { KPICard } from '@/components/dashboard/kpi-card';
@@ -18,6 +19,7 @@ const currencyFormatter = new Intl.NumberFormat('en-US', {
 });
 
 export default async function OrdersPage() {
+  await connection();
   const [orders, stats] = await Promise.all([
     getOrders(),
     getOrderStats(),

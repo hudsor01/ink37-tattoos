@@ -1,5 +1,4 @@
-export const dynamic = 'force-dynamic';
-
+import { connection } from 'next/server';
 import Link from 'next/link';
 import { CheckCircle, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,6 +17,7 @@ interface Props {
 }
 
 export default async function CheckoutSuccessPage({ searchParams }: Props) {
+  await connection();
   const { session_id } = await searchParams;
 
   let order: {

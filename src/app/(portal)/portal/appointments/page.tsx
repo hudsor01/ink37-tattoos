@@ -1,3 +1,4 @@
+import { connection } from 'next/server';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Calendar } from 'lucide-react';
@@ -11,6 +12,7 @@ import {
 } from '@/components/ui/card';
 
 export default async function PortalAppointmentsPage() {
+  await connection();
   const appointments = await getPortalAppointments();
 
   if (appointments.length === 0) {

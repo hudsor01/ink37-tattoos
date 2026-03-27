@@ -1,8 +1,7 @@
+import { connection } from 'next/server';
 import type { Metadata } from 'next';
 import { getPublicDesigns } from '@/lib/dal/designs';
 import { GalleryClient } from '@/components/public/gallery-grid';
-
-export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Gallery | Ink 37 Tattoos',
@@ -15,6 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function GalleryPage() {
+  await connection();
   const designs = await getPublicDesigns();
 
   return (

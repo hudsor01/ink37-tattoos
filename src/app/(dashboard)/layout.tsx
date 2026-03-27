@@ -1,5 +1,4 @@
-export const dynamic = 'force-dynamic';
-
+import { connection } from 'next/server';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { AdminNav } from '@/components/dashboard/admin-nav';
 import { Separator } from '@/components/ui/separator';
@@ -12,7 +11,8 @@ import {
 import { ThemeToggle } from '@/components/dashboard/theme-toggle';
 import { PageTransition } from '@/components/page-transition';
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  await connection();
   return (
     <SidebarProvider>
       <AdminNav />

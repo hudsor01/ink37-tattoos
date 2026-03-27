@@ -1,7 +1,9 @@
+import { connection } from 'next/server';
 import { getContacts } from '@/lib/dal/contacts';
 import { ContactsClient } from './contacts-client';
 
 export default async function ContactsPage() {
+  await connection();
   const contacts = await getContacts();
   const serialized = contacts.map((c) => ({
     ...c,

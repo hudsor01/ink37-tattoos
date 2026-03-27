@@ -1,3 +1,4 @@
+import { connection } from 'next/server';
 import Link from 'next/link';
 import { format, formatDistance } from 'date-fns';
 import { Calendar, Palette, CreditCard, AlertCircle } from 'lucide-react';
@@ -17,6 +18,7 @@ const currencyFormat = new Intl.NumberFormat('en-US', {
 });
 
 export default async function PortalOverviewPage() {
+  await connection();
   const overview = await getPortalOverview();
 
   return (

@@ -1,7 +1,9 @@
+import { connection } from 'next/server';
 import { getAuditLogs } from '@/lib/dal/audit';
 import { AuditLogClient } from './audit-log-client';
 
 export default async function AuditLogPage() {
+  await connection();
   const logs = await getAuditLogs({ limit: 50 });
   return (
     <div className="space-y-6">
