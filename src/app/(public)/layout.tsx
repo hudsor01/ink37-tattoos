@@ -1,7 +1,7 @@
 import { prefetchDNS, preconnect } from 'react-dom';
-import { PublicNav } from "@/components/public/public-nav";
-import { PublicFooter } from "@/components/public/public-footer";
-import { PageTransition } from "@/components/page-transition";
+import { PublicNav } from '@/components/public/public-nav';
+import { PublicFooter } from '@/components/public/public-footer';
+import { PageTransition } from '@/components/page-transition';
 
 export default function PublicLayout({
   children,
@@ -15,7 +15,7 @@ export default function PublicLayout({
   return (
     <>
       <PublicNav />
-      <main className="pt-16 min-h-screen">
+      <main className="min-h-screen">
         <PageTransition>{children}</PageTransition>
       </main>
       <PublicFooter />
