@@ -4,19 +4,23 @@ import {
   getRevenueData,
   getClientAcquisitionData,
   getAppointmentTypeBreakdown,
+  getBookingTrends,
 } from '@/lib/dal/analytics';
 import {
   RevenueChart,
+  RevenueComposedChart,
   ClientAcquisitionChart,
   AppointmentTypeChart,
+  BookingTrendsChart,
 } from '@/components/dashboard/analytics-chart';
 
 export default async function AnalyticsPage() {
   await connection();
-  const [revenueData, clientData, appointmentTypes] = await Promise.all([
+  const [revenueData, clientData, appointmentTypes, bookingTrends] = await Promise.all([
     getRevenueData(6),
     getClientAcquisitionData(6),
     getAppointmentTypeBreakdown(),
+    getBookingTrends(6),
   ]);
 
   const hasData =
@@ -77,11 +81,41 @@ export default async function AnalyticsPage() {
 
           <Card className="lg:col-span-2">
             <CardHeader>
+              <CardTitle>Revenue & Sessions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {revenueData.length > 0 ? (
+                <RevenueComposedChart data={revenueData} />
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  Not enough data
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <CardTitle>Appointment Types</CardTitle>
             </CardHeader>
             <CardContent>
               {appointmentTypes.length > 0 ? (
                 <AppointmentTypeChart data={appointmentTypes} />
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  Not enough data
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Booking Trends</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {bookingTrends.length > 0 ? (
+                <BookingTrendsChart data={bookingTrends} />
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-8">
                   Not enough data
