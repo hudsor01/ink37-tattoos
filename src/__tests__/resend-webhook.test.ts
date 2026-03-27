@@ -11,6 +11,9 @@ vi.mock('next/server', () => ({
   },
 }));
 
+// Top-level import — route reads env at request time, not import time
+import { POST } from '@/app/api/webhooks/resend/route';
+
 function computeSvixSignature(
   body: string,
   secret: string,
@@ -39,7 +42,6 @@ const TEST_SECRET = 'whsec_dGVzdC1zZWNyZXQ='; // base64 of 'test-secret'
 describe('Resend Webhook Handler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.resetModules();
     process.env.RESEND_WEBHOOK_SECRET = TEST_SECRET;
   });
 
@@ -49,7 +51,6 @@ describe('Resend Webhook Handler', () => {
 
   describe('Signature Verification', () => {
     it('returns 401 when svix-id header is missing', async () => {
-      const { POST } = await import('@/app/api/webhooks/resend/route');
       const body = JSON.stringify({ type: 'email.bounced', data: {} });
       const response = await POST(makeRequest(body, {
         'svix-timestamp': '1234567890',
@@ -59,7 +60,6 @@ describe('Resend Webhook Handler', () => {
     });
 
     it('returns 401 when svix-timestamp header is missing', async () => {
-      const { POST } = await import('@/app/api/webhooks/resend/route');
       const body = JSON.stringify({ type: 'email.bounced', data: {} });
       const response = await POST(makeRequest(body, {
         'svix-id': 'msg_123',
@@ -69,7 +69,6 @@ describe('Resend Webhook Handler', () => {
     });
 
     it('returns 401 when svix-signature is invalid', async () => {
-      const { POST } = await import('@/app/api/webhooks/resend/route');
       const body = JSON.stringify({ type: 'email.bounced', data: {} });
       const response = await POST(makeRequest(body, {
         'svix-id': 'msg_123',
@@ -80,7 +79,6 @@ describe('Resend Webhook Handler', () => {
     });
 
     it('returns 200 with valid Svix HMAC signature', async () => {
-      const { POST } = await import('@/app/api/webhooks/resend/route');
       const body = JSON.stringify({ type: 'email.delivered', data: {} });
       const svixId = 'msg_valid';
       const svixTimestamp = '1234567890';
@@ -95,7 +93,6 @@ describe('Resend Webhook Handler', () => {
     });
 
     it('handles multiple signatures in header (one valid)', async () => {
-      const { POST } = await import('@/app/api/webhooks/resend/route');
       const body = JSON.stringify({ type: 'email.delivered', data: {} });
       const svixId = 'msg_multi';
       const svixTimestamp = '1234567890';
@@ -125,7 +122,6 @@ describe('Resend Webhook Handler', () => {
 
     it('logs warning for email.bounced event', async () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const { POST } = await import('@/app/api/webhooks/resend/route');
       const body = JSON.stringify({ type: 'email.bounced', data: { to: ['user@test.com'], email_id: 'em_1' } });
       const response = await POST(makeValidRequest(body));
       expect(response.status).toBe(200);
@@ -135,7 +131,6 @@ describe('Resend Webhook Handler', () => {
 
     it('logs warning for email.complained event', async () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const { POST } = await import('@/app/api/webhooks/resend/route');
       const body = JSON.stringify({ type: 'email.complained', data: { to: ['spam@test.com'], email_id: 'em_2' } });
       const response = await POST(makeValidRequest(body));
       expect(response.status).toBe(200);
@@ -144,7 +139,6 @@ describe('Resend Webhook Handler', () => {
     });
 
     it('returns 200 for unknown event types', async () => {
-      const { POST } = await import('@/app/api/webhooks/resend/route');
       const body = JSON.stringify({ type: 'email.sent', data: {} });
       const response = await POST(makeValidRequest(body));
       expect(response.status).toBe(200);
@@ -156,14 +150,12 @@ describe('Resend Webhook Handler', () => {
   describe('Edge Cases', () => {
     it('skips verification and returns 200 when no secret configured', async () => {
       delete process.env.RESEND_WEBHOOK_SECRET;
-      const { POST } = await import('@/app/api/webhooks/resend/route');
       const body = JSON.stringify({ type: 'email.delivered', data: {} });
       const response = await POST(makeRequest(body));
       expect(response.status).toBe(200);
     });
 
     it('returns 400 for invalid JSON body', async () => {
-      const { POST } = await import('@/app/api/webhooks/resend/route');
       const svixId = 'msg_badjson';
       const svixTimestamp = '1234567890';
       const badBody = 'not json{{{';

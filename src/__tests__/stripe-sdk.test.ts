@@ -1,24 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Hoisted mocks
-const { mockSetupIntentsCreate, mockPaymentMethodsList } = vi.hoisted(() => ({
-  mockSetupIntentsCreate: vi.fn(),
-  mockPaymentMethodsList: vi.fn(),
-}));
+// Module-scope mocks (replaces vi.hoisted)
+const mockSetupIntentsCreate = vi.fn();
+const mockPaymentMethodsList = vi.fn();
 
 vi.mock('server-only', () => ({}));
 
 vi.mock('stripe', () => ({
   default: vi.fn().mockImplementation(() => ({
-    setupIntents: { create: mockSetupIntentsCreate },
-    paymentMethods: { list: mockPaymentMethodsList },
+    setupIntents: { create: (...args: unknown[]) => mockSetupIntentsCreate(...args) },
+    paymentMethods: { list: (...args: unknown[]) => mockPaymentMethodsList(...args) },
   })),
 }));
 
 describe('Stripe SDK Wrappers', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.resetModules();
   });
 
   describe('createSetupIntent', () => {

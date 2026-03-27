@@ -1,32 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
 
-// Hoisted mocks
-const {
-  mockBetterAuth,
-  mockSelectLimit,
-  mockSetFn,
-  mockUpdateWhere,
-  mockInsertValues,
-} = vi.hoisted(() => {
-  const mockSelectLimit = vi.fn().mockResolvedValue([]);
-  const mockUpdateWhere = vi.fn().mockResolvedValue(undefined);
-  const mockSetFn = vi.fn(() => ({ where: mockUpdateWhere }));
-  const mockInsertValues = vi.fn().mockResolvedValue(undefined);
-  return {
-    mockBetterAuth: vi.fn().mockReturnValue({
-      api: { getSession: vi.fn() },
-      handler: vi.fn(),
-    }),
-    mockSelectLimit,
-    mockSetFn,
-    mockUpdateWhere,
-    mockInsertValues,
-  };
+// Module-scope mocks (replaces vi.hoisted)
+const mockSelectLimit = vi.fn().mockResolvedValue([]);
+const mockUpdateWhere = vi.fn().mockResolvedValue(undefined);
+const mockSetFn = vi.fn((_arg?: unknown) => ({ where: mockUpdateWhere }));
+const mockInsertValues = vi.fn().mockResolvedValue(undefined);
+const mockBetterAuth = vi.fn().mockReturnValue({
+  api: { getSession: vi.fn() },
+  handler: vi.fn(),
 });
 
 vi.mock('server-only', () => ({}));
 vi.mock('pg', () => ({ Pool: vi.fn() }));
-vi.mock('better-auth', () => ({ betterAuth: mockBetterAuth }));
+vi.mock('better-auth', () => ({ betterAuth: (...args: unknown[]) => mockBetterAuth(...args) }));
 vi.mock('better-auth/next-js', () => ({ nextCookies: vi.fn(() => ({})) }));
 vi.mock('better-auth/plugins', () => ({ admin: vi.fn(() => ({})) }));
 vi.mock('next/headers', () => ({ headers: vi.fn() }));
@@ -41,12 +27,12 @@ vi.mock('@/lib/db', () => ({
     select: vi.fn(() => ({
       from: vi.fn(() => ({
         where: vi.fn(() => ({
-          limit: mockSelectLimit,
+          limit: (...args: unknown[]) => mockSelectLimit(...args),
         })),
       })),
     })),
-    update: vi.fn(() => ({ set: mockSetFn })),
-    insert: vi.fn(() => ({ values: mockInsertValues })),
+    update: vi.fn(() => ({ set: (arg: unknown) => mockSetFn(arg) })),
+    insert: vi.fn(() => ({ values: (arg: unknown) => mockInsertValues(arg) })),
   },
 }));
 vi.mock('@/lib/db/schema', () => ({
@@ -57,14 +43,7 @@ vi.mock('drizzle-orm', () => ({ eq: vi.fn() }));
 describe('Auth databaseHooks - user.create.after', () => {
   let afterHook: (user: { id: string; email: string; name?: string }) => Promise<void>;
 
-  beforeEach(async () => {
-    vi.clearAllMocks();
-    vi.resetModules();
-    mockSelectLimit.mockResolvedValue([]);
-    mockInsertValues.mockResolvedValue(undefined);
-    mockUpdateWhere.mockResolvedValue(undefined);
-    mockSetFn.mockImplementation(() => ({ where: mockUpdateWhere }));
-
+  beforeAll(async () => {
     // Import auth module and trigger Proxy -> getAuth() -> createAuth() -> betterAuth()
     const authModule = await import('@/lib/auth');
     void (authModule.auth as any).api;
@@ -73,6 +52,14 @@ describe('Auth databaseHooks - user.create.after', () => {
     const config = mockBetterAuth.mock.calls[0]?.[0];
     afterHook = config?.databaseHooks?.user?.create?.after;
     expect(afterHook).toBeDefined();
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSelectLimit.mockResolvedValue([]);
+    mockInsertValues.mockResolvedValue(undefined);
+    mockUpdateWhere.mockResolvedValue(undefined);
+    mockSetFn.mockImplementation(() => ({ where: mockUpdateWhere }));
   });
 
   it('links existing customer without userId', async () => {
