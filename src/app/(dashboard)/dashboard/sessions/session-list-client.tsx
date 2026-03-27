@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { DataTable, type ColumnDef } from '@/components/dashboard/data-table';
 import { StatusBadge } from '@/components/dashboard/status-badge';
 import { Button } from '@/components/ui/button';
@@ -119,6 +119,7 @@ export function SessionListClient({
     queryKey: ['sessions'],
     queryFn: () => fetch('/api/admin/sessions').then((r) => r.json()),
     initialData: initialSessions,
+    placeholderData: keepPreviousData,
   });
 
   async function handleDelete(id: string) {
