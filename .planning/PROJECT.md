@@ -2,108 +2,112 @@
 
 ## What This Is
 
-A unified tattoo studio platform consolidating two existing repos (public website + admin dashboard) into a single Next.js application. The public side showcases the studio's portfolio, handles bookings via Cal.com, and provides contact/service information. The admin side provides business management — customer tracking, appointment management, analytics, media management, and reporting. Future phases add payment processing, a client portal, and an online store.
+A unified tattoo studio platform — public website, admin dashboard, client portal, and online store — running as a single Next.js 16 application. The artist manages bookings, clients, payments, portfolio, and merchandise from one dashboard. Clients discover the studio, book via Cal.com, pay via Stripe, and manage their tattoo journey through a self-service portal.
 
 ## Core Value
 
-The tattoo artist can manage their entire business — bookings, clients, portfolio, and payments — from one app, while clients get a polished experience for discovering the studio, booking appointments, and eventually managing their own history.
+The tattoo artist manages their entire business from one app while clients get a polished experience for discovering, booking, paying, and tracking their tattoo journey.
+
+## Current State
+
+**Shipped:** v1.0 MVP (2026-03-27)
+**Codebase:** 27,731 LOC TypeScript across 448 files
+**Tests:** 354 tests (unit, integration, schema validation, MSW boundary)
+
+### What's Live
+
+- Public site: gallery with masonry/filtering, services, Cal.com booking, contact form, SEO
+- Admin dashboard: customers, appointments, sessions, analytics, media, payments, orders, settings
+- Client portal: appointment history, tattoo viewer, consent forms, payment history
+- Online store: merchandise, prints, gift cards, cart, Stripe checkout, digital downloads
+- Stripe: deposits, session payments, store checkout, webhooks, setupIntents
+- Auth: Better Auth 1.5.5 with 5-tier RBAC (USER, STAFF, MANAGER, ADMIN, SUPER_ADMIN)
+- Email: Resend transactional emails (contact, payment, order, gift card, bounce handling)
 
 ## Requirements
 
 ### Validated
 
-<!-- Shipped and confirmed valuable — these exist in the source repos. -->
-
-- Public website with gallery, services, about, contact, FAQ pages
-- Cal.com booking integration (consultation, design review, tattoo session, touch-up)
-- Contact form with email notifications via Resend
-- SEO infrastructure (sitemaps, structured data, robots.txt, search console verification)
-- Admin dashboard with KPI overview
-- Customer management (CRUD, medical info, emergency contacts)
-- Appointment management (scheduling, status tracking, types)
-- Tattoo session tracking (pricing, design details, consent, aftercare)
-- Media management (image/video upload via Vercel Blob)
-- Analytics and reporting with Recharts
-- Settings management
-- Better Auth with RBAC (5 role levels)
-- Audit logging
+- Public website with gallery, services, about, contact, FAQ, booking — v1.0
+- Cal.com webhook integration with appointment sync — v1.0
+- Contact form with Resend email notifications — v1.0
+- Full SEO infrastructure (sitemaps, structured data, robots.txt, Open Graph) — v1.0
+- Admin dashboard with KPI overview, revenue charts — v1.0
+- Customer management (CRUD, medical info, emergency contacts, session history) — v1.0
+- Appointment management (scheduling, status tracking, filtering) — v1.0
+- Tattoo session tracking (pricing, design details, consent, aftercare) — v1.0
+- Media management (Vercel Blob uploads, gallery sync) — v1.0
+- Analytics and reporting with Recharts (ComposedChart, dual Y-axes, Brush zoom) — v1.0
+- Settings management — v1.0
+- Better Auth RBAC (5 role levels) with admin plugin — v1.0
+- Audit logging on all admin actions — v1.0
+- Stripe payment integration (deposits, session payments, store checkout, webhooks) — v1.0
+- Client portal (appointments, designs, consent forms, payment history) — v1.0
+- Online store (merchandise, prints, gift cards, order management) — v1.0
+- Drizzle ORM migration from Prisma (19 tables, zero CVEs) — v1.0
+- Security headers, CSRF, rate limiting, Zod validation — v1.0
+- HydrationBoundary SSR, DataTable with global+faceted filters — v1.0
+- React 19 features (Context-as-provider, useFormStatus, resource preloading) — v1.0
 
 ### Active
 
-- [ ] Consolidate two repos into single Next.js app
-- [x] Unify schemas into one coherent data model (Drizzle ORM, 19 tables, 8 enums)
-- [x] Modernize all packages to latest versions (Next.js 16, React 19.2, Drizzle ORM 0.45.1)
-- [x] ORM migration: Drizzle ORM 0.45.1 replaces Prisma 7 (zero high/critical CVEs)
-- [ ] Admin dashboard accessible at /dashboard route group
-- [ ] Unified auth system (Better Auth) for admin and future client portal
-- [ ] Payment processing integration (deposits, session payments)
-- [ ] Client portal (clients view appointments, designs, history)
-- [ ] Online store (merchandise, prints, gift cards)
-- [ ] Deduplicate shared UI components (Shadcn/Radix)
-- [ ] Unified state management strategy
-- [ ] Performance optimization for consolidated bundle
+(Defined during v2.0 milestone planning)
 
 ### Out of Scope
 
 - Mobile native app — web-first, responsive design handles mobile
-- Multi-artist marketplace — this is a single-studio platform
+- Multi-artist marketplace — single-studio platform
 - Real-time chat — Cal.com and contact form cover communication
-- Custom CMS — admin dashboard handles content management needs
+- Custom CMS — admin dashboard handles content management
+- Video consultations — Cal.com handles meeting links
+- Inventory management — insufficient physical products to justify
+- POS/in-person payments — not needed for web platform
 
-## Context
+## Tech Stack
 
-### Source Projects
-
-**tattoo-website** (public-facing):
-- Next.js 16.1.1, React 19.2.3, Prisma 7.2.0
-- TanStack Query, Zod 4, Tailwind CSS 4, Framer Motion
-- Cal.com booking, Resend email, Vercel Blob storage
-- Full SEO suite, PWA support, mobile-optimized components
-- GitHub: hudsor01/tattoo-website
-
-**admin-tattoo-website** (admin dashboard):
-- Next.js 15.3.8, React 19.1.0, Prisma 6.10.0
-- Zustand + TanStack Query, Zod 3, Recharts
-- Better Auth with full RBAC, audit logging
-- Customer/appointment/session/media management
-- GitHub: hudsor01/admin-tattoo-website
-
-### Technical Notes
-
-- Consolidated project uses PostgreSQL via Drizzle ORM (migrated from Prisma in Phase 8), Neon serverless driver
-- Both use Shadcn UI (Radix primitives) — significant component overlap
-- Both use TanStack Query, Zod, Tailwind, Framer Motion — version alignment needed
-- Admin runs on port 3001, public on 3000 — will merge into single app
-- Hosted on Vercel (Prisma Accelerate no longer needed -- Drizzle uses neon-serverless driver directly)
-- Live domain: ink37tattoos.com
-- Database provider needs investigation (Neon vs Supabase vs Vercel Postgres)
-
-### Existing Auth Architecture
-
-- Better Auth v1.2.9 with admin plugin
-- 5 role levels: USER, STAFF, MANAGER, ADMIN, SUPER_ADMIN
-- Session management, OAuth (Google) ready
-- Email verification, audit logging
-- Will extend for client portal access
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16, React 19.2 |
+| ORM | Drizzle ORM 0.45.1 |
+| Database | Neon PostgreSQL (neon-serverless driver) |
+| Auth | Better Auth 1.5.5 (raw pg.Pool, not Drizzle adapter) |
+| Payments | Stripe |
+| State | TanStack Query (server) + Zustand (client) |
+| UI | Shadcn/Radix + Tailwind CSS 4 |
+| Email | Resend |
+| Booking | Cal.com embed + webhooks |
+| Storage | Vercel Blob |
+| Hosting | Vercel |
+| Testing | Vitest + MSW |
 
 ## Constraints
 
-- **Domain**: ink37tattoos.com already live — zero-downtime migration required
-- **Database**: Same PostgreSQL instance shared by both projects — schema merge must be backward-compatible during transition
-- **Hosting**: Vercel — must stay on Vercel for deployment
-- **Auth**: Better Auth already implemented — keep as auth solution
-- **Booking**: Cal.com integration must be preserved — core business flow
+- **Domain**: ink37tattoos.com — live production site
+- **Database**: Neon PostgreSQL — single instance
+- **Hosting**: Vercel — must stay on Vercel
+- **Auth**: Better Auth with raw pg.Pool — decoupled from ORM
+- **Booking**: Cal.com integration — core business flow
+- **ORM**: Drizzle 0.45.1 — relational API for reads, SQL builder for mutations/aggregations
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Single app with /dashboard route group | Simpler deployment, shared auth, one codebase to maintain | — Pending |
-| Phased rollout (merge first, features later) | Reduce risk, get consolidated app working before adding complexity | — Pending |
-| Evaluate Prisma vs Drizzle during research | User open to either — let research guide the ORM decision | — Pending |
-| Evaluate Neon vs Supabase during research | User open to either — need to identify current provider and compare | — Pending |
-| Keep Better Auth | Already implemented with RBAC — proven in admin project | — Pending |
-| Drizzle ORM 0.45.1 replaces Prisma 7 | Prisma 7 bundles Hono with unresolvable CVEs. Drizzle has zero runtime CVEs. | Phase 8 complete |
+| Single app with route groups | Simpler deployment, shared auth, one codebase | Shipped v1.0 |
+| Drizzle ORM over Prisma | Prisma 7 bundles Hono with unresolvable CVEs | Shipped v1.0, zero CVEs |
+| Better Auth with raw pg.Pool | Decouples auth from ORM version, full feature support | Shipped v1.0 |
+| CSS columns masonry over JS grid | Broad browser support, no JS dependency | Shipped v1.0 |
+| Custom rate limiter over better-auth plugin | Covers all public endpoints, not just auth routes | Shipped v1.0 |
+| base-ui render prop over asChild | Valid HTML (no nested interactives), proper navigation | Shipped v1.0 |
+| Single neon-serverless driver | Simplicity, transaction support, no dual-driver complexity | Shipped v1.0 |
+| numeric mode:number for all monetary columns | Prevents silent string-number conversion bugs | Shipped v1.0 |
+
+## Known Tech Debt (from v1.0 audit)
+
+- TD-01: asChild prop in 4 files produces invalid HTML — needs render prop pattern
+- TD-02: Orphaned contacts DAL with no consumer page
+- TD-03: BLOB_PRIVATE_READ_WRITE_TOKEN not in Zod env schema
+- TD-04: In-memory rate limiter resets per serverless instance (burst protection only)
 
 ---
-*Last updated: 2026-03-23 after Phase 8 Drizzle migration*
+*Last updated: 2026-03-27 after v1.0 milestone*
