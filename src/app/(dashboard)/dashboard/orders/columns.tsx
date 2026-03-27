@@ -27,7 +27,7 @@ import Link from 'next/link';
 import { updateOrderStatusAction, refundOrderAction } from '@/lib/actions/order-actions';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
+import { useTransition, useOptimistic } from 'react';
 
 type OrderWithItems = {
   id: string;
@@ -46,9 +46,11 @@ const currencyFormatter = new Intl.NumberFormat('en-US', {
 function OrderActions({ order }: { order: OrderWithItems }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [optimisticStatus, setOptimisticStatus] = useOptimistic(order.status);
 
   function handleStatusUpdate(status: string) {
     startTransition(async () => {
+      setOptimisticStatus(status);
       try {
         const formData = new FormData();
         formData.append('orderId', order.id);
@@ -80,10 +82,10 @@ function OrderActions({ order }: { order: OrderWithItems }) {
     });
   }
 
-  const canShip = order.status === 'PAID';
-  const canDeliver = order.status === 'SHIPPED';
-  const canCancel = order.status === 'PENDING' || order.status === 'PAID';
-  const canRefund = ['PAID', 'SHIPPED', 'DELIVERED'].includes(order.status);
+  const canShip = optimisticStatus === 'PAID';
+  const canDeliver = optimisticStatus === 'SHIPPED';
+  const canCancel = optimisticStatus === 'PENDING' || optimisticStatus === 'PAID';
+  const canRefund = ['PAID', 'SHIPPED', 'DELIVERED'].includes(optimisticStatus);
 
   return (
     <DropdownMenu>
