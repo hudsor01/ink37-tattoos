@@ -115,6 +115,16 @@ Requirements for initial consolidated release. Each maps to roadmap phases.
 - [ ] **STACK-22**: date-fns full -- formatDuration/intervalToDuration for session durations, differenceInDays for appointment proximity, isWithinInterval for scheduling conflicts
 - [ ] **STACK-23**: Resend idempotency -- X-Entity-Ref-ID headers on transactional emails to prevent duplicate sends
 
+### Testing Foundation (Phase 12)
+
+- [ ] **TEST-01**: Unit tests for all 5 email service functions (sendContactNotification, sendPaymentRequestEmail, sendOrderConfirmationEmail, sendGiftCardEmail, sendGiftCardPurchaseConfirmationEmail) with mocked Resend client
+- [ ] **TEST-02**: Unit tests for Stripe SDK wrapper functions (createSetupIntent, listPaymentMethods) with mocked Stripe instance
+- [ ] **TEST-03**: Integration tests for Resend webhook handler (/api/webhooks/resend) covering Svix HMAC signature verification, bounce/complaint event handling, and edge cases
+- [ ] **TEST-04**: Integration tests for server actions (customer CRUD, appointment CRUD, portal consent/profile) with mocked auth and DAL -- verifying auth guards, input validation, and DAL delegation
+- [ ] **TEST-05**: Integration tests for upload token endpoint (/api/upload/token) verifying RBAC enforcement (user role rejected, staff+ roles accepted) and content type restrictions
+- [ ] **TEST-06**: Unit tests for DAL business logic (checkSchedulingConflict, getDashboardStats, getRevenueData, getBookingTrends, portal auth enforcement) with mocked database
+- [ ] **TEST-07**: Unit tests for Better Auth databaseHooks portal linking (link existing customer, create new customer, skip if already linked, error resilience)
+
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
@@ -223,12 +233,19 @@ Deferred to future release. Tracked but not in current roadmap.
 | STACK-21 | Phase 11 | Not started |
 | STACK-22 | Phase 11 | Not started |
 | STACK-23 | Phase 11 | Not started |
+| TEST-01 | Phase 12 | Not started |
+| TEST-02 | Phase 12 | Not started |
+| TEST-03 | Phase 12 | Not started |
+| TEST-04 | Phase 12 | Not started |
+| TEST-05 | Phase 12 | Not started |
+| TEST-06 | Phase 12 | Not started |
+| TEST-07 | Phase 12 | Not started |
 
 **Coverage:**
-- v1 requirements: 68 total
-- Mapped to phases: 68
+- v1 requirements: 75 total
+- Mapped to phases: 75
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-20*
-*Last updated: 2026-03-26 after Phase 11 planning*
+*Last updated: 2026-03-27 after Phase 12 planning*
