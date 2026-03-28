@@ -1,24 +1,26 @@
 import { cn } from '@/lib/utils';
 
-const statusColors: Record<string, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800',
-  CONFIRMED: 'bg-blue-100 text-blue-800',
-  SCHEDULED: 'bg-blue-100 text-blue-800',
-  IN_PROGRESS: 'bg-purple-100 text-purple-800',
-  COMPLETED: 'bg-green-100 text-green-800',
-  CANCELLED: 'bg-red-100 text-red-800',
-  PROCESSING: 'bg-blue-100 text-blue-800',
-  FAILED: 'bg-red-100 text-red-800',
-  REFUNDED: 'bg-orange-100 text-orange-800',
-  PAID: 'bg-green-100 text-green-800',
-  SHIPPED: 'bg-blue-100 text-blue-800',
-  DELIVERED: 'bg-green-100 text-green-800',
-  NO_SHOW: 'bg-gray-100 text-gray-800',
-  NEW: 'bg-blue-100 text-blue-800',
-  READ: 'bg-gray-100 text-gray-800',
-  REPLIED: 'bg-green-100 text-green-800',
-  RESOLVED: 'bg-green-100 text-green-800',
+const statusColorMap: Record<string, string> = {
+  PENDING: 'bg-status-pending/15 text-status-pending',
+  CONFIRMED: 'bg-status-confirmed/15 text-status-confirmed',
+  SCHEDULED: 'bg-status-scheduled/15 text-status-scheduled',
+  IN_PROGRESS: 'bg-status-in-progress/15 text-status-in-progress',
+  COMPLETED: 'bg-status-completed/15 text-status-completed',
+  CANCELLED: 'bg-status-cancelled/15 text-status-cancelled',
+  PROCESSING: 'bg-status-processing/15 text-status-processing',
+  FAILED: 'bg-status-failed/15 text-status-failed',
+  REFUNDED: 'bg-status-refunded/15 text-status-refunded',
+  PAID: 'bg-status-paid/15 text-status-paid',
+  SHIPPED: 'bg-status-shipped/15 text-status-shipped',
+  DELIVERED: 'bg-status-delivered/15 text-status-delivered',
+  NO_SHOW: 'bg-status-no-show/15 text-status-no-show',
+  NEW: 'bg-status-new/15 text-status-new',
+  READ: 'bg-status-read/15 text-status-read',
+  REPLIED: 'bg-status-replied/15 text-status-replied',
+  RESOLVED: 'bg-status-resolved/15 text-status-resolved',
 };
+
+const DEFAULT_COLOR = 'bg-status-default/15 text-status-default';
 
 interface StatusBadgeProps {
   status: string;
@@ -26,7 +28,7 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
-  const colorClass = statusColors[status] ?? 'bg-gray-100 text-gray-800';
+  const colorClass = statusColorMap[status] ?? DEFAULT_COLOR;
   const displayText = status.replace(/_/g, ' ');
 
   return (
