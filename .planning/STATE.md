@@ -2,14 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Admin Panel
-status: In Progress
-stopped_at: Completed 15-01-PLAN.md
-last_updated: "2026-03-28T22:59:53Z"
+status: executing
+stopped_at: Completed 15-02-PLAN.md
+last_updated: "2026-03-28T22:59:22Z"
+last_activity: 2026-03-28
 progress:
   total_phases: 10
-  completed_phases: 0
-  total_plans: 5
-  completed_plans: 1
+  completed_phases: 2
+  total_plans: 7
+  completed_plans: 7
 ---
 
 # Project State
@@ -24,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 ## Current Position
 
 Phase: 15 (UI Foundations)
-Plan: 01 of 5 complete
-Status: In progress -- executing phase 15 plans
-Last activity: 2026-03-28 -- completed 15-01 shared UI components
+Plan: 02 of 5 complete
+Status: Executing
+Last activity: 2026-03-28
 
 ```
-v2.0 Progress: [..........] 0/10 phases (15-01 complete)
+v2.0 Progress: [==........] 2/10 phases | Phase 15: 2/5 plans
 ```
 
 ## Previous Milestone
@@ -58,7 +59,15 @@ Archived to: .planning/milestones/
 
 See PROJECT.md Key Decisions table for full history.
 
+Phase 14-01 decisions:
+
+- Offset-based pagination (not cursor) -- fits admin dashboard page-number navigation
+- safeAction as callback wrapper -- simpler integration with existing varying-signature actions
+- Weighted tsvector (A/B/C/D) for relevance-ranked full-text search
+- SQL GROUP BY replaces JS Map/loop aggregation in analytics
+
 v2.0 roadmap decisions:
+
 - Security and data layer come first (phases 13-14) -- foundation for everything
 - UI foundations before new pages -- establish patterns once, apply everywhere
 - Missing pages split into Core (13-dependent) and Operations (14+16 dependent)
@@ -67,11 +76,11 @@ v2.0 roadmap decisions:
 - Analytics depth after reports page and analytics page are enhanced
 - Testing last -- validates features built in all prior phases
 - Tech debt bundled with testing -- cleanup alongside verification
-
-Phase 15 decisions:
-- StatusBadge uses Tailwind utility classes chained through @theme inline to CSS variables (oklch colors)
-- DynamicBreadcrumbs skips UUID path segments rather than displaying truncated IDs
-- DatePicker uses render prop on PopoverTrigger for base-ui Button composition
+- [Phase 14-data-layer-fixes]: requireRole stays outside safeAction for redirect propagation; public actions use 'anonymous' userId for audit logging
+- [Phase 14]: Used tattooArtist table for artist profile (not user table) -- already has bio, specialties, portfolio fields
+- [Phase 14]: ILIKE fallback for gift card search (small dataset, no tsvector needed)
+- [Phase 15-02]: Parent-owned pagination for ResponsiveDataTable -- no internal page state in mobile card view
+- [Phase 15-02]: Mobile sidebar already built-in via shadcn Sidebar Sheet rendering on mobile
 
 ### Pending Todos
 
@@ -83,6 +92,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-28
-Stopped at: Completed 15-01-PLAN.md (shared UI foundation components)
-Resume with: Continue executing phase 15 plans (15-02 through 15-05)
+Last session: 2026-03-28T22:59:22Z
+Stopped at: Completed 15-02-PLAN.md
+Resume with: Continue Phase 15 plans 03-05
