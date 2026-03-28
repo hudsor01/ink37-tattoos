@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Admin Panel
 status: executing
-stopped_at: Phase 13 context gathered
-last_updated: "2026-03-28T15:41:09.559Z"
-last_activity: 2026-03-28 -- Phase 13 execution started
+stopped_at: Completed 13-03-PLAN.md
+last_updated: "2026-03-28T16:09:24.350Z"
+last_activity: 2026-03-28
 progress:
   total_phases: 10
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 0
+  completed_plans: 3
 ---
 
 # Project State
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 ## Current Position
 
 Phase: 13 (security-hardening) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 13
-Last activity: 2026-03-28 -- Phase 13 execution started
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-03-28
 
 ```
 v2.0 Progress: [..........] 0/10 phases
@@ -69,6 +69,8 @@ v2.0 roadmap decisions:
 - Analytics depth after reports page and analytics page are enhanced
 - Testing last -- validates features built in all prior phases
 - Tech debt bundled with testing -- cleanup alongside verification
+- [Phase 13]: calEvent table uses non-unique calEventUid for audit trail (same booking UID sent for CREATED/RESCHEDULED/CANCELLED)
+- [Phase 13]: Stripe atomic idempotency uses INSERT ON CONFLICT DO NOTHING + .returning() to eliminate race window
 
 ### Pending Todos
 
@@ -80,6 +82,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-28T15:10:18.791Z
-Stopped at: Phase 13 context gathered
+Last session: 2026-03-28T16:09:24.348Z
+Stopped at: Completed 13-03-PLAN.md
 Resume with: `/gsd:plan-phase 13` to begin Security Hardening
