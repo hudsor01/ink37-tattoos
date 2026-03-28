@@ -36,7 +36,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <AdminNav />
       <SidebarInset>
         <header className="flex h-12 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
+          <SidebarTrigger className="-ml-1" aria-label="Toggle navigation" />
           <Separator orientation="vertical" className="h-4" />
           <Breadcrumb>
             <BreadcrumbList>
@@ -49,7 +49,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <ThemeToggle />
           </div>
         </header>
-        <main className="p-6">
+        <main className="p-4 md:p-6" aria-label="Main content">
           <PageTransition>{children}</PageTransition>
         </main>
       </SidebarInset>
