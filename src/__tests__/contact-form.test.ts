@@ -48,6 +48,16 @@ vi.mock('next/headers', () => ({
   }),
 }));
 
+// Mock next/server after()
+vi.mock('next/server', () => ({
+  after: vi.fn((fn: () => void) => fn()),
+}));
+
+// Mock audit logging
+vi.mock('@/lib/dal/audit', () => ({
+  logAudit: vi.fn().mockResolvedValue(undefined),
+}));
+
 describe('ContactFormSchema validation', () => {
   it('validates valid contact form data', () => {
     const result = ContactFormSchema.safeParse({
@@ -156,8 +166,11 @@ describe('submitContactForm Server Action', () => {
 
     const result = await submitContactForm(formData);
     expect(result.success).toBe(false);
-    expect(result.errors).toBeDefined();
-    expect(result.errors?.email).toBeDefined();
+    if (!result.success) {
+      expect(result.error).toBe('Validation failed');
+      expect(result.fieldErrors).toBeDefined();
+      expect(result.fieldErrors?.email).toBeDefined();
+    }
   });
 
   it('returns errors for empty name', async () => {
@@ -172,8 +185,11 @@ describe('submitContactForm Server Action', () => {
 
     const result = await submitContactForm(formData);
     expect(result.success).toBe(false);
-    expect(result.errors).toBeDefined();
-    expect(result.errors?.name).toBeDefined();
+    if (!result.success) {
+      expect(result.error).toBe('Validation failed');
+      expect(result.fieldErrors).toBeDefined();
+      expect(result.fieldErrors?.name).toBeDefined();
+    }
   });
 
   it('returns errors for empty message', async () => {
@@ -188,8 +204,11 @@ describe('submitContactForm Server Action', () => {
 
     const result = await submitContactForm(formData);
     expect(result.success).toBe(false);
-    expect(result.errors).toBeDefined();
-    expect(result.errors?.message).toBeDefined();
+    if (!result.success) {
+      expect(result.error).toBe('Validation failed');
+      expect(result.fieldErrors).toBeDefined();
+      expect(result.fieldErrors?.message).toBeDefined();
+    }
   });
 
   it('returns rate limit error when rate limited', async () => {
@@ -206,7 +225,9 @@ describe('submitContactForm Server Action', () => {
 
     const result = await submitContactForm(formData);
     expect(result.success).toBe(false);
-    expect(result.error).toContain('Too many');
+    if (!result.success) {
+      expect(result.error).toContain('Too many');
+    }
   });
 
   it('creates contact in database with valid data', async () => {

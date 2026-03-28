@@ -31,7 +31,7 @@ Requirements for admin panel rebuild. Each maps to roadmap phases. Derived from 
 - [ ] **DAL-07**: Missing DAL functions created: artist profile CRUD, design approval status, contact management (update/delete)
 - [ ] **DAL-08**: Webhook handlers (Stripe, Cal.com, Resend) call revalidatePath after state changes so dashboard reflects updates
 - [ ] **DAL-09**: Store checkout page uses DAL function instead of direct db.query call
-- [ ] **DAL-10**: All mutation server actions include audit logging (media, contacts, settings, portal actions currently missing)
+- [x] **DAL-10**: All mutation server actions include audit logging (media, contacts, settings, portal actions currently missing)
 - [ ] **DAL-11**: checkSchedulingConflict() function wired into appointment creation/update flow (currently orphaned)
 - [ ] **DAL-12**: Gift card validation in store checkout returns explicit error to user when code is invalid (not silent fallback to 0)
 
@@ -164,7 +164,7 @@ Deferred beyond v2.0.
 | DAL-07 | Phase 14 | Pending |
 | DAL-08 | Phase 14 | Pending |
 | DAL-09 | Phase 14 | Pending |
-| DAL-10 | Phase 14 | Pending |
+| DAL-10 | Phase 14 | Complete |
 | DAL-11 | Phase 14 | Pending |
 | DAL-12 | Phase 14 | Pending |
 | UI-01 | Phase 15 | Pending |

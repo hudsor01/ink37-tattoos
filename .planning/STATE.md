@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Admin Panel
 status: executing
-stopped_at: Completed 14-02-PLAN.md
-last_updated: "2026-03-28T19:03:32.416Z"
+stopped_at: Completed 14-03-PLAN.md
+last_updated: "2026-03-28T18:51:30.690Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 10
@@ -76,8 +76,7 @@ v2.0 roadmap decisions:
 - Analytics depth after reports page and analytics page are enhanced
 - Testing last -- validates features built in all prior phases
 - Tech debt bundled with testing -- cleanup alongside verification
-- [Phase 14]: Payments have no searchVector -- search param is a no-op for getPayments
-- [Phase 14]: searchCustomers removed, search integrated into getCustomers via PaginationParams.search
+- [Phase 14-data-layer-fixes]: requireRole stays outside safeAction for redirect propagation; public actions use 'anonymous' userId for audit logging
 
 ### Pending Todos
 
@@ -89,6 +88,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-28T19:03:32.414Z
-Stopped at: Completed 14-02-PLAN.md
+Last session: 2026-03-28T18:51:30.688Z
+Stopped at: Completed 14-03-PLAN.md
 Resume with: Continue Phase 14 plans 02-04
