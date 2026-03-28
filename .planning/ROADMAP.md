@@ -74,13 +74,15 @@
   3. Deleting any record triggers an AlertDialog confirmation before proceeding -- no browser confirm() dialogs appear anywhere
   4. Submitting a form with invalid fields shows error messages directly below the invalid inputs, not just a toast notification
   5. All interactive elements are keyboard-navigable and have ARIA labels; screen reader announces all chart data via alt text
-**Plans**: 5 plans
+**Plans**: 7 plans
 Plans:
 - [x] 15-01-PLAN.md -- Shared UI components, StatusBadge CSS vars, TypeScript fixes (completed 2026-03-28)
 - [x] 15-02-PLAN.md -- Responsive DataTable with mobile card view, mobile sidebar (completed 2026-03-28)
 - [x] 15-03-PLAN.md -- Loading skeletons and empty states for all 12 dashboard pages (completed 2026-03-28)
 - [x] 15-04-PLAN.md -- Form UX: field errors, DatePicker, AlertDialog, toast, unsaved changes (completed 2026-03-28)
 - [x] 15-05-PLAN.md -- Accessibility, dynamic breadcrumbs, dead import cleanup (completed 2026-03-28)
+- [ ] 15-06-PLAN.md -- Gap closure: wire ResponsiveDataTable into list pages, fix EmptyState consistency
+- [ ] 15-07-PLAN.md -- Gap closure: update REQUIREMENTS.md for completed UI requirements
 **UI hint**: yes
 
 ### Phase 16: Missing Pages -- Core
@@ -186,7 +188,7 @@ Plans:
 | 12. Testing Foundation | v1.0 | 3/3 | Complete | 2026-03-27 |
 | 13. Security Hardening | v2.0 | 0/? | Not started | - |
 | 14. Data Layer Fixes | v2.0 | 4/4 | Complete    | 2026-03-28 |
-| 15. UI Foundations | v2.0 | 5/5 | Complete | 2026-03-28 |
+| 15. UI Foundations | v2.0 | 5/7 | Gap closure | - |
 | 16. Missing Pages -- Core | v2.0 | 0/? | Not started | - |
 | 17. Missing Pages -- Operations | v2.0 | 0/? | Not started | - |
 | 18. Feature Depth -- Records | v2.0 | 0/? | Not started | - |
