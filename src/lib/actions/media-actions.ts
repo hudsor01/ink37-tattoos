@@ -2,15 +2,14 @@
 
 import { createMediaItem, updateMediaItem, deleteMediaItem, getMediaItemById, togglePublicVisibility } from '@/lib/dal/media';
 import { logAudit } from '@/lib/dal/audit';
-import { getCurrentSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth';
 import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { del } from '@vercel/blob';
 
 export async function createMediaAction(formData: FormData) {
-  const session = await getCurrentSession();
-  if (!session?.user) throw new Error('Unauthorized');
+  const session = await requireRole('admin');
 
   const data = {
     name: formData.get('name') as string,
@@ -45,8 +44,7 @@ export async function createMediaAction(formData: FormData) {
 }
 
 export async function updateMediaAction(id: string, formData: FormData) {
-  const session = await getCurrentSession();
-  if (!session?.user) throw new Error('Unauthorized');
+  const session = await requireRole('admin');
 
   const data: Record<string, unknown> = {};
   const name = formData.get('name');
@@ -82,8 +80,7 @@ export async function updateMediaAction(id: string, formData: FormData) {
 }
 
 export async function deleteMediaAction(id: string) {
-  const session = await getCurrentSession();
-  if (!session?.user) throw new Error('Unauthorized');
+  const session = await requireRole('admin');
 
   // Fetch media record to get blob URL before deleting from DB
   const media = await getMediaItemById(id);
@@ -115,8 +112,7 @@ export async function deleteMediaAction(id: string) {
 }
 
 export async function toggleVisibilityAction(id: string, isPublic: boolean) {
-  const session = await getCurrentSession();
-  if (!session?.user) throw new Error('Unauthorized');
+  const session = await requireRole('admin');
 
   const result = await togglePublicVisibility(id, isPublic);
 

@@ -12,7 +12,7 @@ import {
   RequestBalanceSchema,
 } from '@/lib/security/validation';
 import { logAudit } from '@/lib/dal/audit';
-import { getCurrentSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth';
 import { validateGiftCard } from '@/lib/dal/gift-cards';
 import { after } from 'next/server';
 import { headers } from 'next/headers';
@@ -25,8 +25,7 @@ import { env } from '@/lib/env';
  * and emails the payment link to the customer.
  */
 export async function requestDepositAction(formData: FormData) {
-  const session = await getCurrentSession();
-  if (!session?.user) throw new Error('Unauthorized');
+  const session = await requireRole('admin');
 
   const validated = RequestDepositSchema.parse({
     sessionId: formData.get('sessionId'),
@@ -146,8 +145,7 @@ export async function requestDepositAction(formData: FormData) {
  * creates a Stripe Checkout Session, and emails the payment link.
  */
 export async function requestBalanceAction(formData: FormData) {
-  const session = await getCurrentSession();
-  if (!session?.user) throw new Error('Unauthorized');
+  const session = await requireRole('admin');
 
   const validated = RequestBalanceSchema.parse({
     sessionId: formData.get('sessionId'),
