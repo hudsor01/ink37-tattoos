@@ -23,13 +23,13 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 
 ## Current Position
 
-Phase: 13 (Security Hardening) -- not yet started
-Plan: --
-Status: Roadmap complete, awaiting phase planning
-Last activity: 2026-03-27 -- v2.0 roadmap created (10 phases, 75 requirements)
+Phase: 14 (Data Layer Fixes)
+Plan: 1 of 4 complete
+Status: In Progress
+Last activity: 2026-03-28 -- Plan 14-01 foundation types complete
 
 ```
-v2.0 Progress: [..........] 0/10 phases
+v2.0 Progress: [..........] 0/10 phases (14-01 complete)
 ```
 
 ## Previous Milestone
@@ -58,6 +58,12 @@ Archived to: .planning/milestones/
 
 See PROJECT.md Key Decisions table for full history.
 
+Phase 14-01 decisions:
+- Offset-based pagination (not cursor) -- fits admin dashboard page-number navigation
+- safeAction as callback wrapper -- simpler integration with existing varying-signature actions
+- Weighted tsvector (A/B/C/D) for relevance-ranked full-text search
+- SQL GROUP BY replaces JS Map/loop aggregation in analytics
+
 v2.0 roadmap decisions:
 - Security and data layer come first (phases 13-14) -- foundation for everything
 - UI foundations before new pages -- establish patterns once, apply everywhere
@@ -78,6 +84,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-27
-Stopped at: v2.0 roadmap created, ready for `/gsd:plan-phase 13`
-Resume with: `/gsd:plan-phase 13` to begin Security Hardening
+Last session: 2026-03-28
+Stopped at: Completed 14-01-PLAN.md (Data Layer Foundation)
+Resume with: Continue Phase 14 plans 02-04
