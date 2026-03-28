@@ -23,13 +23,13 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 
 ## Current Position
 
-Phase: 13 (Security Hardening) -- not yet started
-Plan: --
-Status: Roadmap complete, awaiting phase planning
-Last activity: 2026-03-27 -- v2.0 roadmap created (10 phases, 75 requirements)
+Phase: 13 (Security Hardening) -- in progress
+Plan: 1 of 3
+Status: Plan 13-01 complete (Layout Auth & Role Enforcement)
+Last activity: 2026-03-28 -- 13-01 executed (layout auth guards, requireRole, env hardening)
 
 ```
-v2.0 Progress: [..........] 0/10 phases
+v2.0 Progress: [..........] 0/10 phases (13-01 complete)
 ```
 
 ## Previous Milestone
@@ -58,6 +58,11 @@ Archived to: .planning/milestones/
 
 See PROJECT.md Key Decisions table for full history.
 
+13-01 decisions:
+- Used inline ADMIN_ROLES check in dashboard layout (redirect pattern) rather than requireRole() (throw pattern) -- layouts should redirect, server actions should throw
+- Upstash Redis env vars added as optional for graceful dev degradation
+- Fixed .env.example variable name mismatch (BLOB_READ_WRITE_TOKEN -> BLOB_PRIVATE_READ_WRITE_TOKEN)
+
 v2.0 roadmap decisions:
 - Security and data layer come first (phases 13-14) -- foundation for everything
 - UI foundations before new pages -- establish patterns once, apply everywhere
@@ -78,6 +83,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-27
-Stopped at: v2.0 roadmap created, ready for `/gsd:plan-phase 13`
-Resume with: `/gsd:plan-phase 13` to begin Security Hardening
+Last session: 2026-03-28
+Stopped at: Completed 13-01-PLAN.md (Layout Auth & Role Enforcement)
+Resume with: Continue with 13-02 and 13-03 execution
