@@ -1,14 +1,29 @@
 import { z } from 'zod';
+import { noHtml, noHtmlMessage } from '@/lib/security/sanitize';
+
+// Helper for optional string fields that should reject HTML when present
+const optionalNoHtml = z
+  .string()
+  .optional()
+  .refine((v) => !v || noHtml(v), noHtmlMessage);
 
 // ============================================================================
 // CONTACT FORM
 // ============================================================================
 
 export const ContactFormSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100),
+  name: z
+    .string()
+    .min(1, 'Name is required')
+    .max(100)
+    .refine(noHtml, noHtmlMessage),
   email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
-  message: z.string().min(1, 'Message is required').max(5000),
+  message: z
+    .string()
+    .min(1, 'Message is required')
+    .max(5000)
+    .refine(noHtml, noHtmlMessage),
 });
 
 
@@ -17,23 +32,31 @@ export const ContactFormSchema = z.object({
 // ============================================================================
 
 export const CreateCustomerSchema = z.object({
-  firstName: z.string().min(1, 'First name is required').max(100),
-  lastName: z.string().min(1, 'Last name is required').max(100),
+  firstName: z
+    .string()
+    .min(1, 'First name is required')
+    .max(100)
+    .refine(noHtml, noHtmlMessage),
+  lastName: z
+    .string()
+    .min(1, 'Last name is required')
+    .max(100)
+    .refine(noHtml, noHtmlMessage),
   email: z.string().email().optional(),
   phone: z.string().optional(),
   dateOfBirth: z.string().datetime().optional(),
-  address: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
+  address: optionalNoHtml,
+  city: optionalNoHtml,
+  state: optionalNoHtml,
   postalCode: z.string().optional(),
   country: z.string().optional(),
-  emergencyName: z.string().optional(),
+  emergencyName: optionalNoHtml,
   emergencyPhone: z.string().optional(),
-  emergencyRel: z.string().optional(),
+  emergencyRel: optionalNoHtml,
   allergies: z.array(z.string()).optional().default([]),
   medicalConditions: z.array(z.string()).optional().default([]),
   preferredArtist: z.string().optional(),
-  notes: z.string().optional(),
+  notes: optionalNoHtml,
 });
 
 export type CreateCustomerData = z.infer<typeof CreateCustomerSchema>;
@@ -57,15 +80,21 @@ export const CreateAppointmentSchema = z.object({
     'TOUCH_UP',
     'REMOVAL',
   ]),
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
+  firstName: z
+    .string()
+    .min(1, 'First name is required')
+    .refine(noHtml, noHtmlMessage),
+  lastName: z
+    .string()
+    .min(1, 'Last name is required')
+    .refine(noHtml, noHtmlMessage),
   email: z.string().email(),
   phone: z.string().optional(),
   tattooType: z.string().optional(),
   size: z.string().optional(),
   placement: z.string().optional(),
-  description: z.string().optional(),
-  notes: z.string().optional(),
+  description: optionalNoHtml,
+  notes: optionalNoHtml,
 });
 
 export type CreateAppointmentData = z.infer<typeof CreateAppointmentSchema>;
@@ -84,7 +113,7 @@ export const UpdateAppointmentSchema = z.object({
     .optional(),
   scheduledDate: z.string().datetime().optional(),
   duration: z.number().int().positive().optional(),
-  notes: z.string().optional(),
+  notes: optionalNoHtml,
 });
 
 export type UpdateAppointmentData = z.infer<typeof UpdateAppointmentSchema>;
@@ -99,15 +128,27 @@ export const CreateSessionSchema = z.object({
   appointmentId: z.string().uuid().optional(),
   appointmentDate: z.string().datetime(),
   duration: z.number().int().positive(),
-  designDescription: z.string().min(1, 'Design description is required'),
-  placement: z.string().min(1, 'Placement is required'),
-  size: z.string().min(1, 'Size is required'),
-  style: z.string().min(1, 'Style is required'),
+  designDescription: z
+    .string()
+    .min(1, 'Design description is required')
+    .refine(noHtml, noHtmlMessage),
+  placement: z
+    .string()
+    .min(1, 'Placement is required')
+    .refine(noHtml, noHtmlMessage),
+  size: z
+    .string()
+    .min(1, 'Size is required')
+    .refine(noHtml, noHtmlMessage),
+  style: z
+    .string()
+    .min(1, 'Style is required')
+    .refine(noHtml, noHtmlMessage),
   hourlyRate: z.number().positive(),
   estimatedHours: z.number().positive(),
   depositAmount: z.number().nonnegative().optional().default(0),
   totalCost: z.number().positive(),
-  notes: z.string().optional(),
+  notes: optionalNoHtml,
 });
 
 export type CreateSessionData = z.infer<typeof CreateSessionSchema>;
@@ -117,10 +158,10 @@ export type CreateSessionData = z.infer<typeof CreateSessionSchema>;
 // ============================================================================
 
 export const UpdateSettingsSchema = z.object({
-  key: z.string().min(1, 'Key is required'),
+  key: z.string().min(1, 'Key is required').refine(noHtml, noHtmlMessage),
   value: z.unknown(),
   category: z.string().min(1, 'Category is required'),
-  description: z.string().optional(),
+  description: optionalNoHtml,
 });
 
 
@@ -145,7 +186,11 @@ export const RequestBalanceSchema = z.object({
 
 export const ConsentSignSchema = z.object({
   sessionId: z.string().uuid('Invalid session ID'),
-  signedName: z.string().min(2, 'Please type your full name').max(200),
+  signedName: z
+    .string()
+    .min(2, 'Please type your full name')
+    .max(200)
+    .refine(noHtml, noHtmlMessage),
   acknowledged: z.literal(true, {
     message: 'You must acknowledge the consent terms',
   }),
@@ -157,12 +202,20 @@ export const ConsentSignSchema = z.object({
 // ============================================================================
 
 export const UpdatePortalProfileSchema = z.object({
-  firstName: z.string().min(1, 'First name is required').max(100),
-  lastName: z.string().min(1, 'Last name is required').max(100),
+  firstName: z
+    .string()
+    .min(1, 'First name is required')
+    .max(100)
+    .refine(noHtml, noHtmlMessage),
+  lastName: z
+    .string()
+    .min(1, 'Last name is required')
+    .max(100)
+    .refine(noHtml, noHtmlMessage),
   phone: z.string().optional(),
-  address: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
+  address: optionalNoHtml,
+  city: optionalNoHtml,
+  state: optionalNoHtml,
   postalCode: z.string().optional(),
   country: z.string().optional(),
 });
@@ -173,8 +226,16 @@ export const UpdatePortalProfileSchema = z.object({
 // ============================================================================
 
 export const CreateProductSchema = z.object({
-  name: z.string().min(1, 'Product name is required').max(200),
-  description: z.string().max(2000).optional(),
+  name: z
+    .string()
+    .min(1, 'Product name is required')
+    .max(200)
+    .refine(noHtml, noHtmlMessage),
+  description: z
+    .string()
+    .max(2000)
+    .optional()
+    .refine((v) => !v || noHtml(v), noHtmlMessage),
   price: z.number().positive('Price must be positive').max(50000),
   productType: z.enum(['PHYSICAL', 'DIGITAL', 'GIFT_CARD']),
   imageUrl: z.string().url().optional(),
@@ -200,10 +261,22 @@ export const PurchaseGiftCardSchema = z.object({
   denomination: z.enum(['25', '50', '100', '200', '500'], {
     message: 'Please select a denomination',
   }),
-  recipientName: z.string().min(1, 'Recipient name is required').max(100),
+  recipientName: z
+    .string()
+    .min(1, 'Recipient name is required')
+    .max(100)
+    .refine(noHtml, noHtmlMessage),
   recipientEmail: z.string().email('Invalid recipient email'),
-  senderName: z.string().min(1, 'Your name is required').max(100),
-  personalMessage: z.string().max(500).optional(),
+  senderName: z
+    .string()
+    .min(1, 'Your name is required')
+    .max(100)
+    .refine(noHtml, noHtmlMessage),
+  personalMessage: z
+    .string()
+    .max(500)
+    .optional()
+    .refine((v) => !v || noHtml(v), noHtmlMessage),
 });
 
 
@@ -244,7 +317,7 @@ export const StoreCheckoutSchema = z.object({
 export const UpdateOrderStatusSchema = z.object({
   orderId: z.string().uuid(),
   status: z.enum(['PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED']),
-  notes: z.string().max(1000).optional(),
+  notes: z.string().max(1000).optional().refine((v) => !v || noHtml(v), noHtmlMessage),
 });
 
 
@@ -277,4 +350,3 @@ export const CalWebhookPayloadSchema = z.object({
     cancellationReason: z.string().optional(),
   }).passthrough(),
 });
-
