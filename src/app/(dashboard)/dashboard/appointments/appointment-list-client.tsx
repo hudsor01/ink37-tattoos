@@ -4,11 +4,12 @@ import { useState, useMemo, useOptimistic, useTransition, useEffect } from 'reac
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
 import { format, differenceInDays, differenceInHours } from 'date-fns';
-import { MoreHorizontal, Plus } from 'lucide-react';
+import { Calendar, MoreHorizontal, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryState, parseAsString } from 'nuqs';
 
 import { DataTable } from '@/components/dashboard/data-table';
+import { EmptyState } from '@/components/dashboard/empty-state';
 import { StatusBadge } from '@/components/dashboard/status-badge';
 import { AppointmentForm } from '@/components/dashboard/appointment-form';
 import { Button } from '@/components/ui/button';
@@ -279,24 +280,25 @@ export function AppointmentListClient() {
             </p>
           </div>
         </div>
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-          <h3 className="text-lg font-semibold">No appointments scheduled</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Create an appointment to get started.
-          </p>
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger render={<Button className="mt-4" />}>
-              <Plus className="mr-2 h-4 w-4" />
-              New Appointment
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle>New Appointment</DialogTitle>
-              </DialogHeader>
-              <AppointmentForm onSuccess={() => setCreateOpen(false)} />
-            </DialogContent>
-          </Dialog>
-        </div>
+        <EmptyState
+          icon={Calendar}
+          title="No appointments yet"
+          description="Schedule your first appointment to get started."
+          action={
+            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+              <DialogTrigger render={<Button />}>
+                <Plus className="mr-2 h-4 w-4" />
+                New Appointment
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>New Appointment</DialogTitle>
+                </DialogHeader>
+                <AppointmentForm onSuccess={() => setCreateOpen(false)} />
+              </DialogContent>
+            </Dialog>
+          }
+        />
       </div>
     );
   }
