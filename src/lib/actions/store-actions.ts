@@ -132,6 +132,14 @@ export async function storeCheckoutAction(data: {
       ? await validateGiftCard(validated.giftCardCode)
       : null;
 
+    // Explicit error for invalid gift card codes (DAL-12)
+    if (validated.giftCardCode && !giftCard) {
+      throw new Error('Invalid gift card code');
+    }
+    if (validated.giftCardCode && giftCard && !giftCard.valid) {
+      throw new Error('Gift card is expired or has no balance');
+    }
+
     let discountAmount = 0;
     if (giftCard?.valid) {
       discountAmount = Math.min(giftCard.balance, cartTotal);

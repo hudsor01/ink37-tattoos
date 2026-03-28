@@ -78,6 +78,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
+  // No revalidatePath needed -- Resend webhooks only log bounce/complaint events
+  // with no DB mutations that would affect dashboard data.
   switch (body.type) {
     case 'email.bounced': {
       const bouncedEmail = body.data?.to?.[0];
