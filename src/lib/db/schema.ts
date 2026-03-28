@@ -10,8 +10,19 @@ import {
   jsonb,
   uniqueIndex,
   index,
+  customType,
 } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
+
+// ============================================================================
+// CUSTOM TYPES
+// ============================================================================
+
+export const tsvector = customType<{ data: string }>({
+  dataType() {
+    return 'tsvector';
+  },
+});
 
 // ============================================================================
 // ENUMS
@@ -123,11 +134,15 @@ export const customer = pgTable('customer', {
   stripeCustomerId: text('stripeCustomerId'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow().$onUpdate(() => new Date()),
+  searchVector: tsvector('search_vector').generatedAlwaysAs(
+    sql`setweight(to_tsvector('english', coalesce("firstName", '') || ' ' || coalesce("lastName", '')), 'A') || setweight(to_tsvector('english', coalesce("email", '')), 'B') || setweight(to_tsvector('english', coalesce("phone", '')), 'C')`
+  ),
 }, (table) => [
   index('customer_email_idx').on(table.email),
   index('customer_phone_idx').on(table.phone),
   index('customer_firstName_lastName_idx').on(table.firstName, table.lastName),
   index('customer_createdAt_idx').on(table.createdAt),
+  index('customer_search_idx').using('gin', table.searchVector),
 ]);
 
 export const tattooArtist = pgTable('tattoo_artist', {
@@ -169,6 +184,9 @@ export const appointment = pgTable('appointment', {
   reminderSent: boolean('reminderSent').notNull().default(false),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow().$onUpdate(() => new Date()),
+  searchVector: tsvector('search_vector').generatedAlwaysAs(
+    sql`setweight(to_tsvector('english', coalesce("firstName", '') || ' ' || coalesce("lastName", '')), 'A') || setweight(to_tsvector('english', coalesce("email", '')), 'B') || setweight(to_tsvector('english', coalesce("description", '') || ' ' || coalesce("notes", '')), 'C') || setweight(to_tsvector('english', coalesce("type", '')), 'D')`
+  ),
 }, (table) => [
   index('appointment_scheduledDate_idx').on(table.scheduledDate),
   index('appointment_status_idx').on(table.status),
@@ -176,6 +194,7 @@ export const appointment = pgTable('appointment', {
   index('appointment_customerId_scheduledDate_idx').on(table.customerId, table.scheduledDate),
   index('appointment_scheduledDate_status_idx').on(table.scheduledDate, table.status),
   index('appointment_createdAt_idx').on(table.createdAt),
+  index('appointment_search_idx').using('gin', table.searchVector),
 ]);
 
 export const tattooSession = pgTable('tattoo_session', {
@@ -203,11 +222,15 @@ export const tattooSession = pgTable('tattoo_session', {
   consentSignedBy: text('consentSignedBy'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow().$onUpdate(() => new Date()),
+  searchVector: tsvector('search_vector').generatedAlwaysAs(
+    sql`setweight(to_tsvector('english', coalesce("designDescription", '')), 'A') || setweight(to_tsvector('english', coalesce("placement", '') || ' ' || coalesce("style", '')), 'B') || setweight(to_tsvector('english', coalesce("notes", '')), 'C')`
+  ),
 }, (table) => [
   index('tattoo_session_appointmentDate_idx').on(table.appointmentDate),
   index('tattoo_session_status_idx').on(table.status),
   index('tattoo_session_appointmentDate_status_idx').on(table.appointmentDate, table.status),
   index('tattoo_session_appointmentDate_totalCost_idx').on(table.appointmentDate, table.totalCost),
+  index('tattoo_session_search_idx').using('gin', table.searchVector),
 ]);
 
 export const tattooDesign = pgTable('tattoo_design', {
@@ -228,12 +251,16 @@ export const tattooDesign = pgTable('tattoo_design', {
   customerId: uuid('customerId').references(() => customer.id),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow().$onUpdate(() => new Date()),
+  searchVector: tsvector('search_vector').generatedAlwaysAs(
+    sql`setweight(to_tsvector('english', coalesce("name", '')), 'A') || setweight(to_tsvector('english', coalesce("description", '') || ' ' || coalesce("style", '')), 'B')`
+  ),
 }, (table) => [
   index('tattoo_design_isApproved_idx').on(table.isApproved),
   index('tattoo_design_designType_idx').on(table.designType),
   index('tattoo_design_artistId_idx').on(table.artistId),
   index('tattoo_design_createdAt_idx').on(table.createdAt),
   index('tattoo_design_isApproved_createdAt_idx').on(table.isApproved, table.createdAt),
+  index('tattoo_design_search_idx').using('gin', table.searchVector),
 ]);
 
 export const contact = pgTable('contact', {
@@ -246,10 +273,14 @@ export const contact = pgTable('contact', {
   adminNotes: text('adminNotes'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow().$onUpdate(() => new Date()),
+  searchVector: tsvector('search_vector').generatedAlwaysAs(
+    sql`setweight(to_tsvector('english', coalesce("name", '')), 'A') || setweight(to_tsvector('english', coalesce("email", '')), 'B') || setweight(to_tsvector('english', coalesce("message", '')), 'C')`
+  ),
 }, (table) => [
   index('contact_email_idx').on(table.email),
   index('contact_status_idx').on(table.status),
   index('contact_createdAt_idx').on(table.createdAt),
+  index('contact_search_idx').using('gin', table.searchVector),
 ]);
 
 export const auditLog = pgTable('audit_log', {
@@ -262,11 +293,15 @@ export const auditLog = pgTable('audit_log', {
   userAgent: text('userAgent').notNull(),
   timestamp: timestamp('timestamp').notNull().defaultNow(),
   metadata: jsonb('metadata'),
+  searchVector: tsvector('search_vector').generatedAlwaysAs(
+    sql`setweight(to_tsvector('english', coalesce("action", '') || ' ' || coalesce("resource", '')), 'A')`
+  ),
 }, (table) => [
   index('audit_log_action_idx').on(table.action),
   index('audit_log_resource_idx').on(table.resource),
   index('audit_log_timestamp_idx').on(table.timestamp),
   index('audit_log_userId_idx').on(table.userId),
+  index('audit_log_search_idx').using('gin', table.searchVector),
 ]);
 
 export const settings = pgTable('settings', {
@@ -338,10 +373,14 @@ export const product = pgTable('product', {
   sortOrder: integer('sortOrder').notNull().default(0),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow().$onUpdate(() => new Date()),
+  searchVector: tsvector('search_vector').generatedAlwaysAs(
+    sql`setweight(to_tsvector('english', coalesce("name", '')), 'A') || setweight(to_tsvector('english', coalesce("description", '')), 'B')`
+  ),
 }, (table) => [
   index('product_productType_idx').on(table.productType),
   index('product_isActive_idx').on(table.isActive),
   index('product_isActive_productType_idx').on(table.isActive, table.productType),
+  index('product_search_idx').using('gin', table.searchVector),
 ]);
 
 export const order = pgTable('order', {
@@ -364,11 +403,15 @@ export const order = pgTable('order', {
   notes: text('notes'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow().$onUpdate(() => new Date()),
+  searchVector: tsvector('search_vector').generatedAlwaysAs(
+    sql`setweight(to_tsvector('english', coalesce("email", '')), 'A') || setweight(to_tsvector('english', coalesce("shippingName", '')), 'B')`
+  ),
 }, (table) => [
   index('order_email_idx').on(table.email),
   index('order_status_idx').on(table.status),
   index('order_createdAt_idx').on(table.createdAt),
   index('order_stripeCheckoutSessionId_idx').on(table.stripeCheckoutSessionId),
+  index('order_search_idx').using('gin', table.searchVector),
 ]);
 
 export const orderItem = pgTable('order_item', {
