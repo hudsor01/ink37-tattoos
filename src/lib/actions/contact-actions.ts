@@ -1,19 +1,20 @@
 'use server';
 
 import { ContactFormSchema } from '@/lib/security/validation';
-import { rateLimit } from '@/lib/security/rate-limiter';
+import { rateLimiters, getHeaderIp } from '@/lib/security/rate-limiter';
 import { createContact } from '@/lib/dal/contacts';
 import { sendContactNotification } from '@/lib/email/resend';
 import { headers } from 'next/headers';
 
 export async function submitContactForm(formData: FormData) {
-  // Rate limiting: 5 requests per 15 minutes per IP
+  // Rate limiting: 5 requests per minute per IP (persistent via Upstash)
   const hdrs = await headers();
-  const ip = hdrs.get('x-forwarded-for') ?? hdrs.get('x-real-ip') ?? 'unknown';
-  if (!rateLimit(ip, 5, 15 * 60 * 1000)) {
+  const ip = getHeaderIp(hdrs);
+  const { success } = await rateLimiters.contact.limit(ip);
+  if (!success) {
     return {
       success: false as const,
-      error: 'Too many requests. Please try again in a few minutes.',
+      error: 'Too many messages. Please try again later.',
     };
   }
 
