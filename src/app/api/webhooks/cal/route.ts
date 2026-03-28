@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
 import { eq, ilike } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
@@ -59,12 +60,16 @@ export async function POST(request: Request) {
     switch (event.triggerEvent) {
       case 'BOOKING_CREATED':
         await handleBookingCreated(payload);
+        revalidatePath('/dashboard/appointments');
+        revalidatePath('/dashboard/customers');
         break;
       case 'BOOKING_RESCHEDULED':
         await handleBookingRescheduled(payload);
+        revalidatePath('/dashboard/appointments');
         break;
       case 'BOOKING_CANCELLED':
         await handleBookingCancelled(payload);
+        revalidatePath('/dashboard/appointments');
         break;
     }
 

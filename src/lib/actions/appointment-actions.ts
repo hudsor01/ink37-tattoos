@@ -1,7 +1,7 @@
 'use server';
 
 import { CreateAppointmentSchema, UpdateAppointmentSchema } from '@/lib/security/validation';
-import { createAppointment, updateAppointment, deleteAppointment } from '@/lib/dal/appointments';
+import { createAppointment, updateAppointment, deleteAppointment, checkSchedulingConflict } from '@/lib/dal/appointments';
 import { logAudit } from '@/lib/dal/audit';
 import { requireRole } from '@/lib/auth';
 import { safeAction } from './safe-action';
@@ -16,6 +16,16 @@ export async function createAppointmentAction(formData: FormData): Promise<Actio
   return safeAction(async () => {
     const raw = Object.fromEntries(formData);
     const validated = CreateAppointmentSchema.parse(raw);
+
+    // Check for scheduling conflicts before creating
+    const hasConflict = await checkSchedulingConflict(
+      new Date(validated.scheduledDate),
+      validated.duration ? validated.duration / 60 : 2 // convert minutes to hours, default 2h
+    );
+    if (hasConflict) {
+      throw new Error('Scheduling conflict: another appointment exists at this time');
+    }
+
     const result = await createAppointment(validated);
 
     const hdrs = await headers();
@@ -42,6 +52,18 @@ export async function updateAppointmentAction(id: string, formData: FormData): P
   return safeAction(async () => {
     const raw = Object.fromEntries(formData);
     const validated = UpdateAppointmentSchema.parse(raw);
+
+    // Check for scheduling conflicts if date is being changed
+    if (validated.scheduledDate) {
+      const hasConflict = await checkSchedulingConflict(
+        new Date(validated.scheduledDate),
+        validated.duration ? validated.duration / 60 : 2 // convert minutes to hours, default 2h
+      );
+      if (hasConflict) {
+        throw new Error('Scheduling conflict: another appointment exists at this time');
+      }
+    }
+
     const result = await updateAppointment(id, validated);
 
     const hdrs = await headers();

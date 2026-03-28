@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { stripe, stripeCentsToDollars } from '@/lib/stripe';
 import { db } from '@/lib/db';
 import { eq, and, or, sql } from 'drizzle-orm';
@@ -64,25 +65,36 @@ export async function POST(request: Request) {
         const orderType = checkoutSession.metadata?.orderType;
         if (orderType === 'store') {
           await handleStoreCheckoutCompleted(checkoutSession);
+          revalidatePath('/dashboard/orders');
         } else if (orderType === 'gift_card') {
           await handleGiftCardCheckoutCompleted(checkoutSession);
+          // No dashboard page for gift cards yet (Phase 16)
         } else {
           await handleCheckoutCompleted(checkoutSession);
+          revalidatePath('/dashboard/payments');
+          revalidatePath('/dashboard/sessions');
         }
+        revalidatePath('/portal');
         break;
       }
       case 'payment_intent.succeeded':
         await handlePaymentSucceeded(
           event.data.object as Stripe.PaymentIntent
         );
+        revalidatePath('/dashboard/payments');
+        revalidatePath('/portal');
         break;
       case 'payment_intent.payment_failed':
         await handlePaymentFailed(
           event.data.object as Stripe.PaymentIntent
         );
+        revalidatePath('/dashboard/payments');
         break;
       case 'charge.refunded':
         await handleChargeRefunded(event.data.object as Stripe.Charge);
+        revalidatePath('/dashboard/payments');
+        revalidatePath('/dashboard/sessions');
+        revalidatePath('/portal');
         break;
     }
 
