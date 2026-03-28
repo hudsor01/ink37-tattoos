@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { ScrollText } from 'lucide-react';
+import { EmptyState } from '@/components/dashboard/empty-state';
 import { Button } from '@/components/ui/button';
 import { AuditLogEntry } from '@/components/dashboard/audit-log-entry';
 
@@ -40,6 +42,16 @@ const ACTION_OPTIONS = [
 export function AuditLogClient({ initialLogs }: AuditLogClientProps) {
   const [resourceFilter, setResourceFilter] = useState('');
   const [actionFilter, setActionFilter] = useState('');
+
+  if (initialLogs.length === 0) {
+    return (
+      <EmptyState
+        icon={ScrollText}
+        title="No activity recorded"
+        description="Actions performed in the dashboard will be logged here."
+      />
+    );
+  }
 
   const filteredLogs = initialLogs.filter((log) => {
     if (resourceFilter && log.resource !== resourceFilter) return false;
