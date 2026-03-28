@@ -3,46 +3,47 @@
 import { ContactFormSchema } from '@/lib/security/validation';
 import { rateLimiters, getHeaderIp } from '@/lib/security/rate-limiter';
 import { createContact } from '@/lib/dal/contacts';
+import { logAudit } from '@/lib/dal/audit';
 import { sendContactNotification } from '@/lib/email/resend';
+import { safeAction } from './safe-action';
+import type { ActionResult } from './types';
+import { after } from 'next/server';
 import { headers } from 'next/headers';
 
-export async function submitContactForm(formData: FormData) {
-  // Rate limiting: 5 requests per minute per IP (persistent via Upstash)
+export async function submitContactForm(formData: FormData): Promise<ActionResult<void>> {
+  // Rate limiting: stays BEFORE safeAction (middleware-like)
   const hdrs = await headers();
   const ip = getHeaderIp(hdrs);
   const { success } = await rateLimiters.contact.limit(ip);
   if (!success) {
     return {
-      success: false as const,
+      success: false,
       error: 'Too many messages. Please try again later.',
     };
   }
 
-  // Validate input
-  const raw = Object.fromEntries(formData);
-  const result = ContactFormSchema.safeParse(raw);
-  if (!result.success) {
-    return {
-      success: false as const,
-      errors: result.error.flatten().fieldErrors,
-    };
-  }
+  return safeAction(async () => {
+    const raw = Object.fromEntries(formData);
+    const validated = ContactFormSchema.parse(raw);
 
-  try {
     // Store in database
-    await createContact(result.data);
+    await createContact(validated);
 
     // Send email notifications (non-blocking for the response)
-    sendContactNotification(result.data).catch((err) =>
+    sendContactNotification(validated).catch((err) =>
       console.error('Contact email notification failed:', err)
     );
 
-    return { success: true as const };
-  } catch (error) {
-    console.error('Contact form submission failed:', error);
-    return {
-      success: false as const,
-      error: 'Something went wrong. Please try again.',
-    };
-  }
+    // Audit logging for public contact form (anonymous)
+    after(() =>
+      logAudit({
+        userId: 'anonymous',
+        action: 'CREATE',
+        resource: 'contact',
+        ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+        userAgent: hdrs.get('user-agent') ?? 'unknown',
+        metadata: { email: validated.email, name: validated.name },
+      })
+    );
+  });
 }
