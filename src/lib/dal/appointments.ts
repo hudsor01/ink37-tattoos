@@ -7,6 +7,8 @@ import { eq, and, gte, lte, desc, asc, sql, not, inArray } from 'drizzle-orm';
 import { isWithinInterval, addHours } from 'date-fns';
 import * as schema from '@/lib/db/schema';
 import type { CreateAppointmentData, UpdateAppointmentData } from '@/lib/security/validation';
+import type { PaginationParams, PaginatedResult } from './types';
+import { DEFAULT_PAGE_SIZE } from './types';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
 
@@ -19,12 +21,62 @@ async function requireStaffRole() {
   return session;
 }
 
-export const getAppointments = cache(async () => {
+export const getAppointments = cache(async (
+  params: PaginationParams = { page: 1, pageSize: DEFAULT_PAGE_SIZE }
+): Promise<PaginatedResult<{
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  scheduledDate: Date;
+  duration: number | null;
+  status: string;
+  type: string;
+  customerId: string;
+  customerFirstName: string | null;
+  customerLastName: string | null;
+  customerEmail: string | null;
+}>> => {
   await requireStaffRole();
-  return db.query.appointment.findMany({
-    orderBy: [desc(schema.appointment.scheduledDate)],
-    with: { customer: { columns: { firstName: true, lastName: true, email: true } } },
-  });
+
+  const conditions = [];
+  if (params.search) {
+    conditions.push(
+      sql`${schema.appointment.searchVector} @@ plainto_tsquery('english', ${params.search})`
+    );
+  }
+
+  const results = await db.select({
+    id: schema.appointment.id,
+    firstName: schema.appointment.firstName,
+    lastName: schema.appointment.lastName,
+    email: schema.appointment.email,
+    scheduledDate: schema.appointment.scheduledDate,
+    duration: schema.appointment.duration,
+    status: schema.appointment.status,
+    type: schema.appointment.type,
+    customerId: schema.appointment.customerId,
+    customerFirstName: schema.customer.firstName,
+    customerLastName: schema.customer.lastName,
+    customerEmail: schema.customer.email,
+    total: sql<number>`cast(count(*) over() as integer)`,
+  })
+    .from(schema.appointment)
+    .leftJoin(schema.customer, eq(schema.appointment.customerId, schema.customer.id))
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(desc(schema.appointment.scheduledDate))
+    .limit(params.pageSize)
+    .offset((params.page - 1) * params.pageSize);
+
+  const total = results[0]?.total ?? 0;
+
+  return {
+    data: results.map(({ total: _, ...row }) => row),
+    total,
+    page: params.page,
+    pageSize: params.pageSize,
+    totalPages: Math.ceil(total / params.pageSize),
+  };
 });
 
 export const getAppointmentById = cache(async (id: string) => {
