@@ -58,7 +58,7 @@ export function AdminNav() {
   }
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" aria-label="Dashboard navigation">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
