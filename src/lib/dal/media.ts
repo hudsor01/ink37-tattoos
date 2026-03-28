@@ -89,6 +89,7 @@ export async function createMediaItem(data: {
 }) {
   await requireStaffRole();
   const [result] = await db.insert(schema.tattooDesign).values(data).returning();
+  if (!result) throw new Error('Failed to create media item: no result returned');
   return result;
 }
 
@@ -112,6 +113,7 @@ export async function updateMediaItem(
     .set(data)
     .where(eq(schema.tattooDesign.id, id))
     .returning();
+  if (!result) throw new Error('Media item not found');
   return result;
 }
 
@@ -120,6 +122,7 @@ export async function deleteMediaItem(id: string) {
   const [result] = await db.delete(schema.tattooDesign)
     .where(eq(schema.tattooDesign.id, id))
     .returning();
+  if (!result) throw new Error('Media item not found');
   return result;
 }
 
@@ -129,5 +132,6 @@ export async function togglePublicVisibility(id: string, isPublic: boolean) {
     .set({ isPublic })
     .where(eq(schema.tattooDesign.id, id))
     .returning();
+  if (!result) throw new Error('Media item not found');
   return result;
 }

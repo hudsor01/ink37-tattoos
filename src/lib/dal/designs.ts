@@ -8,6 +8,17 @@ import * as schema from '@/lib/db/schema';
 import type { PaginationParams, PaginatedResult } from './types';
 import { DEFAULT_PAGE_SIZE } from './types';
 
+const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
+
+async function requireStaffRole() {
+  const session = await getCurrentSession();
+  if (!session?.user) redirect('/login');
+  if (!STAFF_ROLES.includes(session.user.role)) {
+    throw new Error('Insufficient permissions: requires staff role or above');
+  }
+  return session;
+}
+
 // PUBLIC -- no auth required (gallery content is public per locked decision)
 export const getPublicDesigns = cache(async (filters?: { style?: string; tags?: string[] }) => {
   const conditions = [
@@ -91,3 +102,16 @@ export const getAllDesigns = cache(async (
     totalPages: Math.ceil(total / params.pageSize),
   };
 });
+
+/**
+ * Update a design's approval status. Requires staff role.
+ */
+export async function updateDesignApprovalStatus(id: string, isApproved: boolean) {
+  await requireStaffRole();
+  const [result] = await db.update(schema.tattooDesign)
+    .set({ isApproved })
+    .where(eq(schema.tattooDesign.id, id))
+    .returning();
+  if (!result) throw new Error('Design not found');
+  return result;
+}

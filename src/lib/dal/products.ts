@@ -110,6 +110,7 @@ export async function createProduct(data: CreateProductData & { stripeProductId?
     stripeProductId: data.stripeProductId,
     stripePriceId: data.stripePriceId,
   }).returning();
+  if (!result) throw new Error('Failed to create product: no result returned');
   return result;
 }
 
@@ -123,6 +124,7 @@ export async function updateProduct(data: UpdateProductData & { stripePriceId?: 
     .set(updateData)
     .where(eq(schema.product.id, id))
     .returning();
+  if (!result) throw new Error('Product not found');
   return result;
 }
 
@@ -135,5 +137,6 @@ export async function deleteProduct(id: string) {
     .set({ isActive: false })
     .where(eq(schema.product.id, id))
     .returning();
+  if (!result) throw new Error('Product not found');
   return result;
 }

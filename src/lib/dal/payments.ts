@@ -66,6 +66,7 @@ export async function createPaymentRecord(data: {
     amount: data.amount,
     stripeCheckoutSessionId: data.stripeCheckoutSessionId,
   }).returning();
+  if (!result) throw new Error('Failed to create payment record: no result returned');
   return result;
 }
 

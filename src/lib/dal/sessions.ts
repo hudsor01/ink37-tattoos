@@ -89,10 +89,28 @@ export const getSessionById = cache(async (id: string) => {
 
 export async function createSession(data: CreateSessionData) {
   await requireStaffRole();
+
+  // FK validation: verify customerId exists
+  const customer = await db.query.customer.findFirst({
+    where: eq(schema.customer.id, data.customerId),
+    columns: { id: true },
+  });
+  if (!customer) throw new Error('Customer not found: the specified customer does not exist');
+
+  // FK validation: verify artistId exists
+  if (data.artistId) {
+    const artist = await db.query.tattooArtist.findFirst({
+      where: eq(schema.tattooArtist.id, data.artistId),
+      columns: { id: true },
+    });
+    if (!artist) throw new Error('Artist not found: the specified artist does not exist');
+  }
+
   const [result] = await db.insert(schema.tattooSession).values({
     ...data,
     appointmentDate: new Date(data.appointmentDate),
   }).returning();
+  if (!result) throw new Error('Failed to create session: no result returned');
   return result;
 }
 
@@ -106,6 +124,7 @@ export async function updateSession(id: string, data: Partial<CreateSessionData>
     .set(setData)
     .where(eq(schema.tattooSession.id, id))
     .returning();
+  if (!result) throw new Error('Session not found');
   return result;
 }
 
@@ -114,5 +133,6 @@ export async function deleteSession(id: string) {
   const [result] = await db.delete(schema.tattooSession)
     .where(eq(schema.tattooSession.id, id))
     .returning();
+  if (!result) throw new Error('Session not found');
   return result;
 }

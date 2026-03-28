@@ -192,6 +192,7 @@ export async function updateOrderStatus(data: {
     })
     .where(eq(schema.order.id, data.orderId))
     .returning();
+  if (!result) throw new Error('Order not found');
   return result;
 }
 

@@ -89,10 +89,19 @@ export const getAppointmentById = cache(async (id: string) => {
 
 export async function createAppointment(data: CreateAppointmentData) {
   await requireStaffRole();
+
+  // FK validation: verify customerId exists
+  const customer = await db.query.customer.findFirst({
+    where: eq(schema.customer.id, data.customerId),
+    columns: { id: true },
+  });
+  if (!customer) throw new Error('Customer not found: the specified customer does not exist');
+
   const [result] = await db.insert(schema.appointment).values({
     ...data,
     scheduledDate: new Date(data.scheduledDate),
   }).returning();
+  if (!result) throw new Error('Failed to create appointment: no result returned');
   return result;
 }
 
@@ -108,6 +117,7 @@ export async function updateAppointment(id: string, data: UpdateAppointmentData)
     .set(setData)
     .where(eq(schema.appointment.id, id))
     .returning();
+  if (!result) throw new Error('Appointment not found');
   return result;
 }
 
@@ -116,6 +126,7 @@ export async function deleteAppointment(id: string) {
   const [result] = await db.delete(schema.appointment)
     .where(eq(schema.appointment.id, id))
     .returning();
+  if (!result) throw new Error('Appointment not found');
   return result;
 }
 
