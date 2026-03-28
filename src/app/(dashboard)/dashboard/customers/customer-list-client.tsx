@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import { useQueryState, parseAsString } from 'nuqs';
 
-import { DataTable } from '@/components/dashboard/data-table';
+import { ResponsiveDataTable, type MobileField } from '@/components/dashboard/responsive-data-table';
 import { SearchInput } from '@/components/dashboard/search-input';
 import { CustomerForm } from '@/components/dashboard/customer-form';
 import { Button } from '@/components/ui/button';
@@ -157,6 +157,12 @@ export function CustomerListClient() {
     },
   ];
 
+  const mobileFields: MobileField<Customer>[] = [
+    { label: 'Name', accessor: (c) => `${c.firstName} ${c.lastName}` },
+    { label: 'Email', accessor: (c) => c.email ?? '-' },
+    { label: 'Phone', accessor: (c) => c.phone ?? '-' },
+  ];
+
   if (customers.length === 0) {
     return (
       <div className="space-y-6">
@@ -225,9 +231,30 @@ export function CustomerListClient() {
         placeholder="Search by name or email..."
       />
 
-      <DataTable
+      <ResponsiveDataTable
         columns={columns}
         data={filteredCustomers}
+        mobileFields={mobileFields}
+        mobileActions={(row) => (
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">Actions</span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem render={<Link href={`/dashboard/customers/${row.id}`} />}>
+                View
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setEditCustomer(row)}>
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="destructive" onClick={() => setDeleteId(row.id)}>
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       />
 
       {/* Edit Dialog */}

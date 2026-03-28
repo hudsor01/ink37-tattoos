@@ -1,10 +1,10 @@
 import { connection } from 'next/server';
 import { getPayments, getPaymentStats } from '@/lib/dal/payments';
 import { getSessions } from '@/lib/dal/sessions';
-import { DataTable } from '@/components/dashboard/data-table';
+import { ResponsiveDataTable } from '@/components/dashboard/responsive-data-table';
 import { KPICard } from '@/components/dashboard/kpi-card';
 import { RequestPaymentDialog } from '@/components/dashboard/request-payment-dialog';
-import { columns } from './columns';
+import { columns, paymentMobileFields } from './columns';
 import { DollarSign, Clock, ArrowDownRight, CreditCard } from 'lucide-react';
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
@@ -61,12 +61,13 @@ export default async function PaymentsPage() {
         />
       </div>
 
-      <DataTable
+      <ResponsiveDataTable
         columns={columns}
         data={payments}
         searchKey="customer"
         searchPlaceholder="Search by customer name..."
         pageSize={15}
+        mobileFields={paymentMobileFields}
       />
     </div>
   );
