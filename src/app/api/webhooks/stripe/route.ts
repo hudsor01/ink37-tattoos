@@ -7,10 +7,18 @@ import type Stripe from 'stripe';
 import { getOrderByCheckoutSessionId } from '@/lib/dal/orders';
 import { createGiftCard, redeemGiftCard } from '@/lib/dal/gift-cards';
 import { sendOrderConfirmationEmail, sendGiftCardEmail, sendGiftCardPurchaseConfirmationEmail } from '@/lib/email/resend';
+import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(request: Request) {
+  // Rate limiting
+  const ip = getRequestIp(request);
+  const { success, reset } = await rateLimiters.webhook.limit(ip);
+  if (!success) {
+    return rateLimitResponse(reset);
+  }
+
   // D-13 / SEC-05: Raw body for signature verification
   const body = await request.text();
   const sig = request.headers.get('stripe-signature');
@@ -33,11 +41,18 @@ export async function POST(request: Request) {
     );
   }
 
-  // D-12: Idempotency -- check if event already processed
-  const existingEvent = await db.query.stripeEvent.findFirst({
-    where: eq(schema.stripeEvent.stripeEventId, event.id),
-  });
-  if (existingEvent) {
+  // D-09/SEC-07: Atomic idempotency -- single INSERT with ON CONFLICT
+  const [inserted] = await db.insert(schema.stripeEvent)
+    .values({
+      stripeEventId: event.id,
+      type: event.type,
+      processedAt: new Date(),
+    })
+    .onConflictDoNothing({ target: schema.stripeEvent.stripeEventId })
+    .returning();
+
+  if (!inserted) {
+    // Event already processed -- idempotent success
     return NextResponse.json({ received: true });
   }
 
@@ -71,12 +86,6 @@ export async function POST(request: Request) {
         break;
     }
 
-    // Mark event as processed (D-12)
-    await db.insert(schema.stripeEvent).values({
-      stripeEventId: event.id,
-      type: event.type,
-      processedAt: new Date(),
-    });
   } catch (err) {
     console.error(`Webhook handler error for ${event.type}:`, err);
     return NextResponse.json(
