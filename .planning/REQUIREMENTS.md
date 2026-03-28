@@ -11,45 +11,45 @@ Requirements for admin panel rebuild. Each maps to roadmap phases. Derived from 
 
 - [ ] **SEC-01**: Dashboard layout enforces auth at layout level -- unauthenticated users redirected before any child page renders
 - [ ] **SEC-02**: Portal layout enforces auth at layout level -- unauthenticated users redirected before any child page renders
-- [x] **SEC-03**: All public API routes have rate limiting (store download, portal billing, contact form, webhooks)
-- [x] **SEC-04**: Rate limiter uses persistent storage (not in-memory Map) suitable for serverless/distributed deployment
-- [x] **SEC-05**: All server actions validate user role explicitly before calling DAL (not relying on DAL throw for role errors)
-- [x] **SEC-06**: All string inputs sanitized for XSS before rendering in dashboard components (customer names, notes, descriptions)
-- [x] **SEC-07**: Stripe webhook handler prevents race conditions on duplicate event processing (atomic idempotency check)
-- [x] **SEC-08**: Cal.com webhook validates payload structure with runtime schema checks beyond TypeScript casting
-- [x] **SEC-09**: API routes distinguish between auth failures and DB errors with appropriate status codes and logging
+- [ ] **SEC-03**: All public API routes have rate limiting (store download, portal billing, contact form, webhooks)
+- [ ] **SEC-04**: Rate limiter uses persistent storage (not in-memory Map) suitable for serverless/distributed deployment
+- [ ] **SEC-05**: All server actions validate user role explicitly before calling DAL (not relying on DAL throw for role errors)
+- [ ] **SEC-06**: All string inputs sanitized for XSS before rendering in dashboard components (customer names, notes, descriptions)
+- [ ] **SEC-07**: Stripe webhook handler prevents race conditions on duplicate event processing (atomic idempotency check)
+- [ ] **SEC-08**: Cal.com webhook validates payload structure with runtime schema checks beyond TypeScript casting
+- [ ] **SEC-09**: API routes distinguish between auth failures and DB errors with appropriate status codes and logging
 - [ ] **SEC-10**: BLOB_PRIVATE_READ_WRITE_TOKEN added to Zod env schema as required field (TD-03)
 
 ### Data Layer
 
-- [x] **DAL-01**: All list DAL functions support cursor/offset pagination with configurable page size
-- [x] **DAL-02**: All list DAL functions support search/filter by relevant text fields (name, email, phone, description)
-- [x] **DAL-03**: Analytics aggregation queries use SQL GROUP BY with date_trunc instead of loading all rows into JavaScript (revenue, client acquisition, booking trends)
-- [x] **DAL-04**: All server actions return consistent `{ success, data?, error? }` pattern (no mixed throw/return)
-- [x] **DAL-05**: All DAL mutation functions validate foreign key references exist before insert (customerId, artistId)
-- [x] **DAL-06**: All DAL mutations that use `.returning()` handle empty result arrays gracefully
-- [x] **DAL-07**: Missing DAL functions created: artist profile CRUD, design approval status, contact management (update/delete)
-- [x] **DAL-08**: Webhook handlers (Stripe, Cal.com, Resend) call revalidatePath after state changes so dashboard reflects updates
-- [x] **DAL-09**: Store checkout page uses DAL function instead of direct db.query call
-- [x] **DAL-10**: All mutation server actions include audit logging (media, contacts, settings, portal actions currently missing)
-- [x] **DAL-11**: checkSchedulingConflict() function wired into appointment creation/update flow (currently orphaned)
-- [x] **DAL-12**: Gift card validation in store checkout returns explicit error to user when code is invalid (not silent fallback to 0)
+- [ ] **DAL-01**: All list DAL functions support cursor/offset pagination with configurable page size
+- [ ] **DAL-02**: All list DAL functions support search/filter by relevant text fields (name, email, phone, description)
+- [ ] **DAL-03**: Analytics aggregation queries use SQL GROUP BY with date_trunc instead of loading all rows into JavaScript (revenue, client acquisition, booking trends)
+- [ ] **DAL-04**: All server actions return consistent `{ success, data?, error? }` pattern (no mixed throw/return)
+- [ ] **DAL-05**: All DAL mutation functions validate foreign key references exist before insert (customerId, artistId)
+- [ ] **DAL-06**: All DAL mutations that use `.returning()` handle empty result arrays gracefully
+- [ ] **DAL-07**: Missing DAL functions created: artist profile CRUD, design approval status, contact management (update/delete)
+- [ ] **DAL-08**: Webhook handlers (Stripe, Cal.com, Resend) call revalidatePath after state changes so dashboard reflects updates
+- [ ] **DAL-09**: Store checkout page uses DAL function instead of direct db.query call
+- [ ] **DAL-10**: All mutation server actions include audit logging (media, contacts, settings, portal actions currently missing)
+- [ ] **DAL-11**: checkSchedulingConflict() function wired into appointment creation/update flow (currently orphaned)
+- [ ] **DAL-12**: Gift card validation in store checkout returns explicit error to user when code is invalid (not silent fallback to 0)
 
 ### UI Quality
 
-- [ ] **UI-01**: Every dashboard page has loading.tsx with skeleton placeholders appropriate to the page layout
-- [ ] **UI-02**: Every dashboard page has error.tsx with retry button and user-friendly error message
-- [ ] **UI-03**: Every list page has an empty state component when no data exists (not blank space)
+- [x] **UI-01**: Every dashboard page has loading.tsx with skeleton placeholders appropriate to the page layout
+- [x] **UI-02**: Every dashboard page has error.tsx with retry button and user-friendly error message
+- [x] **UI-03**: Every list page has an empty state component when no data exists (not blank space)
 - [ ] **UI-04**: All dashboard pages are responsive on mobile -- tables collapse to card views, forms stack vertically, sidebar collapses
 - [ ] **UI-05**: All interactive elements have proper ARIA labels, all decorative icons have aria-hidden, all charts have alt text
-- [x] **UI-06**: All forms show field-level validation errors below inputs (not just toast on submit failure)
+- [ ] **UI-06**: All forms show field-level validation errors below inputs (not just toast on submit failure)
 - [ ] **UI-07**: All destructive actions use AlertDialog confirmation (no browser confirm() calls)
-- [x] **UI-08**: All date inputs use date picker components (not raw text inputs)
+- [ ] **UI-08**: All date inputs use date picker components (not raw text inputs)
 - [ ] **UI-09**: Consistent toast patterns across all mutations (success, error, loading states via toast.promise)
-- [x] **UI-10**: Dynamic breadcrumbs on all dashboard pages reflecting current route (not hardcoded "Dashboard")
-- [x] **UI-11**: Unsaved changes warning on all forms when navigating away mid-edit
+- [ ] **UI-10**: Dynamic breadcrumbs on all dashboard pages reflecting current route (not hardcoded "Dashboard")
+- [ ] **UI-11**: Unsaved changes warning on all forms when navigating away mid-edit
 - [ ] **UI-12**: Dead imports removed, unused Tab imports cleaned up from customer/appointment forms
-- [x] **UI-13**: StatusBadge uses theme-aware color tokens (not hardcoded Tailwind classes)
+- [ ] **UI-13**: StatusBadge uses theme-aware color tokens (not hardcoded Tailwind classes)
 
 ### Missing Pages
 
@@ -147,39 +147,39 @@ Deferred beyond v2.0.
 |-------------|-------|--------|
 | SEC-01 | Phase 13 | Pending |
 | SEC-02 | Phase 13 | Pending |
-| SEC-03 | Phase 13 | Complete |
-| SEC-04 | Phase 13 | Complete |
-| SEC-05 | Phase 13 | Complete |
-| SEC-06 | Phase 13 | Complete |
-| SEC-07 | Phase 13 | Complete |
-| SEC-08 | Phase 13 | Complete |
-| SEC-09 | Phase 13 | Complete |
+| SEC-03 | Phase 13 | Pending |
+| SEC-04 | Phase 13 | Pending |
+| SEC-05 | Phase 13 | Pending |
+| SEC-06 | Phase 13 | Pending |
+| SEC-07 | Phase 13 | Pending |
+| SEC-08 | Phase 13 | Pending |
+| SEC-09 | Phase 13 | Pending |
 | SEC-10 | Phase 13 | Pending |
-| DAL-01 | Phase 14 | Complete |
-| DAL-02 | Phase 14 | Complete |
-| DAL-03 | Phase 14 | Complete |
-| DAL-04 | Phase 14 | Complete |
-| DAL-05 | Phase 14 | Complete |
-| DAL-06 | Phase 14 | Complete |
-| DAL-07 | Phase 14 | Complete |
-| DAL-08 | Phase 14 | Complete |
-| DAL-09 | Phase 14 | Complete |
-| DAL-10 | Phase 14 | Complete |
-| DAL-11 | Phase 14 | Complete |
-| DAL-12 | Phase 14 | Complete |
-| UI-01 | Phase 15 | Pending |
-| UI-02 | Phase 15 | Pending |
-| UI-03 | Phase 15 | Pending |
-| UI-04 | Phase 15 | In Progress (wrapper built, pages need migration) |
+| DAL-01 | Phase 14 | Pending |
+| DAL-02 | Phase 14 | Pending |
+| DAL-03 | Phase 14 | Pending |
+| DAL-04 | Phase 14 | Pending |
+| DAL-05 | Phase 14 | Pending |
+| DAL-06 | Phase 14 | Pending |
+| DAL-07 | Phase 14 | Pending |
+| DAL-08 | Phase 14 | Pending |
+| DAL-09 | Phase 14 | Pending |
+| DAL-10 | Phase 14 | Pending |
+| DAL-11 | Phase 14 | Pending |
+| DAL-12 | Phase 14 | Pending |
+| UI-01 | Phase 15 | Complete |
+| UI-02 | Phase 15 | Complete |
+| UI-03 | Phase 15 | Complete |
+| UI-04 | Phase 15 | Pending |
 | UI-05 | Phase 15 | Pending |
-| UI-06 | Phase 15 | Complete (15-01) |
+| UI-06 | Phase 15 | Pending |
 | UI-07 | Phase 15 | Pending |
-| UI-08 | Phase 15 | Complete (15-01) |
+| UI-08 | Phase 15 | Pending |
 | UI-09 | Phase 15 | Pending |
-| UI-10 | Phase 15 | Complete (15-01) |
-| UI-11 | Phase 15 | Complete (15-01) |
+| UI-10 | Phase 15 | Pending |
+| UI-11 | Phase 15 | Pending |
 | UI-12 | Phase 15 | Pending |
-| UI-13 | Phase 15 | Complete (15-01) |
+| UI-13 | Phase 15 | Pending |
 | PAGE-01 | Phase 16 | Pending |
 | PAGE-02 | Phase 16 | Pending |
 | PAGE-04 | Phase 16 | Pending |

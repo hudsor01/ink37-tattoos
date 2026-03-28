@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { EmptyState } from '@/components/dashboard/empty-state';
 import { Mail, Phone, MessageSquare } from 'lucide-react';
 
 type Contact = {
@@ -58,15 +59,11 @@ export function ContactsClient({ contacts }: ContactsClientProps) {
 
   if (contacts.length === 0) {
     return (
-      <Card>
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <MessageSquare className="h-10 w-10 text-muted-foreground/50 mb-3" />
-          <h3 className="text-lg font-semibold">No contact submissions</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Messages from the contact form will appear here.
-          </p>
-        </CardContent>
-      </Card>
+      <EmptyState
+        icon={Mail}
+        title="No contact submissions"
+        description="Messages from your contact form will appear here."
+      />
     );
   }
 

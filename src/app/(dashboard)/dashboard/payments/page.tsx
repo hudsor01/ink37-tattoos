@@ -5,6 +5,7 @@ import { DataTable } from '@/components/dashboard/data-table';
 import { KPICard } from '@/components/dashboard/kpi-card';
 import { RequestPaymentDialog } from '@/components/dashboard/request-payment-dialog';
 import { columns } from './columns';
+import { EmptyState } from '@/components/dashboard/empty-state';
 import { DollarSign, Clock, ArrowDownRight, CreditCard } from 'lucide-react';
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
@@ -61,13 +62,21 @@ export default async function PaymentsPage() {
         />
       </div>
 
-      <DataTable
-        columns={columns}
-        data={payments}
-        searchKey="customer"
-        searchPlaceholder="Search by customer name..."
-        pageSize={15}
-      />
+      {payments.length > 0 ? (
+        <DataTable
+          columns={columns}
+          data={payments}
+          searchKey="customer"
+          searchPlaceholder="Search by customer name..."
+          pageSize={15}
+        />
+      ) : (
+        <EmptyState
+          icon={CreditCard}
+          title="No payments yet"
+          description="Payments will appear here once sessions are completed."
+        />
+      )}
     </div>
   );
 }

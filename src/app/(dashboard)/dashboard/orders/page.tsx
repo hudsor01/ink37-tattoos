@@ -9,6 +9,7 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
 } from '@/components/ui/breadcrumb';
+import { EmptyState } from '@/components/dashboard/empty-state';
 import { DollarSign, Clock, ShoppingBag } from 'lucide-react';
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
@@ -72,13 +73,11 @@ export default async function OrdersPage() {
           pageSize={15}
         />
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-          <ShoppingBag className="h-12 w-12 text-muted-foreground/50 mb-4" />
-          <h3 className="text-lg font-semibold">No orders yet</h3>
-          <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-            Orders will appear here once customers make purchases from the store.
-          </p>
-        </div>
+        <EmptyState
+          icon={ShoppingBag}
+          title="No orders yet"
+          description="Orders from your online store will appear here."
+        />
       )}
     </div>
   );
