@@ -3,7 +3,7 @@
 import { db } from '@/lib/db';
 import { eq, and } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
-import { getCurrentSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth';
 import { ConsentSignSchema, UpdatePortalProfileSchema } from '@/lib/security/validation';
 import { revalidatePath } from 'next/cache';
 
@@ -12,10 +12,7 @@ import { revalidatePath } from 'next/cache';
  * Validates input, verifies ownership (IDOR protection), prevents re-signing (D-10).
  */
 export async function signConsentAction(formData: FormData) {
-  const session = await getCurrentSession();
-  if (!session?.user) {
-    return { success: false, error: 'You must be logged in to sign consent.' };
-  }
+  const session = await requireRole('user');
 
   // Parse and validate input
   const parseResult = ConsentSignSchema.safeParse({
@@ -75,10 +72,7 @@ export async function signConsentAction(formData: FormData) {
  * Only allows non-medical fields per D-04.
  */
 export async function updateProfileAction(formData: FormData) {
-  const session = await getCurrentSession();
-  if (!session?.user) {
-    return { success: false, error: 'You must be logged in to update your profile.' };
-  }
+  const session = await requireRole('user');
 
   // Parse and validate input
   const parseResult = UpdatePortalProfileSchema.safeParse({

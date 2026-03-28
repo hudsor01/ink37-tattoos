@@ -3,14 +3,13 @@
 import { CreateAppointmentSchema, UpdateAppointmentSchema } from '@/lib/security/validation';
 import { createAppointment, updateAppointment, deleteAppointment } from '@/lib/dal/appointments';
 import { logAudit } from '@/lib/dal/audit';
-import { getCurrentSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth';
 import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
 export async function createAppointmentAction(formData: FormData) {
-  const session = await getCurrentSession();
-  if (!session?.user) throw new Error('Unauthorized');
+  const session = await requireRole('admin');
 
   const raw = Object.fromEntries(formData);
   const validated = CreateAppointmentSchema.parse(raw);
@@ -34,8 +33,7 @@ export async function createAppointmentAction(formData: FormData) {
 }
 
 export async function updateAppointmentAction(id: string, formData: FormData) {
-  const session = await getCurrentSession();
-  if (!session?.user) throw new Error('Unauthorized');
+  const session = await requireRole('admin');
 
   const raw = Object.fromEntries(formData);
   const validated = UpdateAppointmentSchema.parse(raw);
@@ -59,8 +57,7 @@ export async function updateAppointmentAction(id: string, formData: FormData) {
 }
 
 export async function deleteAppointmentAction(id: string) {
-  const session = await getCurrentSession();
-  if (!session?.user) throw new Error('Unauthorized');
+  const session = await requireRole('admin');
 
   await deleteAppointment(id);
 

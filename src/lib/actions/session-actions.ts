@@ -3,14 +3,13 @@
 import { CreateSessionSchema, type CreateSessionData } from '@/lib/security/validation';
 import { createSession, updateSession, deleteSession } from '@/lib/dal/sessions';
 import { logAudit } from '@/lib/dal/audit';
-import { getCurrentSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth';
 import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
 export async function createSessionAction(formData: FormData) {
-  const session = await getCurrentSession();
-  if (!session?.user) throw new Error('Unauthorized');
+  const session = await requireRole('admin');
 
   const raw = Object.fromEntries(formData);
   const data = {
@@ -42,8 +41,7 @@ export async function createSessionAction(formData: FormData) {
 }
 
 export async function updateSessionAction(id: string, formData: FormData) {
-  const session = await getCurrentSession();
-  if (!session?.user) throw new Error('Unauthorized');
+  const session = await requireRole('admin');
 
   const raw = Object.fromEntries(formData);
   const data: Record<string, unknown> = { ...raw };
@@ -73,8 +71,7 @@ export async function updateSessionAction(id: string, formData: FormData) {
 }
 
 export async function deleteSessionAction(id: string) {
-  const session = await getCurrentSession();
-  if (!session?.user) throw new Error('Unauthorized');
+  const session = await requireRole('admin');
 
   await deleteSession(id);
 

@@ -4,7 +4,7 @@ import { stripe } from '@/lib/stripe';
 import { getOrderById, updateOrderStatus } from '@/lib/dal/orders';
 import { UpdateOrderStatusSchema } from '@/lib/security/validation';
 import { logAudit } from '@/lib/dal/audit';
-import { getCurrentSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth';
 import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
@@ -13,8 +13,7 @@ import { revalidatePath } from 'next/cache';
  * Update an order's status. Requires staff role (enforced by DAL).
  */
 export async function updateOrderStatusAction(formData: FormData) {
-  const session = await getCurrentSession();
-  if (!session?.user) throw new Error('Unauthorized');
+  const session = await requireRole('admin');
 
   const validated = UpdateOrderStatusSchema.parse({
     orderId: formData.get('orderId'),
@@ -47,8 +46,7 @@ export async function updateOrderStatusAction(formData: FormData) {
  * Issue a refund for an order via Stripe and update status.
  */
 export async function refundOrderAction(formData: FormData) {
-  const session = await getCurrentSession();
-  if (!session?.user) throw new Error('Unauthorized');
+  const session = await requireRole('admin');
 
   const orderId = formData.get('orderId') as string;
   if (!orderId) throw new Error('Order ID is required');

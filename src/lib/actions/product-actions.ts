@@ -4,7 +4,7 @@ import { stripe, dollarsToStripeCents } from '@/lib/stripe';
 import { createProduct, updateProduct, deleteProduct, getProductById } from '@/lib/dal/products';
 import { CreateProductSchema, UpdateProductSchema } from '@/lib/security/validation';
 import { logAudit } from '@/lib/dal/audit';
-import { getCurrentSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth';
 import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
@@ -14,8 +14,7 @@ import { revalidatePath } from 'next/cache';
  * Creates Stripe Product + Price, then stores IDs in local DB.
  */
 export async function createProductAction(formData: FormData) {
-  const session = await getCurrentSession();
-  if (!session?.user) throw new Error('Unauthorized');
+  const session = await requireRole('admin');
 
   const validated = CreateProductSchema.parse({
     name: formData.get('name'),
@@ -73,8 +72,7 @@ export async function createProductAction(formData: FormData) {
  * If price changed, creates new Stripe Price and archives old one.
  */
 export async function updateProductAction(formData: FormData) {
-  const session = await getCurrentSession();
-  if (!session?.user) throw new Error('Unauthorized');
+  const session = await requireRole('admin');
 
   const validated = UpdateProductSchema.parse({
     id: formData.get('id'),
@@ -147,8 +145,7 @@ export async function updateProductAction(formData: FormData) {
  * Soft-delete a product and archive it in Stripe.
  */
 export async function deleteProductAction(formData: FormData) {
-  const session = await getCurrentSession();
-  if (!session?.user) throw new Error('Unauthorized');
+  const session = await requireRole('admin');
 
   const productId = formData.get('productId') as string;
   if (!productId) throw new Error('Product ID is required');

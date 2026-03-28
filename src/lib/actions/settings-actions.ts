@@ -3,14 +3,13 @@
 import { UpdateSettingsSchema } from '@/lib/security/validation';
 import { upsertSetting } from '@/lib/dal/settings';
 import { logAudit } from '@/lib/dal/audit';
-import { getCurrentSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth';
 import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
 export async function upsertSettingAction(formData: FormData) {
-  const session = await getCurrentSession();
-  if (!session?.user) throw new Error('Unauthorized');
+  const session = await requireRole('admin');
 
   const raw = Object.fromEntries(formData);
   // Parse JSON value if provided as string

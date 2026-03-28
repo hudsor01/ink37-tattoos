@@ -3,14 +3,13 @@
 import { CreateCustomerSchema, UpdateCustomerSchema } from '@/lib/security/validation';
 import { createCustomer, updateCustomer, deleteCustomer } from '@/lib/dal/customers';
 import { logAudit } from '@/lib/dal/audit';
-import { getCurrentSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth';
 import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
 export async function createCustomerAction(formData: FormData) {
-  const session = await getCurrentSession();
-  if (!session?.user) throw new Error('Unauthorized');
+  const session = await requireRole('admin');
 
   const raw = Object.fromEntries(formData);
   // Handle array fields
@@ -40,8 +39,7 @@ export async function createCustomerAction(formData: FormData) {
 }
 
 export async function updateCustomerAction(id: string, formData: FormData) {
-  const session = await getCurrentSession();
-  if (!session?.user) throw new Error('Unauthorized');
+  const session = await requireRole('admin');
 
   const raw = Object.fromEntries(formData);
   const data = {
@@ -70,8 +68,7 @@ export async function updateCustomerAction(id: string, formData: FormData) {
 }
 
 export async function deleteCustomerAction(id: string) {
-  const session = await getCurrentSession();
-  if (!session?.user) throw new Error('Unauthorized');
+  const session = await requireRole('admin');
 
   await deleteCustomer(id);
 
