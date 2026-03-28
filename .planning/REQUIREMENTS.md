@@ -26,14 +26,14 @@ Requirements for admin panel rebuild. Each maps to roadmap phases. Derived from 
 - [x] **DAL-02**: All list DAL functions support search/filter by relevant text fields (name, email, phone, description)
 - [x] **DAL-03**: Analytics aggregation queries use SQL GROUP BY with date_trunc instead of loading all rows into JavaScript (revenue, client acquisition, booking trends)
 - [x] **DAL-04**: All server actions return consistent `{ success, data?, error? }` pattern (no mixed throw/return)
-- [ ] **DAL-05**: All DAL mutation functions validate foreign key references exist before insert (customerId, artistId)
-- [ ] **DAL-06**: All DAL mutations that use `.returning()` handle empty result arrays gracefully
-- [ ] **DAL-07**: Missing DAL functions created: artist profile CRUD, design approval status, contact management (update/delete)
-- [ ] **DAL-08**: Webhook handlers (Stripe, Cal.com, Resend) call revalidatePath after state changes so dashboard reflects updates
-- [ ] **DAL-09**: Store checkout page uses DAL function instead of direct db.query call
+- [x] **DAL-05**: All DAL mutation functions validate foreign key references exist before insert (customerId, artistId)
+- [x] **DAL-06**: All DAL mutations that use `.returning()` handle empty result arrays gracefully
+- [x] **DAL-07**: Missing DAL functions created: artist profile CRUD, design approval status, contact management (update/delete)
+- [x] **DAL-08**: Webhook handlers (Stripe, Cal.com, Resend) call revalidatePath after state changes so dashboard reflects updates
+- [x] **DAL-09**: Store checkout page uses DAL function instead of direct db.query call
 - [x] **DAL-10**: All mutation server actions include audit logging (media, contacts, settings, portal actions currently missing)
-- [ ] **DAL-11**: checkSchedulingConflict() function wired into appointment creation/update flow (currently orphaned)
-- [ ] **DAL-12**: Gift card validation in store checkout returns explicit error to user when code is invalid (not silent fallback to 0)
+- [x] **DAL-11**: checkSchedulingConflict() function wired into appointment creation/update flow (currently orphaned)
+- [x] **DAL-12**: Gift card validation in store checkout returns explicit error to user when code is invalid (not silent fallback to 0)
 
 ### UI Quality
 
@@ -159,14 +159,14 @@ Deferred beyond v2.0.
 | DAL-02 | Phase 14 | Complete |
 | DAL-03 | Phase 14 | Complete |
 | DAL-04 | Phase 14 | Complete |
-| DAL-05 | Phase 14 | Pending |
-| DAL-06 | Phase 14 | Pending |
-| DAL-07 | Phase 14 | Pending |
-| DAL-08 | Phase 14 | Pending |
-| DAL-09 | Phase 14 | Pending |
+| DAL-05 | Phase 14 | Complete |
+| DAL-06 | Phase 14 | Complete |
+| DAL-07 | Phase 14 | Complete |
+| DAL-08 | Phase 14 | Complete |
+| DAL-09 | Phase 14 | Complete |
 | DAL-10 | Phase 14 | Complete |
-| DAL-11 | Phase 14 | Pending |
-| DAL-12 | Phase 14 | Pending |
+| DAL-11 | Phase 14 | Complete |
+| DAL-12 | Phase 14 | Complete |
 | UI-01 | Phase 15 | Pending |
 | UI-02 | Phase 15 | Pending |
 | UI-03 | Phase 15 | Pending |
