@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Module-scope mocks (replaces vi.hoisted)
 const mockGetCurrentSession = vi.fn();
+const mockRequireRole = vi.fn();
 const mockCreateCustomer = vi.fn();
 const mockUpdateCustomer = vi.fn();
 const mockDeleteCustomer = vi.fn();
@@ -15,6 +16,7 @@ vi.mock('server-only', () => ({}));
 
 vi.mock('@/lib/auth', () => ({
   getCurrentSession: (...args: unknown[]) => mockGetCurrentSession(...args),
+  requireRole: (...args: unknown[]) => mockRequireRole(...args),
 }));
 
 vi.mock('@/lib/dal/customers', () => ({
@@ -74,7 +76,7 @@ describe('Customer Actions', () => {
   });
 
   it('createCustomerAction throws Unauthorized when no session', async () => {
-    mockGetCurrentSession.mockResolvedValue(null);
+    mockRequireRole.mockRejectedValue(new Error('Unauthorized'));
     const { createCustomerAction } = await import('@/lib/actions/customer-actions');
     const formData = new FormData();
     formData.set('firstName', 'John');
@@ -84,7 +86,7 @@ describe('Customer Actions', () => {
   });
 
   it('createCustomerAction calls createCustomer with validated data', async () => {
-    mockGetCurrentSession.mockResolvedValue(staffSession);
+    mockRequireRole.mockResolvedValue(staffSession);
     mockCreateCustomer.mockResolvedValue({ id: 'cust-1' });
     const { createCustomerAction } = await import('@/lib/actions/customer-actions');
     const formData = new FormData();
@@ -101,7 +103,7 @@ describe('Customer Actions', () => {
   });
 
   it('createCustomerAction calls revalidatePath', async () => {
-    mockGetCurrentSession.mockResolvedValue(staffSession);
+    mockRequireRole.mockResolvedValue(staffSession);
     mockCreateCustomer.mockResolvedValue({ id: 'cust-1' });
     const { createCustomerAction } = await import('@/lib/actions/customer-actions');
     const formData = new FormData();
@@ -113,7 +115,7 @@ describe('Customer Actions', () => {
   });
 
   it('updateCustomerAction throws Unauthorized when no session', async () => {
-    mockGetCurrentSession.mockResolvedValue(null);
+    mockRequireRole.mockRejectedValue(new Error('Unauthorized'));
     const { updateCustomerAction } = await import('@/lib/actions/customer-actions');
     const formData = new FormData();
     formData.set('firstName', 'Jane');
@@ -121,7 +123,7 @@ describe('Customer Actions', () => {
   });
 
   it('updateCustomerAction calls updateCustomer and revalidatePath', async () => {
-    mockGetCurrentSession.mockResolvedValue(staffSession);
+    mockRequireRole.mockResolvedValue(staffSession);
     mockUpdateCustomer.mockResolvedValue({ id: 'cust-1' });
     const { updateCustomerAction } = await import('@/lib/actions/customer-actions');
     const formData = new FormData();
@@ -133,13 +135,13 @@ describe('Customer Actions', () => {
   });
 
   it('deleteCustomerAction throws Unauthorized when no session', async () => {
-    mockGetCurrentSession.mockResolvedValue(null);
+    mockRequireRole.mockRejectedValue(new Error('Unauthorized'));
     const { deleteCustomerAction } = await import('@/lib/actions/customer-actions');
     await expect(deleteCustomerAction('cust-1')).rejects.toThrow('Unauthorized');
   });
 
   it('deleteCustomerAction calls deleteCustomer and revalidatePath', async () => {
-    mockGetCurrentSession.mockResolvedValue(staffSession);
+    mockRequireRole.mockResolvedValue(staffSession);
     mockDeleteCustomer.mockResolvedValue(undefined);
     const { deleteCustomerAction } = await import('@/lib/actions/customer-actions');
     await deleteCustomerAction('cust-1');
@@ -154,15 +156,14 @@ describe('Portal Actions - signConsentAction', () => {
   });
 
   it('returns error when no session', async () => {
-    mockGetCurrentSession.mockResolvedValue(null);
+    mockRequireRole.mockRejectedValue(new Error('Unauthorized'));
     const { signConsentAction } = await import('@/lib/actions/portal-actions');
     const formData = new FormData();
-    const result = await signConsentAction(formData);
-    expect(result).toEqual({ success: false, error: 'You must be logged in to sign consent.' });
+    await expect(signConsentAction(formData)).rejects.toThrow('Unauthorized');
   });
 
   it('returns error when validation fails (missing sessionId)', async () => {
-    mockGetCurrentSession.mockResolvedValue(staffSession);
+    mockRequireRole.mockResolvedValue(staffSession);
     const { signConsentAction } = await import('@/lib/actions/portal-actions');
     const formData = new FormData();
     const result = await signConsentAction(formData);
@@ -171,7 +172,7 @@ describe('Portal Actions - signConsentAction', () => {
   });
 
   it('returns error when no linked customer', async () => {
-    mockGetCurrentSession.mockResolvedValue(staffSession);
+    mockRequireRole.mockResolvedValue(staffSession);
     mockCustomerFindFirst.mockResolvedValue(null);
     const { signConsentAction } = await import('@/lib/actions/portal-actions');
     const formData = new FormData();
@@ -183,7 +184,7 @@ describe('Portal Actions - signConsentAction', () => {
   });
 
   it('returns error when tattoo session not found', async () => {
-    mockGetCurrentSession.mockResolvedValue(staffSession);
+    mockRequireRole.mockResolvedValue(staffSession);
     mockCustomerFindFirst.mockResolvedValue({ id: 'c1' });
     mockTattooSessionFindFirst.mockResolvedValue(null);
     const { signConsentAction } = await import('@/lib/actions/portal-actions');
@@ -196,7 +197,7 @@ describe('Portal Actions - signConsentAction', () => {
   });
 
   it('returns error when consent already signed', async () => {
-    mockGetCurrentSession.mockResolvedValue(staffSession);
+    mockRequireRole.mockResolvedValue(staffSession);
     mockCustomerFindFirst.mockResolvedValue({ id: 'c1' });
     mockTattooSessionFindFirst.mockResolvedValue({ id: TEST_SESSION_UUID, consentSignedAt: new Date() });
     const { signConsentAction } = await import('@/lib/actions/portal-actions');
@@ -209,7 +210,7 @@ describe('Portal Actions - signConsentAction', () => {
   });
 
   it('returns success on valid consent signing', async () => {
-    mockGetCurrentSession.mockResolvedValue(staffSession);
+    mockRequireRole.mockResolvedValue(staffSession);
     mockCustomerFindFirst.mockResolvedValue({ id: 'c1' });
     mockTattooSessionFindFirst.mockResolvedValue({ id: TEST_SESSION_UUID, customerId: 'c1', consentSignedAt: null });
     const { signConsentAction } = await import('@/lib/actions/portal-actions');
@@ -228,15 +229,14 @@ describe('Portal Actions - updateProfileAction', () => {
   });
 
   it('returns error when no session', async () => {
-    mockGetCurrentSession.mockResolvedValue(null);
+    mockRequireRole.mockRejectedValue(new Error('Unauthorized'));
     const { updateProfileAction } = await import('@/lib/actions/portal-actions');
     const formData = new FormData();
-    const result = await updateProfileAction(formData);
-    expect(result).toEqual({ success: false, error: 'You must be logged in to update your profile.' });
+    await expect(updateProfileAction(formData)).rejects.toThrow('Unauthorized');
   });
 
   it('returns success with valid profile data', async () => {
-    mockGetCurrentSession.mockResolvedValue(staffSession);
+    mockRequireRole.mockResolvedValue(staffSession);
     mockCustomerFindFirst.mockResolvedValue({ id: 'c1' });
     const { updateProfileAction } = await import('@/lib/actions/portal-actions');
     const formData = new FormData();
