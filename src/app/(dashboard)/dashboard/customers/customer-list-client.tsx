@@ -4,12 +4,13 @@ import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { MoreHorizontal, Plus } from 'lucide-react';
+import { MoreHorizontal, Plus, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { useQueryState, parseAsString } from 'nuqs';
 
 import { DataTable } from '@/components/dashboard/data-table';
+import { EmptyState } from '@/components/dashboard/empty-state';
 import { SearchInput } from '@/components/dashboard/search-input';
 import { CustomerForm } from '@/components/dashboard/customer-form';
 import { Button } from '@/components/ui/button';
@@ -168,28 +169,27 @@ export function CustomerListClient() {
             </p>
           </div>
         </div>
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-          <h3 className="text-lg font-semibold">No customers yet</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Add your first customer to start tracking their tattoo journey.
-          </p>
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger
-              render={<Button className="mt-4" />}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Add Customer
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Add Customer</DialogTitle>
-              </DialogHeader>
-              <CustomerForm
-                onSuccess={() => setCreateOpen(false)}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
+        <EmptyState
+          icon={Users}
+          title="No customers yet"
+          description="Add your first customer to start managing their tattoo journey."
+          action={
+            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+              <DialogTrigger render={<Button />}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Customer
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>Add Customer</DialogTitle>
+                </DialogHeader>
+                <CustomerForm
+                  onSuccess={() => setCreateOpen(false)}
+                />
+              </DialogContent>
+            </Dialog>
+          }
+        />
       </div>
     );
   }
