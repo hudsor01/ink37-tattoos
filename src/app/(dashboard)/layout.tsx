@@ -5,12 +5,7 @@ import { getCurrentSession } from '@/lib/auth';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { AdminNav } from '@/components/dashboard/admin-nav';
 import { Separator } from '@/components/ui/separator';
-import {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbPage,
-} from '@/components/ui/breadcrumb';
+import { DynamicBreadcrumbs } from '@/components/dashboard/dynamic-breadcrumbs';
 import { ThemeToggle } from '@/components/dashboard/theme-toggle';
 import { PageTransition } from '@/components/page-transition';
 
@@ -38,13 +33,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <header className="flex h-12 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" aria-label="Toggle navigation" />
           <Separator orientation="vertical" className="h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbPage>Dashboard</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
+          <DynamicBreadcrumbs />
           <div className="ml-auto">
             <ThemeToggle />
           </div>
