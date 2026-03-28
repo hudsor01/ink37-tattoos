@@ -9,8 +9,8 @@ Requirements for admin panel rebuild. Each maps to roadmap phases. Derived from 
 
 ### Security Hardening
 
-- [ ] **SEC-01**: Dashboard layout enforces auth at layout level -- unauthenticated users redirected before any child page renders
-- [ ] **SEC-02**: Portal layout enforces auth at layout level -- unauthenticated users redirected before any child page renders
+- [x] **SEC-01**: Dashboard layout enforces auth at layout level -- unauthenticated users redirected before any child page renders
+- [x] **SEC-02**: Portal layout enforces auth at layout level -- unauthenticated users redirected before any child page renders
 - [ ] **SEC-03**: All public API routes have rate limiting (store download, portal billing, contact form, webhooks)
 - [ ] **SEC-04**: Rate limiter uses persistent storage (not in-memory Map) suitable for serverless/distributed deployment
 - [ ] **SEC-05**: All server actions validate user role explicitly before calling DAL (not relying on DAL throw for role errors)
@@ -18,7 +18,7 @@ Requirements for admin panel rebuild. Each maps to roadmap phases. Derived from 
 - [ ] **SEC-07**: Stripe webhook handler prevents race conditions on duplicate event processing (atomic idempotency check)
 - [ ] **SEC-08**: Cal.com webhook validates payload structure with runtime schema checks beyond TypeScript casting
 - [ ] **SEC-09**: API routes distinguish between auth failures and DB errors with appropriate status codes and logging
-- [ ] **SEC-10**: BLOB_PRIVATE_READ_WRITE_TOKEN added to Zod env schema as required field (TD-03)
+- [x] **SEC-10**: BLOB_PRIVATE_READ_WRITE_TOKEN added to Zod env schema as required field (TD-03)
 
 ### Data Layer
 
@@ -145,8 +145,8 @@ Deferred beyond v2.0.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEC-01 | Phase 13 | Pending |
-| SEC-02 | Phase 13 | Pending |
+| SEC-01 | Phase 13 | Complete |
+| SEC-02 | Phase 13 | Complete |
 | SEC-03 | Phase 13 | Pending |
 | SEC-04 | Phase 13 | Pending |
 | SEC-05 | Phase 13 | Pending |
@@ -154,7 +154,7 @@ Deferred beyond v2.0.
 | SEC-07 | Phase 13 | Pending |
 | SEC-08 | Phase 13 | Pending |
 | SEC-09 | Phase 13 | Pending |
-| SEC-10 | Phase 13 | Pending |
+| SEC-10 | Phase 13 | Complete |
 | DAL-01 | Phase 14 | Pending |
 | DAL-02 | Phase 14 | Pending |
 | DAL-03 | Phase 14 | Pending |
