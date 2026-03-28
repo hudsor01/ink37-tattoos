@@ -6,7 +6,6 @@ export {
   createCustomer,
   updateCustomer,
   deleteCustomer,
-  searchCustomers,
 } from './customers';
 
 // Appointments

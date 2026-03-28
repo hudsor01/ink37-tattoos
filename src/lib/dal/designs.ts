@@ -3,8 +3,10 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { eq, and, desc, arrayContains } from 'drizzle-orm';
+import { eq, and, sql, desc, arrayContains } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
+import type { PaginationParams, PaginatedResult } from './types';
+import { DEFAULT_PAGE_SIZE } from './types';
 
 // PUBLIC -- no auth required (gallery content is public per locked decision)
 export const getPublicDesigns = cache(async (filters?: { style?: string; tags?: string[] }) => {
@@ -37,12 +39,55 @@ export const getPublicDesignById = cache(async (id: string) => {
   });
 });
 
-// ADMIN -- all designs including unapproved
-export const getAllDesigns = cache(async () => {
+// ADMIN -- all designs including unapproved, with pagination and search
+export const getAllDesigns = cache(async (
+  params: PaginationParams = { page: 1, pageSize: DEFAULT_PAGE_SIZE }
+): Promise<PaginatedResult<{
+  id: string;
+  name: string;
+  description: string | null;
+  designType: string | null;
+  style: string | null;
+  isApproved: boolean;
+  isPublic: boolean;
+  createdAt: Date;
+  tags: string[] | null;
+}>> => {
   const session = await getCurrentSession();
   if (!session?.user) redirect('/login');
-  return db.query.tattooDesign.findMany({
-    orderBy: [desc(schema.tattooDesign.createdAt)],
-    with: { artist: { columns: { name: true } } },
-  });
+
+  const conditions = [];
+  if (params.search) {
+    conditions.push(
+      sql`${schema.tattooDesign.searchVector} @@ plainto_tsquery('english', ${params.search})`
+    );
+  }
+
+  const results = await db.select({
+    id: schema.tattooDesign.id,
+    name: schema.tattooDesign.name,
+    description: schema.tattooDesign.description,
+    designType: schema.tattooDesign.designType,
+    style: schema.tattooDesign.style,
+    isApproved: schema.tattooDesign.isApproved,
+    isPublic: schema.tattooDesign.isPublic,
+    createdAt: schema.tattooDesign.createdAt,
+    tags: schema.tattooDesign.tags,
+    total: sql<number>`cast(count(*) over() as integer)`,
+  })
+    .from(schema.tattooDesign)
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(desc(schema.tattooDesign.createdAt))
+    .limit(params.pageSize)
+    .offset((params.page - 1) * params.pageSize);
+
+  const total = results[0]?.total ?? 0;
+
+  return {
+    data: results.map(({ total: _, ...row }) => row),
+    total,
+    page: params.page,
+    pageSize: params.pageSize,
+    totalPages: Math.ceil(total / params.pageSize),
+  };
 });

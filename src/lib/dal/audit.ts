@@ -3,8 +3,10 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, sql, desc } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
+import type { PaginationParams, PaginatedResult } from './types';
+import { DEFAULT_PAGE_SIZE } from './types';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
 
@@ -43,27 +45,51 @@ export async function logAudit(entry: AuditEntry) {
   }
 }
 
-export const getAuditLogs = cache(
-  async (filters?: {
-    userId?: string;
-    resource?: string;
-    action?: string;
-    limit?: number;
-    offset?: number;
-  }) => {
-    await requireStaffRole();
+export const getAuditLogs = cache(async (
+  params: PaginationParams = { page: 1, pageSize: DEFAULT_PAGE_SIZE }
+): Promise<PaginatedResult<{
+  id: string;
+  action: string;
+  resource: string;
+  resourceId: string | null;
+  userId: string | null;
+  ip: string;
+  timestamp: Date;
+  metadata: unknown;
+}>> => {
+  await requireStaffRole();
 
-    const conditions = [];
-    if (filters?.userId) conditions.push(eq(schema.auditLog.userId, filters.userId));
-    if (filters?.resource) conditions.push(eq(schema.auditLog.resource, filters.resource));
-    if (filters?.action) conditions.push(eq(schema.auditLog.action, filters.action));
-
-    return db.query.auditLog.findMany({
-      where: conditions.length > 0 ? and(...conditions) : undefined,
-      orderBy: [desc(schema.auditLog.timestamp)],
-      limit: filters?.limit ?? 50,
-      offset: filters?.offset ?? 0,
-      with: { user: { columns: { name: true, email: true } } },
-    });
+  const conditions = [];
+  if (params.search) {
+    conditions.push(
+      sql`${schema.auditLog.searchVector} @@ plainto_tsquery('english', ${params.search})`
+    );
   }
-);
+
+  const results = await db.select({
+    id: schema.auditLog.id,
+    action: schema.auditLog.action,
+    resource: schema.auditLog.resource,
+    resourceId: schema.auditLog.resourceId,
+    userId: schema.auditLog.userId,
+    ip: schema.auditLog.ip,
+    timestamp: schema.auditLog.timestamp,
+    metadata: schema.auditLog.metadata,
+    total: sql<number>`cast(count(*) over() as integer)`,
+  })
+    .from(schema.auditLog)
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(desc(schema.auditLog.timestamp))
+    .limit(params.pageSize)
+    .offset((params.page - 1) * params.pageSize);
+
+  const total = results[0]?.total ?? 0;
+
+  return {
+    data: results.map(({ total: _, ...row }) => row),
+    total,
+    page: params.page,
+    pageSize: params.pageSize,
+    totalPages: Math.ceil(total / params.pageSize),
+  };
+});
