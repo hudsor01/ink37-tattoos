@@ -79,6 +79,8 @@ v2.0 roadmap decisions:
 - [Phase 14-data-layer-fixes]: requireRole stays outside safeAction for redirect propagation; public actions use 'anonymous' userId for audit logging
 - [Phase 14]: Used tattooArtist table for artist profile (not user table) -- already has bio, specialties, portfolio fields
 - [Phase 14]: ILIKE fallback for gift card search (small dataset, no tsvector needed)
+- [Phase 15-04]: Keep RHF in all forms, use form.setError() for server errors instead of rewriting to useActionState
+- [Phase 15-04]: Keep datetime-local for appointment/session datetime fields; only date-only fields get DatePicker
 
 ### Pending Todos
 
