@@ -56,10 +56,12 @@ export function CartDrawer() {
           items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
           giftCardCode: giftCardCode ?? undefined,
         });
-        if (result.success && result.checkoutUrl) {
-          window.location.href = result.checkoutUrl;
-        } else {
+        if (result.success && result.data.checkoutUrl) {
+          window.location.href = result.data.checkoutUrl;
+        } else if (!result.success) {
           setError(result.error ?? "Couldn't start checkout. Please try again.");
+        } else {
+          setError("Couldn't start checkout. Please try again.");
         }
       } catch {
         setError("Couldn't start checkout. Please try again.");

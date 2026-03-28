@@ -23,10 +23,10 @@ export function GiftCardRedeemInput({ onValidCode, onClear }: GiftCardRedeemInpu
     setError(null);
     startTransition(async () => {
       const result = await validateGiftCardAction(code.trim());
-      if (result.valid && result.balance != null) {
+      if (result.success && result.data.valid && result.data.balance != null) {
         setApplied(true);
-        setBalance(result.balance);
-        onValidCode(code.trim(), result.balance);
+        setBalance(result.data.balance);
+        onValidCode(code.trim(), result.data.balance);
       } else {
         setError('Invalid gift card code. Please check and try again.');
       }
