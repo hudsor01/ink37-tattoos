@@ -168,7 +168,9 @@ describe('Portal Actions - signConsentAction', () => {
     const formData = new FormData();
     const result = await signConsentAction(formData);
     expect(result.success).toBe(false);
-    expect(result.error).toBeDefined();
+    if (!result.success) {
+      expect(result.error).toBeDefined();
+    }
   });
 
   it('returns error when no linked customer', async () => {
@@ -180,7 +182,10 @@ describe('Portal Actions - signConsentAction', () => {
     formData.set('signedName', 'John Doe');
     formData.set('acknowledged', 'true');
     const result = await signConsentAction(formData);
-    expect(result).toEqual({ success: false, error: 'No linked customer account found.' });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toBe('No linked customer account found.');
+    }
   });
 
   it('returns error when tattoo session not found', async () => {
