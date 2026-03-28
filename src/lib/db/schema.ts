@@ -319,6 +319,20 @@ export const stripeEvent = pgTable('stripe_event', {
   index('stripe_event_stripeEventId_idx').on(table.stripeEventId),
 ]);
 
+// Cal.com webhook event audit trail (D-10)
+// calEventUid is NOT unique because Cal.com sends the same booking UID
+// for CREATED, RESCHEDULED, CANCELLED events. This is an audit trail,
+// not an idempotency gate. Appointment upserts are already idempotent
+// via onConflictDoUpdate on calBookingUid.
+export const calEvent = pgTable('cal_event', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  calEventUid: text('cal_event_uid').notNull(),
+  triggerEvent: text('trigger_event').notNull(),
+  processedAt: timestamp('processed_at').notNull().defaultNow(),
+}, (table) => [
+  index('cal_event_uid_idx').on(table.calEventUid),
+]);
+
 // ============================================================================
 // STORE MODELS
 // ============================================================================
@@ -486,6 +500,8 @@ export const paymentRelations = relations(payment, ({ one }) => ({
 }));
 
 export const stripeEventRelations = relations(stripeEvent, () => ({}));
+
+export const calEventRelations = relations(calEvent, () => ({}));
 
 // Store relations
 export const productRelations = relations(product, ({ many }) => ({

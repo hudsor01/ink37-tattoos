@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createHmac, timingSafeEqual } from 'crypto';
+import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
 
 interface ResendWebhookEvent {
   type: string;
@@ -46,6 +47,13 @@ function verifyWebhookSignature(
 }
 
 export async function POST(request: Request) {
+  // Rate limiting
+  const ip = getRequestIp(request);
+  const { success, reset } = await rateLimiters.webhook.limit(ip);
+  if (!success) {
+    return rateLimitResponse(reset);
+  }
+
   const rawBody = await request.text();
   const secret = process.env.RESEND_WEBHOOK_SECRET;
 

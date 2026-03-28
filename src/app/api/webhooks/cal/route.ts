@@ -5,10 +5,18 @@ import * as schema from '@/lib/db/schema';
 import { verifyCalSignature } from '@/lib/cal/verify';
 import type { CalBookingPayload } from '@/lib/cal/types';
 import { CalWebhookPayloadSchema } from '@/lib/security/validation';
+import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
 
 const VALID_APPOINTMENT_TYPES = ['CONSULTATION', 'DESIGN_REVIEW', 'TATTOO_SESSION', 'TOUCH_UP', 'REMOVAL'] as const;
 
 export async function POST(request: Request) {
+  // Rate limiting
+  const ip = getRequestIp(request);
+  const { success, reset } = await rateLimiters.webhook.limit(ip);
+  if (!success) {
+    return rateLimitResponse(reset);
+  }
+
   // Raw body for signature verification (never use request.json())
   const body = await request.text();
   const signature = request.headers.get('x-cal-signature-256');
@@ -28,11 +36,24 @@ export async function POST(request: Request) {
 
   const parsed = CalWebhookPayloadSchema.safeParse(JSON.parse(body));
   if (!parsed.success) {
+    console.error('[Cal Webhook] Payload validation failed:', {
+      errors: parsed.error.issues.map((i) => ({
+        path: i.path.join('.'),
+        code: i.code,
+        message: i.message,
+      })),
+    });
     return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
   }
 
   const event = parsed.data;
   const payload = event.payload as unknown as CalBookingPayload;
+
+  // D-10: Track event in calEvent table for audit trail
+  await db.insert(schema.calEvent).values({
+    calEventUid: payload.uid,
+    triggerEvent: event.triggerEvent,
+  });
 
   try {
     switch (event.triggerEvent) {
