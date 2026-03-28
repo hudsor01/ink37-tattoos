@@ -67,7 +67,13 @@ Plans:
   3. Creating an appointment for a non-existent customer returns a clear validation error instead of a database constraint violation
   4. After a Stripe payment webhook fires, the dashboard payments page shows the updated record without requiring a manual refresh
   5. Entering an invalid gift card code at checkout displays an explicit error message to the user
-**Plans**: TBD
+**Plans:** 4 plans
+
+Plans:
+- [ ] 14-01-PLAN.md -- Shared types, safeAction wrapper, tsvector schema, SQL analytics (DAL-01, DAL-02, DAL-03, DAL-04)
+- [ ] 14-02-PLAN.md -- Paginate + search all 10 DAL list functions (DAL-01, DAL-02)
+- [ ] 14-03-PLAN.md -- ActionResult wrapper on all 13 server actions + audit gaps (DAL-04, DAL-10)
+- [ ] 14-04-PLAN.md -- Missing DAL functions, FK validation, webhook revalidation, conflict wiring, gift card fix (DAL-05, DAL-06, DAL-07, DAL-08, DAL-09, DAL-11, DAL-12)
 
 ### Phase 15: UI Foundations
 **Goal**: Every dashboard page has proper loading, error, and empty states; all pages work on mobile; all forms show field-level validation; and all interactive elements are accessible
@@ -184,7 +190,7 @@ Plans:
 | 11. Full Stack Integration | v1.0 | 6/6 | Complete | 2026-03-27 |
 | 12. Testing Foundation | v1.0 | 3/3 | Complete | 2026-03-27 |
 | 13. Security Hardening | v2.0 | 3/3 | Complete   | 2026-03-28 |
-| 14. Data Layer Fixes | v2.0 | 0/? | Not started | - |
+| 14. Data Layer Fixes | v2.0 | 0/4 | Planned | - |
 | 15. UI Foundations | v2.0 | 0/? | Not started | - |
 | 16. Missing Pages -- Core | v2.0 | 0/? | Not started | - |
 | 17. Missing Pages -- Operations | v2.0 | 0/? | Not started | - |
