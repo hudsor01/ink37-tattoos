@@ -11,10 +11,10 @@ Requirements for admin panel rebuild. Each maps to roadmap phases. Derived from 
 
 - [ ] **SEC-01**: Dashboard layout enforces auth at layout level -- unauthenticated users redirected before any child page renders
 - [ ] **SEC-02**: Portal layout enforces auth at layout level -- unauthenticated users redirected before any child page renders
-- [ ] **SEC-03**: All public API routes have rate limiting (store download, portal billing, contact form, webhooks)
-- [ ] **SEC-04**: Rate limiter uses persistent storage (not in-memory Map) suitable for serverless/distributed deployment
+- [x] **SEC-03**: All public API routes have rate limiting (store download, portal billing, contact form, webhooks)
+- [x] **SEC-04**: Rate limiter uses persistent storage (not in-memory Map) suitable for serverless/distributed deployment
 - [ ] **SEC-05**: All server actions validate user role explicitly before calling DAL (not relying on DAL throw for role errors)
-- [ ] **SEC-06**: All string inputs sanitized for XSS before rendering in dashboard components (customer names, notes, descriptions)
+- [x] **SEC-06**: All string inputs sanitized for XSS before rendering in dashboard components (customer names, notes, descriptions)
 - [ ] **SEC-07**: Stripe webhook handler prevents race conditions on duplicate event processing (atomic idempotency check)
 - [ ] **SEC-08**: Cal.com webhook validates payload structure with runtime schema checks beyond TypeScript casting
 - [ ] **SEC-09**: API routes distinguish between auth failures and DB errors with appropriate status codes and logging
@@ -147,10 +147,10 @@ Deferred beyond v2.0.
 |-------------|-------|--------|
 | SEC-01 | Phase 13 | Pending |
 | SEC-02 | Phase 13 | Pending |
-| SEC-03 | Phase 13 | Pending |
-| SEC-04 | Phase 13 | Pending |
+| SEC-03 | Phase 13 | Complete |
+| SEC-04 | Phase 13 | Complete |
 | SEC-05 | Phase 13 | Pending |
-| SEC-06 | Phase 13 | Pending |
+| SEC-06 | Phase 13 | Complete |
 | SEC-07 | Phase 13 | Pending |
 | SEC-08 | Phase 13 | Pending |
 | SEC-09 | Phase 13 | Pending |

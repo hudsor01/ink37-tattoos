@@ -183,7 +183,7 @@ Plans:
 | 10. Tech Stack Audit | v1.0 | 3/3 | Complete | 2026-03-26 |
 | 11. Full Stack Integration | v1.0 | 6/6 | Complete | 2026-03-27 |
 | 12. Testing Foundation | v1.0 | 3/3 | Complete | 2026-03-27 |
-| 13. Security Hardening | v2.0 | 0/3 | Planned | - |
+| 13. Security Hardening | v2.0 | 1/3 | In Progress | - |
 | 14. Data Layer Fixes | v2.0 | 0/? | Not started | - |
 | 15. UI Foundations | v2.0 | 0/? | Not started | - |
 | 16. Missing Pages -- Core | v2.0 | 0/? | Not started | - |
