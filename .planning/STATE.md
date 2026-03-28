@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Admin Panel
 status: executing
-stopped_at: Phase 15 context gathered
-last_updated: "2026-03-28T22:55:16.675Z"
-last_activity: 2026-03-28 -- Phase 15 execution started
+stopped_at: Completed 15-05-PLAN.md
+last_updated: "2026-03-28T23:17:35Z"
+last_activity: 2026-03-28 -- Phase 15 Plan 05 completed
 progress:
   total_phases: 10
   completed_phases: 2
   total_plans: 12
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -81,6 +81,8 @@ v2.0 roadmap decisions:
 - [Phase 14]: ILIKE fallback for gift card search (small dataset, no tsvector needed)
 - [Phase 15-04]: Keep RHF in all forms, use form.setError() for server errors instead of rewriting to useActionState
 - [Phase 15-04]: Keep datetime-local for appointment/session datetime fields; only date-only fields get DatePicker
+- [Phase 15-05]: Wrapped charts in <figure role=img> with sr-only figcaption for screen reader data summaries
+- [Phase 15-05]: No dead imports found in form components -- prior plans already cleaned them
 
 ### Pending Todos
 
@@ -92,6 +94,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-28T21:27:01.681Z
-Stopped at: Phase 15 context gathered
-Resume with: Continue Phase 14 plans 02-04
+Last session: 2026-03-28T23:17:35Z
+Stopped at: Completed 15-05-PLAN.md
+Resume with: Continue Phase 15 remaining plans or transition to Phase 16

@@ -76,11 +76,11 @@
   5. All interactive elements are keyboard-navigable and have ARIA labels; screen reader announces all chart data via alt text
 **Plans**: 5 plans
 Plans:
-- [ ] 15-01-PLAN.md -- Shared UI components, StatusBadge CSS vars, TypeScript fixes
+- [x] 15-01-PLAN.md -- Shared UI components, StatusBadge CSS vars, TypeScript fixes (completed 2026-03-28)
 - [x] 15-02-PLAN.md -- Responsive DataTable with mobile card view, mobile sidebar (completed 2026-03-28)
-- [ ] 15-03-PLAN.md -- Loading skeletons and empty states for all 12 dashboard pages
+- [x] 15-03-PLAN.md -- Loading skeletons and empty states for all 12 dashboard pages (completed 2026-03-28)
 - [x] 15-04-PLAN.md -- Form UX: field errors, DatePicker, AlertDialog, toast, unsaved changes (completed 2026-03-28)
-- [ ] 15-05-PLAN.md -- Accessibility, dynamic breadcrumbs, dead import cleanup
+- [x] 15-05-PLAN.md -- Accessibility, dynamic breadcrumbs, dead import cleanup (completed 2026-03-28)
 **UI hint**: yes
 
 ### Phase 16: Missing Pages -- Core
@@ -186,7 +186,7 @@ Plans:
 | 12. Testing Foundation | v1.0 | 3/3 | Complete | 2026-03-27 |
 | 13. Security Hardening | v2.0 | 0/? | Not started | - |
 | 14. Data Layer Fixes | v2.0 | 4/4 | Complete    | 2026-03-28 |
-| 15. UI Foundations | v2.0 | 0/5 | Planned | - |
+| 15. UI Foundations | v2.0 | 5/5 | Complete | 2026-03-28 |
 | 16. Missing Pages -- Core | v2.0 | 0/? | Not started | - |
 | 17. Missing Pages -- Operations | v2.0 | 0/? | Not started | - |
 | 18. Feature Depth -- Records | v2.0 | 0/? | Not started | - |
