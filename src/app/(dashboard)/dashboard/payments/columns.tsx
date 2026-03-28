@@ -1,6 +1,7 @@
 'use client';
 
 import { type ColumnDef } from '@/components/dashboard/data-table';
+import { type MobileField } from '@/components/dashboard/responsive-data-table';
 import { StatusBadge } from '@/components/dashboard/status-badge';
 import { format } from 'date-fns';
 import { ExternalLink } from 'lucide-react';
@@ -77,4 +78,11 @@ export const columns: ColumnDef<PaymentRow, unknown>[] = [
         <span className="text-xs text-muted-foreground">--</span>
       ),
   },
+];
+
+export const paymentMobileFields: MobileField<PaymentRow>[] = [
+  { label: 'Customer', accessor: (p) => `${p.customer.firstName} ${p.customer.lastName}` },
+  { label: 'Amount', accessor: (p) => currencyFormatter.format(p.amount) },
+  { label: 'Date', accessor: (p) => format(new Date(p.createdAt), 'MMM d, yyyy') },
+  { label: 'Status', accessor: (p) => <StatusBadge status={p.status} /> },
 ];

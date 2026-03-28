@@ -1,8 +1,8 @@
 import { connection } from 'next/server';
 import { getOrders, getOrderStats } from '@/lib/dal/orders';
-import { DataTable } from '@/components/dashboard/data-table';
+import { ResponsiveDataTable } from '@/components/dashboard/responsive-data-table';
 import { KPICard } from '@/components/dashboard/kpi-card';
-import { orderColumns } from './columns';
+import { orderColumns, orderMobileFields } from './columns';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -64,12 +64,13 @@ export default async function OrdersPage() {
       </div>
 
       {orders.length > 0 ? (
-        <DataTable
+        <ResponsiveDataTable
           columns={orderColumns}
           data={orders}
           searchKey="email"
           searchPlaceholder="Search by email..."
           pageSize={15}
+          mobileFields={orderMobileFields}
         />
       ) : (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">

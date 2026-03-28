@@ -8,7 +8,7 @@ import { MoreHorizontal, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryState, parseAsString } from 'nuqs';
 
-import { DataTable } from '@/components/dashboard/data-table';
+import { ResponsiveDataTable, type MobileField } from '@/components/dashboard/responsive-data-table';
 import { StatusBadge } from '@/components/dashboard/status-badge';
 import { AppointmentForm } from '@/components/dashboard/appointment-form';
 import { Button } from '@/components/ui/button';
@@ -266,6 +266,13 @@ export function AppointmentListClient() {
     },
   ];
 
+  const mobileFields: MobileField<Appointment>[] = [
+    { label: 'Customer', accessor: (a) => `${a.customer.firstName} ${a.customer.lastName}` },
+    { label: 'Date', accessor: (a) => format(new Date(a.scheduledDate), 'MMM d, yyyy h:mm a') },
+    { label: 'Type', accessor: (a) => a.type.replace(/_/g, ' ').toLowerCase() },
+    { label: 'Status', accessor: (a) => <StatusBadge status={a.status} /> },
+  ];
+
   if (appointments.length === 0) {
     return (
       <div className="space-y-6">
@@ -342,11 +349,35 @@ export function AppointmentListClient() {
         </Select>
       </div>
 
-      <DataTable
+      <ResponsiveDataTable
         columns={columns}
         data={filteredAppointments}
         searchKey="firstName"
         searchPlaceholder="Search by customer name..."
+        mobileFields={mobileFields}
+        mobileActions={(row) => (
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">Actions</span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleStatusUpdate(row.id, 'CONFIRMED')}>
+                Confirm
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleStatusUpdate(row.id, 'COMPLETED')}>
+                Mark Completed
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleStatusUpdate(row.id, 'NO_SHOW')}>
+                Mark No-Show
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="destructive" onClick={() => setDeleteId(row.id)}>
+                Cancel Appointment
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       />
 
       {/* Delete Confirmation */}

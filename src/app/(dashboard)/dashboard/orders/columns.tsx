@@ -1,6 +1,7 @@
 'use client';
 
 import { type ColumnDef } from '@/components/dashboard/data-table';
+import { type MobileField } from '@/components/dashboard/responsive-data-table';
 import { StatusBadge } from '@/components/dashboard/status-badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -265,4 +266,11 @@ export const orderColumns: ColumnDef<OrderWithItems, unknown>[] = [
     cell: ({ row }) => <OrderActions order={row.original} />,
     enableSorting: false,
   },
+];
+
+export const orderMobileFields: MobileField<OrderWithItems>[] = [
+  { label: 'Order #', accessor: (o) => o.id.slice(0, 8) },
+  { label: 'Customer', accessor: (o) => o.email },
+  { label: 'Total', accessor: (o) => currencyFormatter.format(Number(o.total.toString())) },
+  { label: 'Status', accessor: (o) => <StatusBadge status={o.status} /> },
 ];

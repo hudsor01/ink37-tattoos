@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { DataTable, type ColumnDef } from '@/components/dashboard/data-table';
+import { type ColumnDef } from '@/components/dashboard/data-table';
+import { ResponsiveDataTable, type MobileField } from '@/components/dashboard/responsive-data-table';
 import { StatusBadge } from '@/components/dashboard/status-badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -166,6 +167,13 @@ export function SessionListClient() {
     },
   ];
 
+  const mobileFields: MobileField<SessionWithRelations>[] = [
+    { label: 'Customer', accessor: (s) => `${s.customer.firstName} ${s.customer.lastName}` },
+    { label: 'Date', accessor: (s) => new Date(s.appointmentDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) },
+    { label: 'Style', accessor: (s) => s.style },
+    { label: 'Status', accessor: (s) => <StatusBadge status={s.status} /> },
+  ];
+
   if (!sessions || sessions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12">
@@ -207,7 +215,22 @@ export function SessionListClient() {
         </Button>
       </div>
 
-      <DataTable columns={columnsWithActions} data={sessions} searchKey="customer" />
+      <ResponsiveDataTable
+        columns={columnsWithActions}
+        data={sessions}
+        searchKey="customer"
+        mobileFields={mobileFields}
+        mobileActions={(row) => (
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="sm" onClick={() => setDetailSession(row)}>
+              <Eye className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => handleDelete(row.id)}>
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+          </div>
+        )}
+      />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-2xl">
