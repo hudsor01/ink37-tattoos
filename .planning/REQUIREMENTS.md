@@ -22,10 +22,10 @@ Requirements for admin panel rebuild. Each maps to roadmap phases. Derived from 
 
 ### Data Layer
 
-- [ ] **DAL-01**: All list DAL functions support cursor/offset pagination with configurable page size
-- [ ] **DAL-02**: All list DAL functions support search/filter by relevant text fields (name, email, phone, description)
-- [ ] **DAL-03**: Analytics aggregation queries use SQL GROUP BY with date_trunc instead of loading all rows into JavaScript (revenue, client acquisition, booking trends)
-- [ ] **DAL-04**: All server actions return consistent `{ success, data?, error? }` pattern (no mixed throw/return)
+- [x] **DAL-01**: All list DAL functions support cursor/offset pagination with configurable page size
+- [x] **DAL-02**: All list DAL functions support search/filter by relevant text fields (name, email, phone, description)
+- [x] **DAL-03**: Analytics aggregation queries use SQL GROUP BY with date_trunc instead of loading all rows into JavaScript (revenue, client acquisition, booking trends)
+- [x] **DAL-04**: All server actions return consistent `{ success, data?, error? }` pattern (no mixed throw/return)
 - [ ] **DAL-05**: All DAL mutation functions validate foreign key references exist before insert (customerId, artistId)
 - [ ] **DAL-06**: All DAL mutations that use `.returning()` handle empty result arrays gracefully
 - [ ] **DAL-07**: Missing DAL functions created: artist profile CRUD, design approval status, contact management (update/delete)
@@ -155,10 +155,10 @@ Deferred beyond v2.0.
 | SEC-08 | Phase 13 | Complete |
 | SEC-09 | Phase 13 | Complete |
 | SEC-10 | Phase 13 | Pending |
-| DAL-01 | Phase 14 | Pending |
-| DAL-02 | Phase 14 | Pending |
-| DAL-03 | Phase 14 | Pending |
-| DAL-04 | Phase 14 | Pending |
+| DAL-01 | Phase 14 | Complete |
+| DAL-02 | Phase 14 | Complete |
+| DAL-03 | Phase 14 | Complete |
+| DAL-04 | Phase 14 | Complete |
 | DAL-05 | Phase 14 | Pending |
 | DAL-06 | Phase 14 | Pending |
 | DAL-07 | Phase 14 | Pending |

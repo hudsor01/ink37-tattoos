@@ -2,15 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Admin Panel
-status: executing
-stopped_at: Phase 14 context gathered
-last_updated: "2026-03-28T16:35:04.825Z"
-last_activity: 2026-03-28
+status: Roadmap Complete
+stopped_at: Roadmap created, ready for phase planning
+last_updated: "2026-03-27T21:00:00.000Z"
 progress:
   total_phases: 10
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
@@ -20,17 +19,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** The tattoo artist manages their entire business from one app while clients get a polished experience for discovering, booking, paying, and tracking their tattoo journey.
-**Current focus:** Phase 13 — security-hardening
+**Current focus:** v2.0 Admin Panel -- rebuild admin dashboard from CRUD scaffold to production-grade
 
 ## Current Position
 
-Phase: 13 (security-hardening) — EXECUTING
-Plan: 2 of 3
-Status: Ready to execute
-Last activity: 2026-03-28
+Phase: 14 (Data Layer Fixes)
+Plan: 1 of 4 complete
+Status: In Progress
+Last activity: 2026-03-28 -- Plan 14-01 foundation types complete
 
 ```
-v2.0 Progress: [..........] 0/10 phases
+v2.0 Progress: [..........] 0/10 phases (14-01 complete)
 ```
 
 ## Previous Milestone
@@ -59,8 +58,13 @@ Archived to: .planning/milestones/
 
 See PROJECT.md Key Decisions table for full history.
 
-v2.0 roadmap decisions:
+Phase 14-01 decisions:
+- Offset-based pagination (not cursor) -- fits admin dashboard page-number navigation
+- safeAction as callback wrapper -- simpler integration with existing varying-signature actions
+- Weighted tsvector (A/B/C/D) for relevance-ranked full-text search
+- SQL GROUP BY replaces JS Map/loop aggregation in analytics
 
+v2.0 roadmap decisions:
 - Security and data layer come first (phases 13-14) -- foundation for everything
 - UI foundations before new pages -- establish patterns once, apply everywhere
 - Missing pages split into Core (13-dependent) and Operations (14+16 dependent)
@@ -69,8 +73,6 @@ v2.0 roadmap decisions:
 - Analytics depth after reports page and analytics page are enhanced
 - Testing last -- validates features built in all prior phases
 - Tech debt bundled with testing -- cleanup alongside verification
-- [Phase 13]: calEvent table uses non-unique calEventUid for audit trail (same booking UID sent for CREATED/RESCHEDULED/CANCELLED)
-- [Phase 13]: Stripe atomic idempotency uses INSERT ON CONFLICT DO NOTHING + .returning() to eliminate race window
 
 ### Pending Todos
 
@@ -82,6 +84,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-28T16:35:04.819Z
-Stopped at: Phase 14 context gathered
-Resume with: `/gsd:plan-phase 13` to begin Security Hardening
+Last session: 2026-03-28
+Stopped at: Completed 14-01-PLAN.md (Data Layer Foundation)
+Resume with: Continue Phase 14 plans 02-04
