@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DataTable, type ColumnDef } from '@/components/dashboard/data-table';
-import { EmptyState } from '@/components/dashboard/empty-state';
 import { StatusBadge } from '@/components/dashboard/status-badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,7 +16,17 @@ import { SessionForm } from '@/components/dashboard/session-form';
 import { deleteSessionAction } from '@/lib/actions/session-actions';
 import { sessionsQueryOptions } from '@/lib/query-options';
 import { formatDuration, intervalToDuration } from 'date-fns';
-import { Paintbrush, Plus, Check, X, Trash2, Eye } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Plus, Check, X, Trash2, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface SessionWithRelations {
@@ -122,6 +131,8 @@ const columns: ColumnDef<SessionWithRelations, unknown>[] = [
 export function SessionListClient() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailSession, setDetailSession] = useState<SessionWithRelations | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -130,14 +141,18 @@ export function SessionListClient() {
 
   const { data: sessions = [] } = useQuery(sessionsQueryOptions);
 
-  async function handleDelete(id: string) {
-    if (!confirm('Are you sure you want to delete this session?')) return;
+  async function handleDelete() {
+    if (!deleteId) return;
+    setIsDeleting(true);
     try {
-      await deleteSessionAction(id);
-      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      await deleteSessionAction(deleteId);
+      await queryClient.invalidateQueries({ queryKey: ['sessions'] });
       toast.success('Session deleted');
     } catch {
       toast.error("Changes couldn't be saved. Please try again.");
+    } finally {
+      setIsDeleting(false);
+      setDeleteId(null);
     }
   }
 
@@ -158,7 +173,7 @@ export function SessionListClient() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => handleDelete(row.original.id)}
+            onClick={() => setDeleteId(row.original.id)}
           >
             <Trash2 className="h-4 w-4 text-destructive" />
           </Button>
@@ -169,12 +184,15 @@ export function SessionListClient() {
 
   if (!sessions || sessions.length === 0) {
     return (
-      <>
-        <EmptyState
-          icon={Paintbrush}
-          title="No sessions yet"
-          description="Sessions will appear here once appointments are confirmed."
-        />
+      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12">
+        <h3 className="text-lg font-semibold">No sessions recorded</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Log a tattoo session after completing an appointment.
+        </p>
+        <Button className="mt-4" onClick={() => setDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Log Session
+        </Button>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
@@ -191,7 +209,7 @@ export function SessionListClient() {
             />
           </DialogContent>
         </Dialog>
-      </>
+      </div>
     );
   }
 
@@ -301,6 +319,23 @@ export function SessionListClient() {
           )}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Session</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this session and its associated data. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={isDeleting} variant="destructive">
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

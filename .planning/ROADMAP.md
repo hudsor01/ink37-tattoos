@@ -79,7 +79,7 @@ Plans:
 - [ ] 15-01-PLAN.md -- Shared UI components, StatusBadge CSS vars, TypeScript fixes
 - [x] 15-02-PLAN.md -- Responsive DataTable with mobile card view, mobile sidebar (completed 2026-03-28)
 - [ ] 15-03-PLAN.md -- Loading skeletons and empty states for all 12 dashboard pages
-- [ ] 15-04-PLAN.md -- Form UX: field errors, DatePicker, AlertDialog, toast, unsaved changes
+- [x] 15-04-PLAN.md -- Form UX: field errors, DatePicker, AlertDialog, toast, unsaved changes (completed 2026-03-28)
 - [ ] 15-05-PLAN.md -- Accessibility, dynamic breadcrumbs, dead import cleanup
 **UI hint**: yes
 

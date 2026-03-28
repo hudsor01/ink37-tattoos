@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
 import {
   CreateCustomerSchema,
   type CreateCustomerData,
@@ -24,6 +25,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DatePicker } from '@/components/dashboard/date-picker';
+import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
 
 interface CustomerFormProps {
   customer?: {
@@ -81,6 +84,8 @@ export function CustomerForm({ customer, onSuccess }: CustomerFormProps) {
     },
   });
 
+  useUnsavedChanges(form.formState.isDirty);
+
   async function onSubmit(data: CreateCustomerData) {
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
@@ -98,6 +103,17 @@ export function CustomerForm({ customer, onSuccess }: CustomerFormProps) {
 
     toast.promise(
       action.then(async (result) => {
+        if (!result.success) {
+          if (result.fieldErrors) {
+            Object.entries(result.fieldErrors).forEach(([field, messages]) => {
+              form.setError(field as keyof CreateCustomerData, {
+                type: 'server',
+                message: messages[0],
+              });
+            });
+          }
+          throw new Error(result.error || 'Something went wrong');
+        }
         await queryClient.invalidateQueries({ queryKey: ['customers'] });
         onSuccess?.();
         return result;
@@ -105,7 +121,7 @@ export function CustomerForm({ customer, onSuccess }: CustomerFormProps) {
       {
         loading: isEdit ? 'Updating customer...' : 'Creating customer...',
         success: isEdit ? 'Customer updated successfully' : 'Customer created successfully',
-        error: "Changes couldn't be saved. Please try again.",
+        error: (err) => err.message || "Changes couldn't be saved. Please try again.",
       }
     );
   }
@@ -122,7 +138,7 @@ export function CustomerForm({ customer, onSuccess }: CustomerFormProps) {
           </TabsList>
 
           <TabsContent value="basic" className="space-y-4 pt-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="firstName"
@@ -194,23 +210,11 @@ export function CustomerForm({ customer, onSuccess }: CustomerFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Date of Birth</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      {...field}
-                      value={
-                        field.value
-                          ? new Date(field.value).toISOString().split('T')[0]
-                          : ''
-                      }
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        field.onChange(
-                          val ? new Date(val).toISOString() : undefined
-                        );
-                      }}
-                    />
-                  </FormControl>
+                  <DatePicker
+                    value={field.value ? new Date(field.value) : undefined}
+                    onChange={(date) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
+                    placeholder="Select date of birth"
+                  />
                   <FormMessage />
                 </FormItem>
               )}
@@ -320,7 +324,7 @@ export function CustomerForm({ customer, onSuccess }: CustomerFormProps) {
           </TabsContent>
 
           <TabsContent value="additional" className="space-y-4 pt-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="address"
@@ -356,7 +360,7 @@ export function CustomerForm({ customer, onSuccess }: CustomerFormProps) {
                 )}
               />
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="state"
