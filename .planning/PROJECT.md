@@ -11,8 +11,9 @@ The tattoo artist manages their entire business from one app while clients get a
 ## Current State
 
 **Shipped:** v1.0 MVP (2026-03-27)
+**v2.0 Progress:** Phase 13 complete (2026-03-28) — Security Hardening
 **Codebase:** 27,731 LOC TypeScript across 448 files
-**Tests:** 354 tests (unit, integration, schema validation, MSW boundary)
+**Tests:** 366 tests (unit, integration, schema validation, MSW boundary)
 
 ### What's Live
 
@@ -46,6 +47,7 @@ The tattoo artist manages their entire business from one app while clients get a
 - Online store (merchandise, prints, gift cards, order management) — v1.0
 - Drizzle ORM migration from Prisma (19 tables, zero CVEs) — v1.0
 - Security headers, CSRF, rate limiting, Zod validation — v1.0
+- Security hardening: layout auth, persistent rate limiting, XSS sanitization, webhook safety — v2.0 Phase 13
 - HydrationBoundary SSR, DataTable with global+faceted filters — v1.0
 - React 19 features (Context-as-provider, useFormStatus, resource preloading) — v1.0
 
