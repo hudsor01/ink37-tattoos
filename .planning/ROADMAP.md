@@ -27,7 +27,7 @@
 
 ### v2.0 Admin Panel
 
-- [x] **Phase 13: Security Hardening** - Auth enforcement, rate limiting, input sanitization, webhook safety (completed 2026-03-28)
+- [ ] **Phase 13: Security Hardening** - Auth enforcement, rate limiting, input sanitization, webhook safety
 - [ ] **Phase 14: Data Layer Fixes** - Pagination, consistent errors, DAL gaps, audit logging, webhook revalidation
 - [ ] **Phase 15: UI Foundations** - Loading/error/empty states, responsive tables, accessibility, form UX patterns
 - [ ] **Phase 16: Missing Pages -- Core** - Artist profile, calendar view, contacts management, gift card management
@@ -50,12 +50,7 @@
   3. Customer names and notes containing HTML/script tags render as escaped text in the dashboard, never as executable markup
   4. Sending the same Stripe webhook event twice does not create duplicate records or double-process the payment
   5. Cal.com webhook payloads missing required fields are rejected with a logged validation error instead of crashing
-**Plans:** 3/3 plans complete
-
-Plans:
-- [x] 13-01-PLAN.md -- Auth infrastructure + layout enforcement (SEC-01, SEC-02, SEC-10)
-- [x] 13-02-PLAN.md -- Rate limiting + input sanitization (SEC-03, SEC-04, SEC-06)
-- [x] 13-03-PLAN.md -- Server action roles + API errors + webhook safety (SEC-05, SEC-07, SEC-08, SEC-09)
+**Plans**: TBD
 
 ### Phase 14: Data Layer Fixes
 **Goal**: All DAL list functions support pagination and search, all mutations return consistent results, all state changes revalidate the UI, and all missing DAL functions exist
@@ -67,13 +62,7 @@ Plans:
   3. Creating an appointment for a non-existent customer returns a clear validation error instead of a database constraint violation
   4. After a Stripe payment webhook fires, the dashboard payments page shows the updated record without requiring a manual refresh
   5. Entering an invalid gift card code at checkout displays an explicit error message to the user
-**Plans:** 4 plans
-
-Plans:
-- [ ] 14-01-PLAN.md -- Shared types, safeAction wrapper, tsvector schema, SQL analytics (DAL-01, DAL-02, DAL-03, DAL-04)
-- [ ] 14-02-PLAN.md -- Paginate + search all 10 DAL list functions (DAL-01, DAL-02)
-- [ ] 14-03-PLAN.md -- ActionResult wrapper on all 13 server actions + audit gaps (DAL-04, DAL-10)
-- [ ] 14-04-PLAN.md -- Missing DAL functions, FK validation, webhook revalidation, conflict wiring, gift card fix (DAL-05, DAL-06, DAL-07, DAL-08, DAL-09, DAL-11, DAL-12)
+**Plans**: TBD
 
 ### Phase 15: UI Foundations
 **Goal**: Every dashboard page has proper loading, error, and empty states; all pages work on mobile; all forms show field-level validation; and all interactive elements are accessible
@@ -189,8 +178,8 @@ Plans:
 | 10. Tech Stack Audit | v1.0 | 3/3 | Complete | 2026-03-26 |
 | 11. Full Stack Integration | v1.0 | 6/6 | Complete | 2026-03-27 |
 | 12. Testing Foundation | v1.0 | 3/3 | Complete | 2026-03-27 |
-| 13. Security Hardening | v2.0 | 3/3 | Complete   | 2026-03-28 |
-| 14. Data Layer Fixes | v2.0 | 0/4 | Planned | - |
+| 13. Security Hardening | v2.0 | 0/? | Not started | - |
+| 14. Data Layer Fixes | v2.0 | 1/4 | In Progress | - |
 | 15. UI Foundations | v2.0 | 0/? | Not started | - |
 | 16. Missing Pages -- Core | v2.0 | 0/? | Not started | - |
 | 17. Missing Pages -- Operations | v2.0 | 0/? | Not started | - |
