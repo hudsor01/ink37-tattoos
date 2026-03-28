@@ -3,9 +3,11 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, sql, desc } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 import type { CreateSessionData } from '@/lib/security/validation';
+import type { PaginationParams, PaginatedResult } from './types';
+import { DEFAULT_PAGE_SIZE } from './types';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
 
@@ -18,28 +20,60 @@ async function requireStaffRole() {
   return session;
 }
 
-export const getSessions = cache(
-  async (filters?: { status?: string; limit?: number; offset?: number }) => {
-    await requireStaffRole();
+export const getSessions = cache(async (
+  params: PaginationParams = { page: 1, pageSize: DEFAULT_PAGE_SIZE }
+): Promise<PaginatedResult<{
+  id: string;
+  designDescription: string;
+  placement: string;
+  style: string;
+  status: string;
+  appointmentDate: Date;
+  totalCost: number;
+  paidAmount: number;
+  notes: string | null;
+  customerId: string;
+  artistId: string;
+}>> => {
+  await requireStaffRole();
 
-    const conditions = [];
-    if (filters?.status) {
-      conditions.push(eq(schema.tattooSession.status, filters.status as 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW'));
-    }
-
-    return db.query.tattooSession.findMany({
-      where: conditions.length > 0 ? and(...conditions) : undefined,
-      orderBy: [desc(schema.tattooSession.appointmentDate)],
-      limit: filters?.limit ?? 50,
-      offset: filters?.offset ?? 0,
-      with: {
-        customer: { columns: { firstName: true, lastName: true, email: true } },
-        artist: { columns: { name: true } },
-        appointment: { columns: { id: true, type: true, status: true } },
-      },
-    });
+  const conditions = [];
+  if (params.search) {
+    conditions.push(
+      sql`${schema.tattooSession.searchVector} @@ plainto_tsquery('english', ${params.search})`
+    );
   }
-);
+
+  const results = await db.select({
+    id: schema.tattooSession.id,
+    designDescription: schema.tattooSession.designDescription,
+    placement: schema.tattooSession.placement,
+    style: schema.tattooSession.style,
+    status: schema.tattooSession.status,
+    appointmentDate: schema.tattooSession.appointmentDate,
+    totalCost: schema.tattooSession.totalCost,
+    paidAmount: schema.tattooSession.paidAmount,
+    notes: schema.tattooSession.notes,
+    customerId: schema.tattooSession.customerId,
+    artistId: schema.tattooSession.artistId,
+    total: sql<number>`cast(count(*) over() as integer)`,
+  })
+    .from(schema.tattooSession)
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(desc(schema.tattooSession.appointmentDate))
+    .limit(params.pageSize)
+    .offset((params.page - 1) * params.pageSize);
+
+  const total = results[0]?.total ?? 0;
+
+  return {
+    data: results.map(({ total: _, ...row }) => row),
+    total,
+    page: params.page,
+    pageSize: params.pageSize,
+    totalPages: Math.ceil(total / params.pageSize),
+  };
+});
 
 export const getSessionById = cache(async (id: string) => {
   await requireStaffRole();

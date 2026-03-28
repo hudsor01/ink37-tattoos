@@ -3,9 +3,11 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { eq, or, ilike, desc } from 'drizzle-orm';
+import { eq, and, sql, desc } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 import type { CreateCustomerData, UpdateCustomerData } from '@/lib/security/validation';
+import type { PaginationParams, PaginatedResult } from './types';
+import { DEFAULT_PAGE_SIZE } from './types';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
 
@@ -18,15 +20,49 @@ async function requireStaffRole() {
   return session;
 }
 
-export const getCustomers = cache(async () => {
+export const getCustomers = cache(async (
+  params: PaginationParams = { page: 1, pageSize: DEFAULT_PAGE_SIZE }
+): Promise<PaginatedResult<{
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string | null;
+  phone: string | null;
+  createdAt: Date;
+}>> => {
   await requireStaffRole();
-  return db.query.customer.findMany({
-    orderBy: [desc(schema.customer.createdAt)],
-    columns: {
-      id: true, firstName: true, lastName: true,
-      email: true, phone: true, createdAt: true,
-    },
-  });
+
+  const conditions = [];
+  if (params.search) {
+    conditions.push(
+      sql`${schema.customer.searchVector} @@ plainto_tsquery('english', ${params.search})`
+    );
+  }
+
+  const results = await db.select({
+    id: schema.customer.id,
+    firstName: schema.customer.firstName,
+    lastName: schema.customer.lastName,
+    email: schema.customer.email,
+    phone: schema.customer.phone,
+    createdAt: schema.customer.createdAt,
+    total: sql<number>`cast(count(*) over() as integer)`,
+  })
+    .from(schema.customer)
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(desc(schema.customer.createdAt))
+    .limit(params.pageSize)
+    .offset((params.page - 1) * params.pageSize);
+
+  const total = results[0]?.total ?? 0;
+
+  return {
+    data: results.map(({ total: _, ...row }) => row),
+    total,
+    page: params.page,
+    pageSize: params.pageSize,
+    totalPages: Math.ceil(total / params.pageSize),
+  };
 });
 
 export const getCustomerById = cache(async (id: string) => {
@@ -77,19 +113,3 @@ export async function deleteCustomer(id: string) {
     .returning();
   return result;
 }
-
-export const searchCustomers = cache(async (query: string) => {
-  await requireStaffRole();
-  return db.query.customer.findMany({
-    where: or(
-      ilike(schema.customer.firstName, `%${query}%`),
-      ilike(schema.customer.lastName, `%${query}%`),
-      ilike(schema.customer.email, `%${query}%`),
-    ),
-    orderBy: [desc(schema.customer.createdAt)],
-    columns: {
-      id: true, firstName: true, lastName: true,
-      email: true, phone: true, createdAt: true,
-    },
-  });
-});
