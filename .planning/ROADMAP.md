@@ -28,7 +28,7 @@
 ### v2.0 Admin Panel
 
 - [ ] **Phase 13: Security Hardening** - Auth enforcement, rate limiting, input sanitization, webhook safety
-- [ ] **Phase 14: Data Layer Fixes** - Pagination, consistent errors, DAL gaps, audit logging, webhook revalidation
+- [x] **Phase 14: Data Layer Fixes** - Pagination, consistent errors, DAL gaps, audit logging, webhook revalidation (completed 2026-03-28)
 - [ ] **Phase 15: UI Foundations** - Loading/error/empty states, responsive tables, accessibility, form UX patterns
 - [ ] **Phase 16: Missing Pages -- Core** - Artist profile, calendar view, contacts management, gift card management
 - [ ] **Phase 17: Missing Pages -- Operations** - Financial reports, notification center, design approval management
@@ -179,7 +179,7 @@
 | 11. Full Stack Integration | v1.0 | 6/6 | Complete | 2026-03-27 |
 | 12. Testing Foundation | v1.0 | 3/3 | Complete | 2026-03-27 |
 | 13. Security Hardening | v2.0 | 0/? | Not started | - |
-| 14. Data Layer Fixes | v2.0 | 2/4 | In Progress|  |
+| 14. Data Layer Fixes | v2.0 | 4/4 | Complete   | 2026-03-28 |
 | 15. UI Foundations | v2.0 | 0/? | Not started | - |
 | 16. Missing Pages -- Core | v2.0 | 0/? | Not started | - |
 | 17. Missing Pages -- Operations | v2.0 | 0/? | Not started | - |

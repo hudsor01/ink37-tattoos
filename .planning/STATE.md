@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Admin Panel
 status: executing
-stopped_at: Completed 14-03-PLAN.md
-last_updated: "2026-03-28T18:51:30.690Z"
+stopped_at: Completed 14-04-PLAN.md
+last_updated: "2026-03-28T19:14:39.630Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 10
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 7
-  completed_plans: 5
+  completed_plans: 7
 ---
 
 # Project State
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 ## Current Position
 
 Phase: 14 (Data Layer Fixes)
-Plan: 2 of 4 complete
+Plan: 3 of 4 complete
 Status: Ready to execute
 Last activity: 2026-03-28
 
@@ -77,6 +77,8 @@ v2.0 roadmap decisions:
 - Testing last -- validates features built in all prior phases
 - Tech debt bundled with testing -- cleanup alongside verification
 - [Phase 14-data-layer-fixes]: requireRole stays outside safeAction for redirect propagation; public actions use 'anonymous' userId for audit logging
+- [Phase 14]: Used tattooArtist table for artist profile (not user table) -- already has bio, specialties, portfolio fields
+- [Phase 14]: ILIKE fallback for gift card search (small dataset, no tsvector needed)
 
 ### Pending Todos
 
@@ -88,6 +90,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-28T18:51:30.688Z
-Stopped at: Completed 14-03-PLAN.md
+Last session: 2026-03-28T19:14:39.628Z
+Stopped at: Completed 14-04-PLAN.md
 Resume with: Continue Phase 14 plans 02-04
