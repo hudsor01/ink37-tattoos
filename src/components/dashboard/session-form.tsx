@@ -7,8 +7,10 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { FieldError } from '@/components/dashboard/field-error';
 import { createSessionAction } from '@/lib/actions/session-actions';
 import { toast } from 'sonner';
+import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
 
 const SessionFormSchema = z.object({
   customerId: z.string().min(1, 'Customer is required'),
@@ -29,6 +31,8 @@ const SessionFormSchema = z.object({
   notes: z.string().optional(),
 });
 
+type SessionFormData = z.infer<typeof SessionFormSchema>;
+
 
 interface SessionFormProps {
   onSuccess?: () => void;
@@ -40,7 +44,8 @@ export function SessionForm({ onSuccess }: SessionFormProps) {
     handleSubmit,
     watch,
     setValue,
-    formState: { errors, isSubmitting },
+    setError,
+    formState: { errors, isSubmitting, isDirty },
   } = useForm({
     resolver: zodResolver(SessionFormSchema) as never,
     defaultValues: {
@@ -66,6 +71,8 @@ export function SessionForm({ onSuccess }: SessionFormProps) {
   const hourlyRate = watch('hourlyRate');
   const estimatedHours = watch('estimatedHours');
 
+  useUnsavedChanges(isDirty);
+
   useEffect(() => {
     if (hourlyRate && estimatedHours) {
       const calculated = hourlyRate * estimatedHours;
@@ -83,46 +90,51 @@ export function SessionForm({ onSuccess }: SessionFormProps) {
 
     toast.promise(
       createSessionAction(formData).then((result) => {
+        if (!result.success) {
+          if (result.fieldErrors) {
+            Object.entries(result.fieldErrors).forEach(([field, messages]) => {
+              setError(field as keyof SessionFormData, {
+                type: 'server',
+                message: messages[0],
+              });
+            });
+          }
+          throw new Error(result.error || 'Something went wrong');
+        }
         onSuccess?.();
         return result;
       }),
       {
         loading: 'Logging session...',
         success: 'Session logged successfully',
-        error: "Changes couldn't be saved. Please try again.",
+        error: (err) => err.message || "Changes couldn't be saved. Please try again.",
       }
     );
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-h-[60vh] overflow-y-auto px-1">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="text-sm font-medium">Customer ID
           <Input {...register('customerId')} placeholder="Customer UUID" />
           </label>
-          {errors.customerId && (
-            <p className="text-xs text-destructive mt-1">{errors.customerId.message}</p>
-          )}
+          <FieldError errors={errors.customerId?.message ? [errors.customerId.message] : undefined} />
         </div>
         <div>
           <label className="text-sm font-medium">Artist ID
           <Input {...register('artistId')} placeholder="Artist UUID" />
           </label>
-          {errors.artistId && (
-            <p className="text-xs text-destructive mt-1">{errors.artistId.message}</p>
-          )}
+          <FieldError errors={errors.artistId?.message ? [errors.artistId.message] : undefined} />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="text-sm font-medium">Date
           <Input type="datetime-local" {...register('appointmentDate')} />
           </label>
-          {errors.appointmentDate && (
-            <p className="text-xs text-destructive mt-1">{errors.appointmentDate.message}</p>
-          )}
+          <FieldError errors={errors.appointmentDate?.message ? [errors.appointmentDate.message] : undefined} />
         </div>
         <div>
           <label className="text-sm font-medium">Duration (minutes)
@@ -132,9 +144,7 @@ export function SessionForm({ onSuccess }: SessionFormProps) {
             placeholder="120"
           />
           </label>
-          {errors.duration && (
-            <p className="text-xs text-destructive mt-1">{errors.duration.message}</p>
-          )}
+          <FieldError errors={errors.duration?.message ? [errors.duration.message] : undefined} />
         </div>
       </div>
 
@@ -142,41 +152,33 @@ export function SessionForm({ onSuccess }: SessionFormProps) {
         <label className="text-sm font-medium">Design Description
         <Textarea {...register('designDescription')} placeholder="Describe the tattoo design..." />
         </label>
-        {errors.designDescription && (
-          <p className="text-xs text-destructive mt-1">{errors.designDescription.message}</p>
-        )}
+        <FieldError errors={errors.designDescription?.message ? [errors.designDescription.message] : undefined} />
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label className="text-sm font-medium">Placement
           <Input {...register('placement')} placeholder="e.g., Upper arm" />
           </label>
-          {errors.placement && (
-            <p className="text-xs text-destructive mt-1">{errors.placement.message}</p>
-          )}
+          <FieldError errors={errors.placement?.message ? [errors.placement.message] : undefined} />
         </div>
         <div>
           <label className="text-sm font-medium">Size
           <Input {...register('size')} placeholder='e.g., 6"x4"' />
           </label>
-          {errors.size && (
-            <p className="text-xs text-destructive mt-1">{errors.size.message}</p>
-          )}
+          <FieldError errors={errors.size?.message ? [errors.size.message] : undefined} />
         </div>
         <div>
           <label className="text-sm font-medium">Style
           <Input {...register('style')} placeholder="e.g., Realism" />
           </label>
-          {errors.style && (
-            <p className="text-xs text-destructive mt-1">{errors.style.message}</p>
-          )}
+          <FieldError errors={errors.style?.message ? [errors.style.message] : undefined} />
         </div>
       </div>
 
       <div className="border-t pt-4">
         <h4 className="text-sm font-semibold mb-3">Pricing</h4>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium">Hourly Rate ($)
             <Input
@@ -186,9 +188,7 @@ export function SessionForm({ onSuccess }: SessionFormProps) {
               placeholder="150.00"
             />
             </label>
-            {errors.hourlyRate && (
-              <p className="text-xs text-destructive mt-1">{errors.hourlyRate.message}</p>
-            )}
+            <FieldError errors={errors.hourlyRate?.message ? [errors.hourlyRate.message] : undefined} />
           </div>
           <div>
             <label className="text-sm font-medium">Estimated Hours
@@ -199,9 +199,7 @@ export function SessionForm({ onSuccess }: SessionFormProps) {
               placeholder="3"
             />
             </label>
-            {errors.estimatedHours && (
-              <p className="text-xs text-destructive mt-1">{errors.estimatedHours.message}</p>
-            )}
+            <FieldError errors={errors.estimatedHours?.message ? [errors.estimatedHours.message] : undefined} />
           </div>
           <div>
             <label className="text-sm font-medium">Deposit ($)
@@ -224,9 +222,7 @@ export function SessionForm({ onSuccess }: SessionFormProps) {
               className="bg-muted"
             />
             </label>
-            {errors.totalCost && (
-              <p className="text-xs text-destructive mt-1">{errors.totalCost.message}</p>
-            )}
+            <FieldError errors={errors.totalCost?.message ? [errors.totalCost.message] : undefined} />
           </div>
         </div>
       </div>

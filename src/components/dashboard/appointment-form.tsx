@@ -30,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
 
 const APPOINTMENT_TYPES = [
   { value: 'CONSULTATION', label: 'Consultation' },
@@ -91,6 +92,8 @@ export function AppointmentForm({
     },
   });
 
+  useUnsavedChanges(form.formState.isDirty);
+
   async function onSubmit(data: CreateAppointmentData) {
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
@@ -104,6 +107,17 @@ export function AppointmentForm({
 
     toast.promise(
       action.then(async (result) => {
+        if (!result.success) {
+          if (result.fieldErrors) {
+            Object.entries(result.fieldErrors).forEach(([field, messages]) => {
+              form.setError(field as keyof CreateAppointmentData, {
+                type: 'server',
+                message: messages[0],
+              });
+            });
+          }
+          throw new Error(result.error || 'Something went wrong');
+        }
         await queryClient.invalidateQueries({ queryKey: ['appointments'] });
         onSuccess?.();
         return result;
@@ -111,7 +125,7 @@ export function AppointmentForm({
       {
         loading: isEdit ? 'Updating appointment...' : 'Creating appointment...',
         success: isEdit ? 'Appointment updated successfully' : 'Appointment created successfully',
-        error: "Changes couldn't be saved. Please try again.",
+        error: (err) => err.message || "Changes couldn't be saved. Please try again.",
       }
     );
   }
@@ -133,7 +147,7 @@ export function AppointmentForm({
           )}
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="firstName"
@@ -162,7 +176,7 @@ export function AppointmentForm({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="email"
@@ -195,7 +209,7 @@ export function AppointmentForm({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="scheduledDate"
@@ -273,7 +287,7 @@ export function AppointmentForm({
           )}
         />
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField
             control={form.control}
             name="tattooType"

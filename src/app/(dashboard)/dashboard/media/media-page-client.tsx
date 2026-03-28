@@ -12,7 +12,16 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { EmptyState } from '@/components/dashboard/empty-state';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { MediaUploader } from '@/components/dashboard/media-uploader';
 import {
   deleteMediaAction,
@@ -84,17 +93,17 @@ export function MediaPageClient() {
   if (!media || media.length === 0) {
     return (
       <>
-        <EmptyState
-          icon={ImageIcon}
-          title="No media yet"
-          description="Upload photos of your work to build your portfolio."
-          action={
-            <Button onClick={() => setUploadOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Upload Media
-            </Button>
-          }
-        />
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12">
+          <ImageIcon className="h-12 w-12 text-muted-foreground/50 mb-4" />
+          <h3 className="text-lg font-semibold">No media uploaded</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Upload photos and videos of your work to build your portfolio.
+          </p>
+          <Button className="mt-4" onClick={() => setUploadOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Upload Media
+          </Button>
+        </div>
         <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
@@ -196,30 +205,29 @@ export function MediaPageClient() {
         </DialogContent>
       </Dialog>
 
-      <Dialog
+      <AlertDialog
         open={!!deleteConfirm}
-        onOpenChange={() => setDeleteConfirm(null)}
+        onOpenChange={(open) => !open && setDeleteConfirm(null)}
       >
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Delete Media</DialogTitle>
-            <DialogDescription>
-              This will permanently remove this file from your portfolio.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
-              Cancel
-            </Button>
-            <Button
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Media</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove this media file. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
               variant="destructive"
               onClick={() => deleteConfirm && handleDelete(deleteConfirm)}
+              disabled={deleteMutation.isPending}
             >
-              Delete
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

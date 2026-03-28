@@ -35,6 +35,7 @@ import {
 } from '@/components/ui/select';
 import { Upload, FileImage } from 'lucide-react';
 import Image from 'next/image';
+import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
 
 interface ProductFormProps {
   product?: {
@@ -77,6 +78,8 @@ export function ProductForm({ product, mode }: ProductFormProps) {
   });
 
   const watchProductType = form.watch('productType');
+
+  useUnsavedChanges(form.formState.isDirty);
 
   async function uploadFile(file: File) {
     const maxSize = 10 * 1024 * 1024;
@@ -161,14 +164,24 @@ export function ProductForm({ product, mode }: ProductFormProps) {
 
       toast.promise(
         action.then((result) => {
-          if (!result.success) throw new Error('Failed');
+          if (!result.success) {
+            if (result.fieldErrors) {
+              Object.entries(result.fieldErrors).forEach(([field, messages]) => {
+                form.setError(field as keyof CreateProductData, {
+                  type: 'server',
+                  message: messages[0],
+                });
+              });
+            }
+            throw new Error(result.error || 'Something went wrong');
+          }
           router.push('/dashboard/products');
           return result;
         }),
         {
           loading: mode === 'create' ? 'Creating product...' : 'Updating product...',
           success: mode === 'create' ? 'Product created successfully' : 'Product updated successfully',
-          error: "Changes couldn't be saved. Please try again.",
+          error: (err) => err.message || "Changes couldn't be saved. Please try again.",
         }
       );
     });
@@ -211,7 +224,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             )}
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="price"
@@ -370,7 +383,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="sortOrder"
