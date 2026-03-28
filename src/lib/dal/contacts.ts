@@ -26,6 +26,7 @@ export async function createContact(data: {
   message: string;
 }) {
   const [result] = await db.insert(schema.contact).values(data).returning();
+  if (!result) throw new Error('Failed to create contact: no result returned');
   return result;
 }
 
@@ -82,5 +83,25 @@ export async function updateContactStatus(id: string, status: 'NEW' | 'READ' | '
     .set({ status })
     .where(eq(schema.contact.id, id))
     .returning();
+  if (!result) throw new Error('Contact not found');
+  return result;
+}
+
+export async function updateContact(id: string, data: { status?: 'NEW' | 'READ' | 'REPLIED' | 'RESOLVED'; adminNotes?: string }) {
+  await requireStaffRole();
+  const [result] = await db.update(schema.contact)
+    .set(data)
+    .where(eq(schema.contact.id, id))
+    .returning();
+  if (!result) throw new Error('Contact not found');
+  return result;
+}
+
+export async function deleteContact(id: string) {
+  await requireStaffRole();
+  const [result] = await db.delete(schema.contact)
+    .where(eq(schema.contact.id, id))
+    .returning();
+  if (!result) throw new Error('Contact not found');
   return result;
 }

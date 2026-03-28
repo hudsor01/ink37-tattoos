@@ -90,6 +90,7 @@ export async function createCustomer(data: CreateCustomerData) {
     ...data,
     dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
   }).returning();
+  if (!result) throw new Error('Failed to create customer: no result returned');
   return result;
 }
 
@@ -103,6 +104,7 @@ export async function updateCustomer(id: string, data: UpdateCustomerData) {
     .set(setData)
     .where(eq(schema.customer.id, id))
     .returning();
+  if (!result) throw new Error('Customer not found');
   return result;
 }
 
@@ -111,5 +113,6 @@ export async function deleteCustomer(id: string) {
   const [result] = await db.delete(schema.customer)
     .where(eq(schema.customer.id, id))
     .returning();
+  if (!result) throw new Error('Customer not found');
   return result;
 }

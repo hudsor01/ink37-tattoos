@@ -62,5 +62,6 @@ export async function upsertSetting(data: {
       description: data.description,
     },
   }).returning();
+  if (!result) throw new Error('Failed to upsert setting: no result returned');
   return result;
 }
