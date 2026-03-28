@@ -12,6 +12,16 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { MediaUploader } from '@/components/dashboard/media-uploader';
 import {
   deleteMediaAction,
@@ -195,30 +205,29 @@ export function MediaPageClient() {
         </DialogContent>
       </Dialog>
 
-      <Dialog
+      <AlertDialog
         open={!!deleteConfirm}
-        onOpenChange={() => setDeleteConfirm(null)}
+        onOpenChange={(open) => !open && setDeleteConfirm(null)}
       >
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Delete Media</DialogTitle>
-            <DialogDescription>
-              This will permanently remove this file from your portfolio.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
-              Cancel
-            </Button>
-            <Button
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Media</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove this media file. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
               variant="destructive"
               onClick={() => deleteConfirm && handleDelete(deleteConfirm)}
+              disabled={deleteMutation.isPending}
             >
-              Delete
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
