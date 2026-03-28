@@ -27,7 +27,7 @@
 
 ### v2.0 Admin Panel
 
-- [x] **Phase 13: Security Hardening** - Auth enforcement, rate limiting, input sanitization, webhook safety (completed 2026-03-28)
+- [ ] **Phase 13: Security Hardening** - Auth enforcement, rate limiting, input sanitization, webhook safety
 - [ ] **Phase 14: Data Layer Fixes** - Pagination, consistent errors, DAL gaps, audit logging, webhook revalidation
 - [ ] **Phase 15: UI Foundations** - Loading/error/empty states, responsive tables, accessibility, form UX patterns
 - [ ] **Phase 16: Missing Pages -- Core** - Artist profile, calendar view, contacts management, gift card management
@@ -50,7 +50,12 @@
   3. Customer names and notes containing HTML/script tags render as escaped text in the dashboard, never as executable markup
   4. Sending the same Stripe webhook event twice does not create duplicate records or double-process the payment
   5. Cal.com webhook payloads missing required fields are rejected with a logged validation error instead of crashing
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 13-01-PLAN.md -- Auth infrastructure + layout enforcement (SEC-01, SEC-02, SEC-10)
+- [ ] 13-02-PLAN.md -- Rate limiting + input sanitization (SEC-03, SEC-04, SEC-06)
+- [ ] 13-03-PLAN.md -- Server action roles + API errors + webhook safety (SEC-05, SEC-07, SEC-08, SEC-09)
 
 ### Phase 14: Data Layer Fixes
 **Goal**: All DAL list functions support pagination and search, all mutations return consistent results, all state changes revalidate the UI, and all missing DAL functions exist
@@ -178,7 +183,7 @@
 | 10. Tech Stack Audit | v1.0 | 3/3 | Complete | 2026-03-26 |
 | 11. Full Stack Integration | v1.0 | 6/6 | Complete | 2026-03-27 |
 | 12. Testing Foundation | v1.0 | 3/3 | Complete | 2026-03-27 |
-| 13. Security Hardening | v2.0 | 1/1 | Complete   | 2026-03-28 |
+| 13. Security Hardening | v2.0 | 1/3 | In Progress | - |
 | 14. Data Layer Fixes | v2.0 | 0/? | Not started | - |
 | 15. UI Foundations | v2.0 | 0/? | Not started | - |
 | 16. Missing Pages -- Core | v2.0 | 0/? | Not started | - |
