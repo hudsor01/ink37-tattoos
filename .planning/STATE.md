@@ -2,14 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Admin Panel
-status: Roadmap Complete
-stopped_at: Roadmap created, ready for phase planning
-last_updated: "2026-03-27T21:00:00.000Z"
+status: executing
+stopped_at: Completed 14-02-PLAN.md
+last_updated: "2026-03-28T19:03:32.416Z"
+last_activity: 2026-03-28
 progress:
   total_phases: 10
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  completed_phases: 1
+  total_plans: 7
+  completed_plans: 5
 ---
 
 # Project State
@@ -24,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 ## Current Position
 
 Phase: 14 (Data Layer Fixes)
-Plan: 1 of 4 complete
-Status: In Progress
-Last activity: 2026-03-28 -- Plan 14-01 foundation types complete
+Plan: 2 of 4 complete
+Status: Ready to execute
+Last activity: 2026-03-28
 
 ```
 v2.0 Progress: [..........] 0/10 phases (14-01 complete)
@@ -59,12 +60,14 @@ Archived to: .planning/milestones/
 See PROJECT.md Key Decisions table for full history.
 
 Phase 14-01 decisions:
+
 - Offset-based pagination (not cursor) -- fits admin dashboard page-number navigation
 - safeAction as callback wrapper -- simpler integration with existing varying-signature actions
 - Weighted tsvector (A/B/C/D) for relevance-ranked full-text search
 - SQL GROUP BY replaces JS Map/loop aggregation in analytics
 
 v2.0 roadmap decisions:
+
 - Security and data layer come first (phases 13-14) -- foundation for everything
 - UI foundations before new pages -- establish patterns once, apply everywhere
 - Missing pages split into Core (13-dependent) and Operations (14+16 dependent)
@@ -73,6 +76,8 @@ v2.0 roadmap decisions:
 - Analytics depth after reports page and analytics page are enhanced
 - Testing last -- validates features built in all prior phases
 - Tech debt bundled with testing -- cleanup alongside verification
+- [Phase 14]: Payments have no searchVector -- search param is a no-op for getPayments
+- [Phase 14]: searchCustomers removed, search integrated into getCustomers via PaginationParams.search
 
 ### Pending Todos
 
@@ -84,6 +89,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-28
-Stopped at: Completed 14-01-PLAN.md (Data Layer Foundation)
+Last session: 2026-03-28T19:03:32.414Z
+Stopped at: Completed 14-02-PLAN.md
 Resume with: Continue Phase 14 plans 02-04
