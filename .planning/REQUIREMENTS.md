@@ -170,7 +170,7 @@ Deferred beyond v2.0.
 | UI-01 | Phase 15 | Pending |
 | UI-02 | Phase 15 | Pending |
 | UI-03 | Phase 15 | Pending |
-| UI-04 | Phase 15 | Pending |
+| UI-04 | Phase 15 | In Progress (wrapper built, pages need migration) |
 | UI-05 | Phase 15 | Pending |
 | UI-06 | Phase 15 | Pending |
 | UI-07 | Phase 15 | Pending |
