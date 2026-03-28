@@ -3,8 +3,16 @@ import { db } from '@/lib/db';
 import { eq, sql } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 import { env } from '@/lib/env';
+import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
 
 export async function GET(request: NextRequest) {
+  // Rate limit: 20 requests per minute per IP
+  const ip = getRequestIp(request);
+  const { success, reset } = await rateLimiters.storeDownload.limit(ip);
+  if (!success) {
+    return rateLimitResponse(reset);
+  }
+
   const token = request.nextUrl.searchParams.get('token');
 
   if (!token) {

@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { eq } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 import { env } from '@/lib/env';
+import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
 
 /**
  * POST /api/portal/billing
@@ -14,7 +15,13 @@ import { env } from '@/lib/env';
  *
  * Requires: authenticated user with linked customer record + stripeCustomerId.
  */
-export async function POST() {
+export async function POST(request: Request) {
+  // Rate limit: 10 requests per minute per IP
+  const ip = getRequestIp(request);
+  const { success, reset } = await rateLimiters.portalBilling.limit(ip);
+  if (!success) {
+    return rateLimitResponse(reset);
+  }
   const session = await getCurrentSession();
   if (!session?.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
