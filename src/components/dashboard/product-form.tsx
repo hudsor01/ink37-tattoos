@@ -314,8 +314,9 @@ export function ProductForm({ product, mode }: ProductFormProps) {
                 onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
                 role="button"
                 tabIndex={0}
+                aria-label="Upload product image"
               >
-                <Upload className="h-10 w-10 text-muted-foreground/50 mb-3" />
+                <Upload className="h-10 w-10 text-muted-foreground/50 mb-3" aria-hidden="true" />
                 <p className="text-sm font-medium">
                   {uploading ? 'Uploading...' : 'Drag and drop or click to browse'}
                 </p>
@@ -365,7 +366,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
                     <FormLabel>File Path</FormLabel>
                     <FormControl>
                       <div className="flex items-center gap-2">
-                        <FileImage className="h-4 w-4 text-muted-foreground" />
+                        <FileImage className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                         <Input
                           placeholder="uploads/prints/filename.pdf"
                           {...field}

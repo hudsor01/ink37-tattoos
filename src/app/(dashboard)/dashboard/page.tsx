@@ -82,7 +82,7 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             {stats.recentAppointments.length > 0 ? (
-              <Table>
+              <Table aria-label="Recent appointments">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Customer</TableHead>

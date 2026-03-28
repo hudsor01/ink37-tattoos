@@ -138,7 +138,7 @@ export function DataTable<TData, TValue>({
               return (
                 <DropdownMenu key={filter.columnId}>
                   <DropdownMenuTrigger
-                    render={<Button variant="outline" size="sm" />}
+                    render={<Button variant="outline" size="sm" aria-label={`Filter by ${filter.title}`} />}
                   >
                     {filter.title}
                     {selectedValues.size > 0 && (
@@ -189,7 +189,7 @@ export function DataTable<TData, TValue>({
         )}
         <DropdownMenu>
           <DropdownMenuTrigger
-            render={<Button variant="outline" size="sm" className="ml-auto" />}
+            render={<Button variant="outline" size="sm" className="ml-auto" aria-label="Toggle column visibility" />}
           >
             <SlidersHorizontal className="mr-2 h-4 w-4" />
             View
@@ -225,12 +225,13 @@ export function DataTable<TData, TValue>({
                         size="sm"
                         className="-ml-3 h-8"
                         onClick={() => header.column.toggleSorting()}
+                        aria-label={`Sort by ${typeof header.column.columnDef.header === 'string' ? header.column.columnDef.header : header.column.id}`}
                       >
                         {flexRender(
                           header.column.columnDef.header,
                           header.getContext()
                         )}
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                        <ArrowUpDown className="ml-2 h-4 w-4" aria-hidden="true" />
                       </Button>
                     ) : (
                       flexRender(
@@ -287,8 +288,9 @@ export function DataTable<TData, TValue>({
             size="sm"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
+            aria-label="Previous page"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
             Previous
           </Button>
           <span className="text-sm text-muted-foreground">
@@ -300,9 +302,10 @@ export function DataTable<TData, TValue>({
             size="sm"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
+            aria-label="Next page"
           >
             Next
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
       </div>
