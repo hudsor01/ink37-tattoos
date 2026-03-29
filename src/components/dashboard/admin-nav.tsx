@@ -11,6 +11,7 @@ import {
   Bell,
   Image,
   BarChart3,
+  FileBarChart,
   Settings,
   FileText,
   LogOut,
@@ -45,6 +46,7 @@ const navItems = [
   { label: 'Notifications', href: '/dashboard/notifications', icon: Bell },
   { label: 'Media', href: '/dashboard/media', icon: Image },
   { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+  { label: 'Reports', href: '/dashboard/reports', icon: FileBarChart },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
   { label: 'Audit Log', href: '/dashboard/audit-log', icon: FileText },
 ];
