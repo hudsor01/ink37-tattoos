@@ -108,3 +108,13 @@ export { getSettings, getSettingByKey, upsertSetting } from './settings';
 
 // Audit
 export { logAudit, getAuditLogs } from './audit';
+
+// Notifications
+export {
+  getUnreadCount,
+  getRecentNotifications,
+  getNotifications,
+  markAsRead,
+  markAllAsRead,
+  createNotificationForAdmins,
+} from './notifications';

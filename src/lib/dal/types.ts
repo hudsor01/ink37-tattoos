@@ -1,9 +1,3 @@
-/**
- * Shared DAL types for pagination and search.
- *
- * All list DAL functions accept PaginationParams and return PaginatedResult<T>.
- */
-
 export interface PaginationParams {
   page: number;
   pageSize: number;
