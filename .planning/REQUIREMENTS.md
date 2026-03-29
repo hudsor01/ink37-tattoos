@@ -55,7 +55,7 @@ Requirements for admin panel rebuild. Each maps to roadmap phases. Derived from 
 
 - [ ] **PAGE-01**: Artist Profile page -- owner can edit bio, specialties, portfolio display preferences, business info, profile photo
 - [ ] **PAGE-02**: Calendar view -- visual day/week/month calendar showing appointments with time slots, drag support optional
-- [ ] **PAGE-03**: Financial reports page -- revenue by period, payment method breakdown, tax summaries, expense tracking, data export
+- [x] **PAGE-03**: Financial reports page -- revenue by period, payment method breakdown, tax summaries, expense tracking, data export
 - [ ] **PAGE-04**: Contacts management page -- list/filter/search submissions, update status, add admin notes, template responses
 - [ ] **PAGE-05**: Gift card management page -- view all issued cards, check balances, issue new cards, deactivate cards
 - [ ] **PAGE-06**: Notification center -- in-app notifications for new bookings, payments, contact submissions, low stock
@@ -184,7 +184,7 @@ Deferred beyond v2.0.
 | PAGE-02 | Phase 16 | Pending |
 | PAGE-04 | Phase 16 | Pending |
 | PAGE-05 | Phase 16 | Pending |
-| PAGE-03 | Phase 17 | Pending |
+| PAGE-03 | Phase 17 | Complete |
 | PAGE-06 | Phase 17 | Pending |
 | PAGE-07 | Phase 17 | Pending |
 | FEAT-02 | Phase 18 | Pending |
