@@ -31,7 +31,7 @@
 - [ ] **Phase 14: Data Layer Fixes** - Pagination, consistent errors, DAL gaps, audit logging, webhook revalidation
 - [ ] **Phase 15: UI Foundations** - Loading/error/empty states, responsive tables, accessibility, form UX patterns
 - [x] **Phase 16: Missing Pages -- Core** - Artist profile, calendar view, contacts management, gift card management (completed 2026-03-29)
-- [ ] **Phase 17: Missing Pages -- Operations** - Financial reports, notification center, design approval management
+- [x] **Phase 17: Missing Pages -- Operations** - Financial reports, notification center, design approval management (completed 2026-03-29)
 - [ ] **Phase 18: Feature Depth -- Records** - Enhanced customers, appointments, sessions, payments, products, orders
 - [ ] **Phase 19: Feature Depth -- Platform** - Dashboard overview, media, analytics, settings, audit log, list export
 - [ ] **Phase 20: Business Workflows** - Deposits, consent, aftercare, reminders, invoices, portal onboarding
@@ -102,9 +102,9 @@ Plans:
   3. Artist can review a queue of designs pending approval, approve or reject each with notes, and approved designs appear in the public gallery
 **Plans**: 3 plans
 Plans:
-- [ ] 17-01-PLAN.md -- Notification system infrastructure (schema, DAL, API, bell icon, notifications page)
-- [ ] 17-02-PLAN.md -- Financial reports page (revenue charts, payment breakdown, tax summary, CSV export)
-- [ ] 17-03-PLAN.md -- Design approval management + notification webhook triggers
+- [x] 17-01-PLAN.md -- Notification system infrastructure (schema, DAL, API, bell icon, notifications page)
+- [x] 17-02-PLAN.md -- Financial reports page (revenue charts, payment breakdown, tax summary, CSV export)
+- [x] 17-03-PLAN.md -- Design approval management + notification webhook triggers
 **UI hint**: yes
 
 ### Phase 18: Feature Depth -- Records
@@ -189,7 +189,7 @@ Plans:
 | 14. Data Layer Fixes | v2.0 | 0/? | Not started | - |
 | 15. UI Foundations | v2.0 | 0/? | Not started | - |
 | 16. Missing Pages -- Core | v2.0 | 2/2 | Complete    | 2026-03-29 |
-| 17. Missing Pages -- Operations | v2.0 | 1/3 | In Progress | - |
+| 17. Missing Pages -- Operations | v2.0 | 3/3 | Complete   | 2026-03-29 |
 | 18. Feature Depth -- Records | v2.0 | 0/? | Not started | - |
 | 19. Feature Depth -- Platform | v2.0 | 0/? | Not started | - |
 | 20. Business Workflows | v2.0 | 0/? | Not started | - |
