@@ -4,12 +4,11 @@ import { useState, useMemo, useOptimistic, useTransition, useEffect } from 'reac
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
 import { format, differenceInDays, differenceInHours } from 'date-fns';
-import { Calendar, MoreHorizontal, Plus } from 'lucide-react';
+import { MoreHorizontal, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryState, parseAsString } from 'nuqs';
 
-import { DataTable } from '@/components/dashboard/data-table';
-import { EmptyState } from '@/components/dashboard/empty-state';
+import { ResponsiveDataTable, type MobileField } from '@/components/dashboard/responsive-data-table';
 import { StatusBadge } from '@/components/dashboard/status-badge';
 import { AppointmentForm } from '@/components/dashboard/appointment-form';
 import { Button } from '@/components/ui/button';
@@ -267,6 +266,13 @@ export function AppointmentListClient() {
     },
   ];
 
+  const mobileFields: MobileField<Appointment>[] = [
+    { label: 'Customer', accessor: (a) => `${a.customer.firstName} ${a.customer.lastName}` },
+    { label: 'Date', accessor: (a) => format(new Date(a.scheduledDate), 'MMM d, yyyy h:mm a') },
+    { label: 'Type', accessor: (a) => a.type.replace(/_/g, ' ').toLowerCase() },
+    { label: 'Status', accessor: (a) => <StatusBadge status={a.status} /> },
+  ];
+
   if (appointments.length === 0) {
     return (
       <div className="space-y-6">
@@ -280,25 +286,24 @@ export function AppointmentListClient() {
             </p>
           </div>
         </div>
-        <EmptyState
-          icon={Calendar}
-          title="No appointments yet"
-          description="Schedule your first appointment to get started."
-          action={
-            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-              <DialogTrigger render={<Button />}>
-                <Plus className="mr-2 h-4 w-4" />
-                New Appointment
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-lg">
-                <DialogHeader>
-                  <DialogTitle>New Appointment</DialogTitle>
-                </DialogHeader>
-                <AppointmentForm onSuccess={() => setCreateOpen(false)} />
-              </DialogContent>
-            </Dialog>
-          }
-        />
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
+          <h3 className="text-lg font-semibold">No appointments scheduled</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Create an appointment to get started.
+          </p>
+          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+            <DialogTrigger render={<Button className="mt-4" />}>
+              <Plus className="mr-2 h-4 w-4" />
+              New Appointment
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle>New Appointment</DialogTitle>
+              </DialogHeader>
+              <AppointmentForm onSuccess={() => setCreateOpen(false)} />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
     );
   }
@@ -344,11 +349,35 @@ export function AppointmentListClient() {
         </Select>
       </div>
 
-      <DataTable
+      <ResponsiveDataTable
         columns={columns}
         data={filteredAppointments}
         searchKey="firstName"
         searchPlaceholder="Search by customer name..."
+        mobileFields={mobileFields}
+        mobileActions={(row) => (
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">Actions</span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleStatusUpdate(row.id, 'CONFIRMED')}>
+                Confirm
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleStatusUpdate(row.id, 'COMPLETED')}>
+                Mark Completed
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleStatusUpdate(row.id, 'NO_SHOW')}>
+                Mark No-Show
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="destructive" onClick={() => setDeleteId(row.id)}>
+                Cancel Appointment
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       />
 
       {/* Delete Confirmation */}

@@ -1,7 +1,7 @@
 import { connection } from 'next/server';
 import { getProducts } from '@/lib/dal/products';
-import { DataTable } from '@/components/dashboard/data-table';
-import { productColumns } from './columns';
+import { ResponsiveDataTable } from '@/components/dashboard/responsive-data-table';
+import { productColumns, productMobileFields } from './columns';
 import { Button } from '@/components/ui/button';
 import {
   Breadcrumb,
@@ -41,12 +41,13 @@ export default async function ProductsPage() {
       </div>
 
       {products.length > 0 ? (
-        <DataTable
+        <ResponsiveDataTable
           columns={productColumns}
           data={products}
           searchKey="name"
           searchPlaceholder="Search products..."
           pageSize={15}
+          mobileFields={productMobileFields}
         />
       ) : (
         <EmptyState
