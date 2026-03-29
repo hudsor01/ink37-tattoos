@@ -17,7 +17,8 @@ import { SessionForm } from '@/components/dashboard/session-form';
 import { deleteSessionAction } from '@/lib/actions/session-actions';
 import { sessionsQueryOptions } from '@/lib/query-options';
 import { formatDuration, intervalToDuration } from 'date-fns';
-import { Plus, Check, X, Trash2, Eye } from 'lucide-react';
+import { Plus, Check, X, Trash2, Eye, Paintbrush } from 'lucide-react';
+import { EmptyState } from '@/components/dashboard/empty-state';
 import { toast } from 'sonner';
 
 interface SessionWithRelations {
@@ -176,15 +177,18 @@ export function SessionListClient() {
 
   if (!sessions || sessions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12">
-        <h3 className="text-lg font-semibold">No sessions recorded</h3>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Log a tattoo session after completing an appointment.
-        </p>
-        <Button className="mt-4" onClick={() => setDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Log Session
-        </Button>
+      <>
+        <EmptyState
+          icon={Paintbrush}
+          title="No sessions recorded"
+          description="Log a tattoo session after completing an appointment."
+          action={
+            <Button onClick={() => setDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Log Session
+            </Button>
+          }
+        />
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
@@ -201,7 +205,7 @@ export function SessionListClient() {
             />
           </DialogContent>
         </Dialog>
-      </div>
+      </>
     );
   }
 
