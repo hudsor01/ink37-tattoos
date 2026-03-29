@@ -181,7 +181,7 @@
 | 13. Security Hardening | v2.0 | 0/? | Not started | - |
 | 14. Data Layer Fixes | v2.0 | 0/? | Not started | - |
 | 15. UI Foundations | v2.0 | 0/? | Not started | - |
-| 16. Missing Pages -- Core | v2.0 | 1/? | In progress | Plan 01 complete |
+| 16. Missing Pages -- Core | v2.0 | 1/2 | In Progress | - |
 | 17. Missing Pages -- Operations | v2.0 | 0/? | Not started | - |
 | 18. Feature Depth -- Records | v2.0 | 0/? | Not started | - |
 | 19. Feature Depth -- Platform | v2.0 | 0/? | Not started | - |
