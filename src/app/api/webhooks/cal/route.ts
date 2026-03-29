@@ -7,6 +7,7 @@ import { verifyCalSignature } from '@/lib/cal/verify';
 import type { CalBookingPayload } from '@/lib/cal/types';
 import { CalWebhookPayloadSchema } from '@/lib/security/validation';
 import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
+import { createNotificationForAdmins } from '@/lib/dal/notifications';
 
 const VALID_APPOINTMENT_TYPES = ['CONSULTATION', 'DESIGN_REVIEW', 'TATTOO_SESSION', 'TOUCH_UP', 'REMOVAL'] as const;
 
@@ -62,6 +63,21 @@ export async function POST(request: Request) {
         await handleBookingCreated(payload);
         revalidatePath('/dashboard/appointments');
         revalidatePath('/dashboard/customers');
+
+        // Notification: inform admins of new booking
+        try {
+          const attendee = payload.attendees?.[0];
+          const name = attendee?.name ?? 'Unknown';
+          await createNotificationForAdmins({
+            type: 'BOOKING',
+            title: 'New Booking',
+            message: `${name} booked an appointment`,
+            metadata: { calBookingUid: payload.uid, attendeeName: name },
+          });
+        } catch (err) {
+          console.error('Failed to create booking notification:', err);
+        }
+
         break;
       case 'BOOKING_RESCHEDULED':
         await handleBookingRescheduled(payload);
