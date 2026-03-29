@@ -3,7 +3,7 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { eq, and, sql, desc, arrayContains } from 'drizzle-orm';
+import { eq, and, sql, desc, ilike, or, arrayContains } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 import type { PaginationParams, PaginatedResult } from './types';
 import { DEFAULT_PAGE_SIZE } from './types';
@@ -104,12 +104,102 @@ export const getAllDesigns = cache(async (
 });
 
 /**
- * Update a design's approval status. Requires staff role.
+ * Get designs filtered by approval status for the design approval page.
+ * Includes fileUrl, thumbnailUrl, and rejectionNotes needed for the thumbnail grid.
  */
-export async function updateDesignApprovalStatus(id: string, isApproved: boolean) {
+export const getDesignsByApprovalStatus = cache(async (
+  status: 'pending' | 'approved' | 'all',
+  params: PaginationParams = { page: 1, pageSize: DEFAULT_PAGE_SIZE }
+): Promise<PaginatedResult<{
+  id: string;
+  name: string;
+  description: string | null;
+  fileUrl: string;
+  thumbnailUrl: string | null;
+  designType: string | null;
+  style: string | null;
+  tags: string[] | null;
+  isApproved: boolean;
+  isPublic: boolean;
+  rejectionNotes: string | null;
+  createdAt: Date;
+}>> => {
   await requireStaffRole();
+
+  const conditions = [];
+
+  // Filter by approval status
+  if (status === 'pending') {
+    conditions.push(eq(schema.tattooDesign.isApproved, false));
+  } else if (status === 'approved') {
+    conditions.push(eq(schema.tattooDesign.isApproved, true));
+  }
+  // 'all' has no approval filter
+
+  // Search support via ilike on name/style
+  if (params.search) {
+    conditions.push(
+      or(
+        ilike(schema.tattooDesign.name, `%${params.search}%`),
+        ilike(schema.tattooDesign.style, `%${params.search}%`),
+      )!,
+    );
+  }
+
+  const results = await db.select({
+    id: schema.tattooDesign.id,
+    name: schema.tattooDesign.name,
+    description: schema.tattooDesign.description,
+    fileUrl: schema.tattooDesign.fileUrl,
+    thumbnailUrl: schema.tattooDesign.thumbnailUrl,
+    designType: schema.tattooDesign.designType,
+    style: schema.tattooDesign.style,
+    tags: schema.tattooDesign.tags,
+    isApproved: schema.tattooDesign.isApproved,
+    isPublic: schema.tattooDesign.isPublic,
+    rejectionNotes: schema.tattooDesign.rejectionNotes,
+    createdAt: schema.tattooDesign.createdAt,
+    total: sql<number>`cast(count(*) over() as integer)`,
+  })
+    .from(schema.tattooDesign)
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(desc(schema.tattooDesign.createdAt))
+    .limit(params.pageSize)
+    .offset((params.page - 1) * params.pageSize);
+
+  const total = results[0]?.total ?? 0;
+
+  return {
+    data: results.map(({ total: _, ...row }) => row),
+    total,
+    page: params.page,
+    pageSize: params.pageSize,
+    totalPages: Math.ceil(total / params.pageSize),
+  };
+});
+
+/**
+ * Update a design's approval status. Requires staff role.
+ * When approving, clears rejectionNotes. When rejecting, stores rejectionNotes.
+ */
+export async function updateDesignApprovalStatus(
+  id: string,
+  isApproved: boolean,
+  rejectionNotes?: string | null
+) {
+  await requireStaffRole();
+
+  const updateData: Record<string, unknown> = { isApproved };
+  if (isApproved) {
+    // Clear rejection notes on approval
+    updateData.rejectionNotes = null;
+  } else if (rejectionNotes !== undefined) {
+    // Store rejection notes when rejecting
+    updateData.rejectionNotes = rejectionNotes;
+  }
+
   const [result] = await db.update(schema.tattooDesign)
-    .set({ isApproved })
+    .set(updateData)
     .where(eq(schema.tattooDesign.id, id))
     .returning();
   if (!result) throw new Error('Design not found');
