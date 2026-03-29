@@ -56,5 +56,8 @@ export {
 // Settings
 export { getSettings, getSettingByKey, upsertSetting } from './settings';
 
+// Artists
+export { getArtistProfile, updateArtistProfile } from './artists';
+
 // Audit
 export { logAudit, getAuditLogs } from './audit';
