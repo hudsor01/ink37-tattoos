@@ -3,9 +3,9 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { eq, gte, and, between, sql, desc, asc, count, sum } from 'drizzle-orm';
+import { eq, gte, lte, and, between, sql, desc, asc, count, sum } from 'drizzle-orm';
 import { startOfWeek, format } from 'date-fns';
-import { customer, appointment, tattooSession } from '@/lib/db/schema';
+import { customer, appointment, tattooSession, payment } from '@/lib/db/schema';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
 
@@ -166,5 +166,62 @@ export const getBookingTrends = cache(async (months: number = 6) => {
     week,
     bookings: data.bookings,
     cancellations: data.cancellations,
+  }));
+});
+
+export const getPaymentMethodBreakdown = cache(async (startDate?: Date, endDate?: Date) => {
+  await requireStaffRole();
+
+  const conditions = [eq(payment.status, 'COMPLETED')];
+  if (startDate) conditions.push(gte(payment.createdAt, startDate));
+  if (endDate) conditions.push(lte(payment.createdAt, endDate));
+
+  const rows = await db.select({
+    type: payment.type,
+    total: sql<number>`coalesce(sum(${payment.amount}), 0)::numeric`,
+    count: sql<number>`cast(count(*) as integer)`,
+  })
+    .from(payment)
+    .where(and(...conditions))
+    .groupBy(payment.type);
+
+  return rows.map(row => ({
+    type: row.type,
+    total: Number(row.total),
+    count: row.count,
+  }));
+});
+
+export const getRevenueByDateRange = cache(async (startDate: Date, endDate: Date) => {
+  await requireStaffRole();
+
+  const sessions = await db.select({
+    appointmentDate: tattooSession.appointmentDate,
+    totalCost: tattooSession.totalCost,
+  })
+    .from(tattooSession)
+    .where(
+      and(
+        eq(tattooSession.status, 'COMPLETED'),
+        gte(tattooSession.appointmentDate, startDate),
+        lte(tattooSession.appointmentDate, endDate),
+      )
+    )
+    .orderBy(asc(tattooSession.appointmentDate));
+
+  const monthlyData = new Map<string, { revenue: number; count: number }>();
+
+  for (const session of sessions) {
+    const monthKey = `${session.appointmentDate.getFullYear()}-${String(session.appointmentDate.getMonth() + 1).padStart(2, '0')}`;
+    const existing = monthlyData.get(monthKey) ?? { revenue: 0, count: 0 };
+    existing.revenue += Number(session.totalCost);
+    existing.count += 1;
+    monthlyData.set(monthKey, existing);
+  }
+
+  return Array.from(monthlyData.entries()).map(([month, data]) => ({
+    month,
+    revenue: data.revenue,
+    count: data.count,
   }));
 });
