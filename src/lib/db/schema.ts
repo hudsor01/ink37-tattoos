@@ -155,6 +155,9 @@ export const tattooArtist = pgTable('tattoo_artist', {
   isActive: boolean('isActive').notNull().default(true),
   portfolio: text('portfolio').array(),
   bio: text('bio'),
+  profileImage: text('profileImage'),
+  instagramHandle: text('instagramHandle'),
+  yearsExperience: integer('yearsExperience'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow().$onUpdate(() => new Date()),
 });
