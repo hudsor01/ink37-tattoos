@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import type { DateRange } from 'react-day-picker';
+import { format } from 'date-fns';
 import { DollarSign, CheckCircle2, TrendingUp, Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,7 +30,26 @@ function formatCurrency(amount: number): string {
 }
 
 export function ReportsClient({ revenueData, paymentBreakdown, bookingTrends, stats }: ReportsClientProps) {
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
+    const from = searchParams.get('from');
+    const to = searchParams.get('to');
+    if (from && to) return { from: new Date(from), to: new Date(to) };
+    return undefined;
+  });
+
+  const handleDateRangeChange = useCallback((range: DateRange | undefined) => {
+    setDateRange(range);
+    if (range?.from && range?.to) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('from', format(range.from, 'yyyy-MM-dd'));
+      params.set('to', format(range.to, 'yyyy-MM-dd'));
+      router.push(`/dashboard/reports?${params.toString()}`);
+    } else {
+      router.push('/dashboard/reports');
+    }
+  }, [router, searchParams]);
 
   const avgRevenuePerSession = stats.completedSessions > 0
     ? stats.totalRevenue / stats.completedSessions
@@ -61,7 +82,7 @@ export function ReportsClient({ revenueData, paymentBreakdown, bookingTrends, st
         <div className="flex items-center gap-3">
           <DateRangePicker
             dateRange={dateRange}
-            onDateRangeChange={setDateRange}
+            onDateRangeChange={handleDateRangeChange}
           />
           <Button variant="outline" onClick={handleExportCsv}>
             <Download className="mr-2 size-4" />
