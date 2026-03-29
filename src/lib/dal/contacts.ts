@@ -1,12 +1,10 @@
 import 'server-only';
 import { cache } from 'react';
 import { db } from '@/lib/db';
-import { and, sql, desc, eq } from 'drizzle-orm';
+import { desc, eq, and, sql, ilike, or } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import type { PaginationParams, PaginatedResult } from './types';
-import { DEFAULT_PAGE_SIZE } from './types';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
 
@@ -26,54 +24,56 @@ export async function createContact(data: {
   message: string;
 }) {
   const [result] = await db.insert(schema.contact).values(data).returning();
-  if (!result) throw new Error('Failed to create contact: no result returned');
   return result;
 }
 
 export const getContacts = cache(async (
-  params: PaginationParams = { page: 1, pageSize: DEFAULT_PAGE_SIZE }
-): Promise<PaginatedResult<{
-  id: string;
-  name: string;
-  email: string;
-  phone: string | null;
-  message: string;
-  status: string;
-  createdAt: Date;
-}>> => {
+  params: { page?: number; pageSize?: number; search?: string; status?: string } = {}
+) => {
   await requireStaffRole();
 
-  const conditions = [];
+  const page = params.page ?? 1;
+  const pageSize = params.pageSize ?? 20;
+  const offset = (page - 1) * pageSize;
+
+  const conditions: ReturnType<typeof eq>[] = [];
+
   if (params.search) {
     conditions.push(
-      sql`${schema.contact.searchVector} @@ plainto_tsquery('english', ${params.search})`
+      or(
+        ilike(schema.contact.name, `%${params.search}%`),
+        ilike(schema.contact.email, `%${params.search}%`),
+        ilike(schema.contact.message, `%${params.search}%`)
+      )!
     );
   }
 
-  const results = await db.select({
-    id: schema.contact.id,
-    name: schema.contact.name,
-    email: schema.contact.email,
-    phone: schema.contact.phone,
-    message: schema.contact.message,
-    status: schema.contact.status,
-    createdAt: schema.contact.createdAt,
-    total: sql<number>`cast(count(*) over() as integer)`,
-  })
-    .from(schema.contact)
-    .where(conditions.length > 0 ? and(...conditions) : undefined)
-    .orderBy(desc(schema.contact.createdAt))
-    .limit(params.pageSize)
-    .offset((params.page - 1) * params.pageSize);
+  if (params.status && params.status !== 'ALL') {
+    conditions.push(eq(schema.contact.status, params.status as 'NEW' | 'READ' | 'REPLIED' | 'RESOLVED'));
+  }
 
-  const total = results[0]?.total ?? 0;
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const [data, countResult] = await Promise.all([
+    db.select()
+      .from(schema.contact)
+      .where(whereClause)
+      .orderBy(desc(schema.contact.createdAt))
+      .limit(pageSize)
+      .offset(offset),
+    db.select({ count: sql<number>`count(*)::int` })
+      .from(schema.contact)
+      .where(whereClause),
+  ]);
+
+  const total = countResult[0]?.count ?? 0;
 
   return {
-    data: results.map(({ total: _, ...row }) => row),
+    data,
     total,
-    page: params.page,
-    pageSize: params.pageSize,
-    totalPages: Math.ceil(total / params.pageSize),
+    page,
+    pageSize,
+    totalPages: Math.ceil(total / pageSize),
   };
 });
 
@@ -83,7 +83,6 @@ export async function updateContactStatus(id: string, status: 'NEW' | 'READ' | '
     .set({ status })
     .where(eq(schema.contact.id, id))
     .returning();
-  if (!result) throw new Error('Contact not found');
   return result;
 }
 

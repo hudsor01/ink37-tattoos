@@ -1,13 +1,11 @@
 import 'server-only';
 import { cache } from 'react';
 import { db } from '@/lib/db';
-import { getCurrentSession } from '@/lib/auth';
-import { redirect } from 'next/navigation';
-import { eq, and, gte, sql, desc, ilike, or } from 'drizzle-orm';
+import { eq, and, gte, desc, sql, ilike, or } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 import { generateGiftCardCode } from '@/lib/store-helpers';
-import type { PaginationParams, PaginatedResult } from './types';
-import { DEFAULT_PAGE_SIZE } from './types';
+import { getCurrentSession } from '@/lib/auth';
+import { redirect } from 'next/navigation';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
 
@@ -44,7 +42,6 @@ export async function createGiftCard(data: {
     personalMessage: data.personalMessage,
     orderId: data.orderId,
   }).returning();
-  if (!result) throw new Error('Failed to create gift card: no result returned');
   return result;
 }
 
@@ -101,61 +98,68 @@ export async function getGiftCardByCode(code: string) {
 }
 
 /**
- * Get gift cards with pagination for admin list. Requires staff role.
- * Gift cards don't have tsvector -- uses ILIKE fallback for search by code/email.
+ * Get paginated gift cards list. Requires staff role.
  */
 export const getGiftCards = cache(async (
-  params: PaginationParams = { page: 1, pageSize: DEFAULT_PAGE_SIZE }
-): Promise<PaginatedResult<{
-  id: string;
-  code: string;
-  initialBalance: number;
-  balance: number;
-  isActive: boolean;
-  purchaserEmail: string;
-  recipientEmail: string;
-  recipientName: string | null;
-  createdAt: Date;
-}>> => {
+  params: { page?: number; pageSize?: number; search?: string } = {}
+) => {
   await requireStaffRole();
 
-  const conditions = [];
-  if (params.search) {
-    conditions.push(
-      or(
+  const page = params.page ?? 1;
+  const pageSize = params.pageSize ?? 20;
+  const offset = (page - 1) * pageSize;
+
+  const conditions = params.search
+    ? or(
         ilike(schema.giftCard.code, `%${params.search}%`),
-        ilike(schema.giftCard.purchaserEmail, `%${params.search}%`),
         ilike(schema.giftCard.recipientEmail, `%${params.search}%`),
         ilike(schema.giftCard.recipientName, `%${params.search}%`),
+        ilike(schema.giftCard.purchaserEmail, `%${params.search}%`)
       )
-    );
-  }
+    : undefined;
 
-  const results = await db.select({
-    id: schema.giftCard.id,
-    code: schema.giftCard.code,
-    initialBalance: schema.giftCard.initialBalance,
-    balance: schema.giftCard.balance,
-    isActive: schema.giftCard.isActive,
-    purchaserEmail: schema.giftCard.purchaserEmail,
-    recipientEmail: schema.giftCard.recipientEmail,
-    recipientName: schema.giftCard.recipientName,
-    createdAt: schema.giftCard.createdAt,
-    total: sql<number>`cast(count(*) over() as integer)`,
-  })
-    .from(schema.giftCard)
-    .where(conditions.length > 0 ? and(...conditions) : undefined)
-    .orderBy(desc(schema.giftCard.createdAt))
-    .limit(params.pageSize)
-    .offset((params.page - 1) * params.pageSize);
+  const [data, countResult] = await Promise.all([
+    db.select({
+      id: schema.giftCard.id,
+      code: schema.giftCard.code,
+      initialBalance: schema.giftCard.initialBalance,
+      balance: schema.giftCard.balance,
+      isActive: schema.giftCard.isActive,
+      purchaserEmail: schema.giftCard.purchaserEmail,
+      recipientEmail: schema.giftCard.recipientEmail,
+      recipientName: schema.giftCard.recipientName,
+      createdAt: schema.giftCard.createdAt,
+    })
+      .from(schema.giftCard)
+      .where(conditions)
+      .orderBy(desc(schema.giftCard.createdAt))
+      .limit(pageSize)
+      .offset(offset),
+    db.select({ count: sql<number>`count(*)::int` })
+      .from(schema.giftCard)
+      .where(conditions),
+  ]);
 
-  const total = results[0]?.total ?? 0;
+  const total = countResult[0]?.count ?? 0;
 
   return {
-    data: results.map(({ total: _, ...row }) => row),
+    data,
     total,
-    page: params.page,
-    pageSize: params.pageSize,
-    totalPages: Math.ceil(total / params.pageSize),
+    page,
+    pageSize,
+    totalPages: Math.ceil(total / pageSize),
   };
 });
+
+/**
+ * Deactivate a gift card. Requires staff role.
+ */
+export async function deactivateGiftCard(id: string) {
+  await requireStaffRole();
+  const [result] = await db.update(schema.giftCard)
+    .set({ isActive: false })
+    .where(eq(schema.giftCard.id, id))
+    .returning();
+  if (!result) throw new Error('Gift card not found');
+  return result;
+}
