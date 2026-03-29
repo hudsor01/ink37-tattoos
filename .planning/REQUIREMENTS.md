@@ -37,19 +37,19 @@ Requirements for admin panel rebuild. Each maps to roadmap phases. Derived from 
 
 ### UI Quality
 
-- [ ] **UI-01**: Every dashboard page has loading.tsx with skeleton placeholders appropriate to the page layout
-- [ ] **UI-02**: Every dashboard page has error.tsx with retry button and user-friendly error message
+- [x] **UI-01**: Every dashboard page has loading.tsx with skeleton placeholders appropriate to the page layout
+- [x] **UI-02**: Every dashboard page has error.tsx with retry button and user-friendly error message
 - [x] **UI-03**: Every list page has an empty state component when no data exists (not blank space)
-- [x] **UI-04**: All dashboard pages are responsive on mobile -- tables collapse to card views, forms stack vertically, sidebar collapses
-- [ ] **UI-05**: All interactive elements have proper ARIA labels, all decorative icons have aria-hidden, all charts have alt text
-- [ ] **UI-06**: All forms show field-level validation errors below inputs (not just toast on submit failure)
-- [ ] **UI-07**: All destructive actions use AlertDialog confirmation (no browser confirm() calls)
-- [ ] **UI-08**: All date inputs use date picker components (not raw text inputs)
-- [ ] **UI-09**: Consistent toast patterns across all mutations (success, error, loading states via toast.promise)
-- [ ] **UI-10**: Dynamic breadcrumbs on all dashboard pages reflecting current route (not hardcoded "Dashboard")
-- [ ] **UI-11**: Unsaved changes warning on all forms when navigating away mid-edit
-- [ ] **UI-12**: Dead imports removed, unused Tab imports cleaned up from customer/appointment forms
-- [ ] **UI-13**: StatusBadge uses theme-aware color tokens (not hardcoded Tailwind classes)
+- [ ] **UI-04**: All dashboard pages are responsive on mobile -- tables collapse to card views, forms stack vertically, sidebar collapses
+- [x] **UI-05**: All interactive elements have proper ARIA labels, all decorative icons have aria-hidden, all charts have alt text
+- [x] **UI-06**: All forms show field-level validation errors below inputs (not just toast on submit failure)
+- [x] **UI-07**: All destructive actions use AlertDialog confirmation (no browser confirm() calls)
+- [x] **UI-08**: All date inputs use date picker components (not raw text inputs)
+- [x] **UI-09**: Consistent toast patterns across all mutations (success, error, loading states via toast.promise)
+- [x] **UI-10**: Dynamic breadcrumbs on all dashboard pages reflecting current route (not hardcoded "Dashboard")
+- [x] **UI-11**: Unsaved changes warning on all forms when navigating away mid-edit
+- [x] **UI-12**: Dead imports removed, unused Tab imports cleaned up from customer/appointment forms
+- [x] **UI-13**: StatusBadge uses theme-aware color tokens (not hardcoded Tailwind classes)
 
 ### Missing Pages
 
@@ -167,19 +167,19 @@ Deferred beyond v2.0.
 | DAL-10 | Phase 14 | Pending |
 | DAL-11 | Phase 14 | Pending |
 | DAL-12 | Phase 14 | Pending |
-| UI-01 | Phase 15 | Pending |
-| UI-02 | Phase 15 | Pending |
+| UI-01 | Phase 15 | Complete |
+| UI-02 | Phase 15 | Complete |
 | UI-03 | Phase 15 | Complete |
-| UI-04 | Phase 15 | Complete |
-| UI-05 | Phase 15 | Pending |
-| UI-06 | Phase 15 | Pending |
-| UI-07 | Phase 15 | Pending |
-| UI-08 | Phase 15 | Pending |
-| UI-09 | Phase 15 | Pending |
-| UI-10 | Phase 15 | Pending |
-| UI-11 | Phase 15 | Pending |
-| UI-12 | Phase 15 | Pending |
-| UI-13 | Phase 15 | Pending |
+| UI-04 | Phase 15 | Pending |
+| UI-05 | Phase 15 | Complete |
+| UI-06 | Phase 15 | Complete |
+| UI-07 | Phase 15 | Complete |
+| UI-08 | Phase 15 | Complete |
+| UI-09 | Phase 15 | Complete |
+| UI-10 | Phase 15 | Complete |
+| UI-11 | Phase 15 | Complete |
+| UI-12 | Phase 15 | Complete |
+| UI-13 | Phase 15 | Complete |
 | PAGE-01 | Phase 16 | Pending |
 | PAGE-02 | Phase 16 | Pending |
 | PAGE-04 | Phase 16 | Pending |
