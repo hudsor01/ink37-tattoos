@@ -1,10 +1,19 @@
 'use server';
 
+import { z } from 'zod';
 import { ContactFormSchema } from '@/lib/security/validation';
 import { rateLimit } from '@/lib/security/rate-limiter';
-import { createContact } from '@/lib/dal/contacts';
+import { createContact, updateContact, deleteContact } from '@/lib/dal/contacts';
 import { sendContactNotification } from '@/lib/email/resend';
+import { logAudit } from '@/lib/dal/audit';
+import { getCurrentSession } from '@/lib/auth';
+import { after } from 'next/server';
 import { headers } from 'next/headers';
+import { revalidatePath } from 'next/cache';
+
+type ActionResult<T = void> =
+  | { success: true; data: T }
+  | { success: false; error: string };
 
 export async function submitContactForm(formData: FormData) {
   // Rate limiting: 5 requests per 15 minutes per IP
@@ -43,5 +52,77 @@ export async function submitContactForm(formData: FormData) {
       success: false as const,
       error: 'Something went wrong. Please try again.',
     };
+  }
+}
+
+const UpdateNotesSchema = z.object({
+  id: z.string().uuid(),
+  notes: z.string().max(2000, 'Notes must be 2000 characters or fewer'),
+});
+
+export async function updateContactNotesAction(
+  id: string,
+  notes: string
+): Promise<ActionResult<void>> {
+  const session = await getCurrentSession();
+  if (!session?.user) throw new Error('Unauthorized');
+
+  const parsed = UpdateNotesSchema.safeParse({ id, notes });
+  if (!parsed.success) {
+    return { success: false, error: 'Validation failed' };
+  }
+
+  try {
+    await updateContact(id, { adminNotes: notes });
+
+    const hdrs = await headers();
+    after(() =>
+      logAudit({
+        userId: session.user.id,
+        action: 'UPDATE',
+        resource: 'contact',
+        resourceId: id,
+        ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+        userAgent: hdrs.get('user-agent') ?? 'unknown',
+        metadata: { field: 'adminNotes' },
+      })
+    );
+
+    revalidatePath('/dashboard/contacts');
+    return { success: true, data: undefined };
+  } catch (error) {
+    console.error('Update contact notes failed:', error);
+    return { success: false, error: 'Failed to update notes' };
+  }
+}
+
+export async function deleteContactAction(
+  id: string
+): Promise<ActionResult<void>> {
+  const session = await getCurrentSession();
+  if (!session?.user) throw new Error('Unauthorized');
+
+  try {
+    // deleteContact returns the deleted record for audit metadata
+    const deleted = await deleteContact(id);
+
+    const hdrs = await headers();
+    after(() =>
+      logAudit({
+        userId: session.user.id,
+        action: 'DELETE',
+        resource: 'contact',
+        resourceId: id,
+        ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+        userAgent: hdrs.get('user-agent') ?? 'unknown',
+        metadata: { contactName: deleted.name, contactEmail: deleted.email },
+      })
+    );
+
+    revalidatePath('/dashboard/contacts');
+    return { success: true, data: undefined };
+  } catch (error) {
+    console.error('Delete contact failed:', error);
+    return { success: false, error: 'Failed to delete contact' };
   }
 }
