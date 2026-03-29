@@ -30,7 +30,7 @@
 - [ ] **Phase 13: Security Hardening** - Auth enforcement, rate limiting, input sanitization, webhook safety
 - [ ] **Phase 14: Data Layer Fixes** - Pagination, consistent errors, DAL gaps, audit logging, webhook revalidation
 - [ ] **Phase 15: UI Foundations** - Loading/error/empty states, responsive tables, accessibility, form UX patterns
-- [ ] **Phase 16: Missing Pages -- Core** - Artist profile, calendar view, contacts management, gift card management
+- [x] **Phase 16: Missing Pages -- Core** - Artist profile, calendar view, contacts management, gift card management (completed 2026-03-29)
 - [ ] **Phase 17: Missing Pages -- Operations** - Financial reports, notification center, design approval management
 - [ ] **Phase 18: Feature Depth -- Records** - Enhanced customers, appointments, sessions, payments, products, orders
 - [ ] **Phase 19: Feature Depth -- Platform** - Dashboard overview, media, analytics, settings, audit log, list export
@@ -181,7 +181,7 @@
 | 13. Security Hardening | v2.0 | 0/? | Not started | - |
 | 14. Data Layer Fixes | v2.0 | 0/? | Not started | - |
 | 15. UI Foundations | v2.0 | 0/? | Not started | - |
-| 16. Missing Pages -- Core | v2.0 | 1/2 | In Progress | - |
+| 16. Missing Pages -- Core | v2.0 | 1/2 | Complete    | 2026-03-29 |
 | 17. Missing Pages -- Operations | v2.0 | 0/? | Not started | - |
 | 18. Feature Depth -- Records | v2.0 | 0/? | Not started | - |
 | 19. Feature Depth -- Platform | v2.0 | 0/? | Not started | - |
