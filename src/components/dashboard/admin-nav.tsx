@@ -7,16 +7,14 @@ import {
   LayoutDashboard,
   Users,
   Calendar,
-  CalendarDays,
   Clock,
-  User,
+  Bell,
   Image,
   BarChart3,
   Settings,
   FileText,
   LogOut,
   CreditCard,
-  Gift,
   Package,
   ShoppingBag,
   MessageSquare,
@@ -39,14 +37,12 @@ const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Customers', href: '/dashboard/customers', icon: Users },
   { label: 'Appointments', href: '/dashboard/appointments', icon: Calendar },
-  { label: 'Calendar', href: '/dashboard/calendar', icon: CalendarDays },
   { label: 'Sessions', href: '/dashboard/sessions', icon: Clock },
-  { label: 'Profile', href: '/dashboard/profile', icon: User },
   { label: 'Payments', href: '/dashboard/payments', icon: CreditCard },
-  { label: 'Gift Cards', href: '/dashboard/gift-cards', icon: Gift },
   { label: 'Products', href: '/dashboard/products', icon: Package },
   { label: 'Orders', href: '/dashboard/orders', icon: ShoppingBag },
   { label: 'Contacts', href: '/dashboard/contacts', icon: MessageSquare },
+  { label: 'Notifications', href: '/dashboard/notifications', icon: Bell },
   { label: 'Media', href: '/dashboard/media', icon: Image },
   { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
@@ -64,7 +60,7 @@ export function AdminNav() {
   }
 
   return (
-    <Sidebar collapsible="icon" aria-label="Dashboard navigation">
+    <Sidebar collapsible="icon">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>

@@ -36,6 +36,7 @@ export const sessionStatusEnum = pgEnum('SessionStatus', ['SCHEDULED', 'IN_PROGR
 export const contactStatusEnum = pgEnum('ContactStatus', ['NEW', 'READ', 'REPLIED', 'RESOLVED']);
 export const paymentTypeEnum = pgEnum('PaymentType', ['DEPOSIT', 'SESSION_BALANCE', 'REFUND']);
 export const paymentStatusEnum = pgEnum('PaymentStatus', ['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'REFUNDED']);
+export const notificationTypeEnum = pgEnum('NotificationType', ['BOOKING', 'PAYMENT', 'CONTACT', 'LOW_STOCK']);
 
 // ============================================================================
 // AUTH MODELS (managed by Better Auth via raw pg.Pool)
@@ -248,6 +249,7 @@ export const tattooDesign = pgTable('tattoo_design', {
   tags: text('tags').array(),
   isApproved: boolean('isApproved').notNull().default(false),
   isPublic: boolean('isPublic').notNull().default(true),
+  rejectionNotes: text('rejectionNotes'),
   estimatedHours: numeric('estimatedHours', { precision: 10, scale: 2, mode: 'number' }),
   popularity: integer('popularity').notNull().default(0),
   artistId: uuid('artistId').notNull().references(() => tattooArtist.id),
@@ -479,6 +481,25 @@ export const downloadToken = pgTable('download_token', {
 ]);
 
 // ============================================================================
+// NOTIFICATION MODELS
+// ============================================================================
+
+export const notification = pgTable('notification', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('userId').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  type: notificationTypeEnum('type').notNull(),
+  title: text('title').notNull(),
+  message: text('message').notNull(),
+  isRead: boolean('isRead').notNull().default(false),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+}, (table) => [
+  index('notification_userId_isRead_idx').on(table.userId, table.isRead),
+  index('notification_userId_createdAt_idx').on(table.userId, table.createdAt),
+  index('notification_createdAt_idx').on(table.createdAt),
+]);
+
+// ============================================================================
 // RELATIONS
 // ============================================================================
 
@@ -487,6 +508,7 @@ export const userRelations = relations(user, ({ many, one }) => ({
   accounts: many(account),
   sessions: many(session),
   auditLogs: many(auditLog),
+  notifications: many(notification),
   customer: one(customer, { fields: [user.id], references: [customer.userId] }),
 }));
 
@@ -538,6 +560,11 @@ export const auditLogRelations = relations(auditLog, ({ one }) => ({
 }));
 
 export const settingsRelations = relations(settings, () => ({}));
+
+// Notification relations
+export const notificationRelations = relations(notification, ({ one }) => ({
+  user: one(user, { fields: [notification.userId], references: [user.id] }),
+}));
 
 // Payment relations
 export const paymentRelations = relations(payment, ({ one }) => ({
