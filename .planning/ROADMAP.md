@@ -82,7 +82,7 @@ Plans:
 - [x] 15-04-PLAN.md -- Form UX: field errors, DatePicker, AlertDialog, toast, unsaved changes (completed 2026-03-28)
 - [x] 15-05-PLAN.md -- Accessibility, dynamic breadcrumbs, dead import cleanup (completed 2026-03-28)
 - [ ] 15-06-PLAN.md -- Gap closure: wire ResponsiveDataTable into list pages, fix EmptyState consistency
-- [ ] 15-07-PLAN.md -- Gap closure: update REQUIREMENTS.md for completed UI requirements
+- [x] 15-07-PLAN.md -- Gap closure: update REQUIREMENTS.md for completed UI requirements (completed 2026-03-28)
 **UI hint**: yes
 
 ### Phase 16: Missing Pages -- Core
@@ -188,7 +188,7 @@ Plans:
 | 12. Testing Foundation | v1.0 | 3/3 | Complete | 2026-03-27 |
 | 13. Security Hardening | v2.0 | 0/? | Not started | - |
 | 14. Data Layer Fixes | v2.0 | 4/4 | Complete    | 2026-03-28 |
-| 15. UI Foundations | v2.0 | 5/7 | Gap closure | - |
+| 15. UI Foundations | v2.0 | 6/7 | Gap closure | - |
 | 16. Missing Pages -- Core | v2.0 | 0/? | Not started | - |
 | 17. Missing Pages -- Operations | v2.0 | 0/? | Not started | - |
 | 18. Feature Depth -- Records | v2.0 | 0/? | Not started | - |
