@@ -94,7 +94,10 @@ Plans:
   2. Artist can view appointments in day/week/month calendar views with color-coded status and click any appointment to see its details
   3. Artist can list, filter, and search contact form submissions, update their status, and add admin notes
   4. Artist can view all issued gift cards with balances, issue new gift cards, and deactivate compromised cards
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 16-01-PLAN.md -- Artist profile page + calendar view with FullCalendar + sidebar nav update
+- [ ] 16-02-PLAN.md -- Gift card management page + contacts page enhancement
 **UI hint**: yes
 
 ### Phase 17: Missing Pages -- Operations
@@ -189,7 +192,7 @@ Plans:
 | 13. Security Hardening | v2.0 | 0/? | Not started | - |
 | 14. Data Layer Fixes | v2.0 | 4/4 | Complete    | 2026-03-28 |
 | 15. UI Foundations | v2.0 | 6/7 | Complete    | 2026-03-29 |
-| 16. Missing Pages -- Core | v2.0 | 0/? | Not started | - |
+| 16. Missing Pages -- Core | v2.0 | 0/2 | Not started | - |
 | 17. Missing Pages -- Operations | v2.0 | 0/? | Not started | - |
 | 18. Feature Depth -- Records | v2.0 | 0/? | Not started | - |
 | 19. Feature Depth -- Platform | v2.0 | 0/? | Not started | - |
