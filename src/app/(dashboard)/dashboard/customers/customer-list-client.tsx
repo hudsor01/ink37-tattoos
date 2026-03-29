@@ -4,13 +4,12 @@ import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { MoreHorizontal, Plus, Users } from 'lucide-react';
+import { MoreHorizontal, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { useQueryState, parseAsString } from 'nuqs';
 
-import { DataTable } from '@/components/dashboard/data-table';
-import { EmptyState } from '@/components/dashboard/empty-state';
+import { ResponsiveDataTable, type MobileField } from '@/components/dashboard/responsive-data-table';
 import { SearchInput } from '@/components/dashboard/search-input';
 import { CustomerForm } from '@/components/dashboard/customer-form';
 import { Button } from '@/components/ui/button';
@@ -158,6 +157,12 @@ export function CustomerListClient() {
     },
   ];
 
+  const mobileFields: MobileField<Customer>[] = [
+    { label: 'Name', accessor: (c) => `${c.firstName} ${c.lastName}` },
+    { label: 'Email', accessor: (c) => c.email ?? '-' },
+    { label: 'Phone', accessor: (c) => c.phone ?? '-' },
+  ];
+
   if (customers.length === 0) {
     return (
       <div className="space-y-6">
@@ -169,27 +174,28 @@ export function CustomerListClient() {
             </p>
           </div>
         </div>
-        <EmptyState
-          icon={Users}
-          title="No customers yet"
-          description="Add your first customer to start managing their tattoo journey."
-          action={
-            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-              <DialogTrigger render={<Button />}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Customer
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-lg">
-                <DialogHeader>
-                  <DialogTitle>Add Customer</DialogTitle>
-                </DialogHeader>
-                <CustomerForm
-                  onSuccess={() => setCreateOpen(false)}
-                />
-              </DialogContent>
-            </Dialog>
-          }
-        />
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
+          <h3 className="text-lg font-semibold">No customers yet</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Add your first customer to start tracking their tattoo journey.
+          </p>
+          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+            <DialogTrigger
+              render={<Button className="mt-4" />}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add Customer
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Add Customer</DialogTitle>
+              </DialogHeader>
+              <CustomerForm
+                onSuccess={() => setCreateOpen(false)}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
     );
   }
@@ -225,9 +231,30 @@ export function CustomerListClient() {
         placeholder="Search by name or email..."
       />
 
-      <DataTable
+      <ResponsiveDataTable
         columns={columns}
         data={filteredCustomers}
+        mobileFields={mobileFields}
+        mobileActions={(row) => (
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">Actions</span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem render={<Link href={`/dashboard/customers/${row.id}`} />}>
+                View
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setEditCustomer(row)}>
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="destructive" onClick={() => setDeleteId(row.id)}>
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       />
 
       {/* Edit Dialog */}
