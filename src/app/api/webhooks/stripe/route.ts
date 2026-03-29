@@ -7,6 +7,7 @@ import * as schema from '@/lib/db/schema';
 import type Stripe from 'stripe';
 import { getOrderByCheckoutSessionId } from '@/lib/dal/orders';
 import { createGiftCard, redeemGiftCard } from '@/lib/dal/gift-cards';
+import { createNotificationForAdmins } from '@/lib/dal/notifications';
 import { sendOrderConfirmationEmail, sendGiftCardEmail, sendGiftCardPurchaseConfirmationEmail } from '@/lib/email/resend';
 import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
 
@@ -75,6 +76,21 @@ export async function POST(request: Request) {
           revalidatePath('/dashboard/sessions');
         }
         revalidatePath('/portal');
+
+        // Notification: inform admins of payment received
+        try {
+          const amount = stripeCentsToDollars(checkoutSession.amount_total ?? 0);
+          await createNotificationForAdmins({
+            type: 'PAYMENT',
+            title: 'Payment Received',
+            message: `$${amount.toFixed(2)} payment completed${orderType === 'store' ? ' (store order)' : orderType === 'gift_card' ? ' (gift card)' : ''}`,
+            metadata: { sessionId: checkoutSession.id, amount, orderType },
+          });
+        } catch (err) {
+          console.error('Failed to create payment notification:', err);
+          // Do not re-throw -- notification failure must not break webhook
+        }
+
         break;
       }
       case 'payment_intent.succeeded':

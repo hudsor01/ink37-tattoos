@@ -100,6 +100,9 @@ export async function markAllAsRead(userId: string) {
     .where(and(eq(notification.userId, userId), eq(notification.isRead, false)));
 }
 
+// LOW_STOCK notification trigger deferred: product table lacks stock tracking column.
+// When inventory management is added, trigger LOW_STOCK notifications from stock update logic.
+
 export async function createNotificationForAdmins(data: {
   type: 'BOOKING' | 'PAYMENT' | 'CONTACT' | 'LOW_STOCK';
   title: string;

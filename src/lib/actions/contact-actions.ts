@@ -6,6 +6,7 @@ import { rateLimit } from '@/lib/security/rate-limiter';
 import { createContact, updateContact, deleteContact } from '@/lib/dal/contacts';
 import { sendContactNotification } from '@/lib/email/resend';
 import { logAudit } from '@/lib/dal/audit';
+import { createNotificationForAdmins } from '@/lib/dal/notifications';
 import { getCurrentSession } from '@/lib/auth';
 import { after } from 'next/server';
 import { headers } from 'next/headers';
@@ -44,6 +45,18 @@ export async function submitContactForm(formData: FormData) {
     sendContactNotification(result.data).catch((err) =>
       console.error('Contact email notification failed:', err)
     );
+
+    // Notification: inform admins of new contact submission
+    try {
+      await createNotificationForAdmins({
+        type: 'CONTACT',
+        title: 'New Contact Submission',
+        message: `${result.data.name} submitted a contact form`,
+        metadata: { contactName: result.data.name, contactEmail: result.data.email },
+      });
+    } catch (err) {
+      console.error('Failed to create contact notification:', err);
+    }
 
     return { success: true as const };
   } catch (error) {
