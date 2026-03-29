@@ -3,8 +3,9 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { eq, desc, count, sum, sql } from 'drizzle-orm';
-import { customer, appointment, tattooSession } from '@/lib/db/schema';
+import { eq, gte, lte, and, between, sql, desc, asc, count, sum } from 'drizzle-orm';
+import { startOfWeek, format } from 'date-fns';
+import { customer, appointment, tattooSession, payment } from '@/lib/db/schema';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
 
@@ -62,26 +63,33 @@ export const getRevenueData = cache(async (months: number = 12) => {
   const startDate = new Date();
   startDate.setMonth(startDate.getMonth() - months);
 
-  const rows = await db.execute<{
-    month: string;
-    revenue: number;
-    count: number;
-  }>(sql`
-    SELECT
-      to_char(date_trunc('month', "appointmentDate"), 'YYYY-MM') as month,
-      coalesce(sum("totalCost"), 0)::numeric as revenue,
-      cast(count(*) as integer) as count
-    FROM "tattoo_session"
-    WHERE "status" = 'COMPLETED'
-      AND "appointmentDate" >= ${startDate}
-    GROUP BY date_trunc('month', "appointmentDate")
-    ORDER BY date_trunc('month', "appointmentDate")
-  `);
+  const sessions = await db.select({
+    appointmentDate: tattooSession.appointmentDate,
+    totalCost: tattooSession.totalCost,
+  })
+    .from(tattooSession)
+    .where(
+      and(
+        eq(tattooSession.status, 'COMPLETED'),
+        gte(tattooSession.appointmentDate, startDate),
+      )
+    )
+    .orderBy(asc(tattooSession.appointmentDate));
 
-  return rows.rows.map((row) => ({
-    month: row.month,
-    revenue: Number(row.revenue),
-    count: Number(row.count),
+  const monthlyData = new Map<string, { revenue: number; count: number }>();
+
+  for (const session of sessions) {
+    const monthKey = `${session.appointmentDate.getFullYear()}-${String(session.appointmentDate.getMonth() + 1).padStart(2, '0')}`;
+    const existing = monthlyData.get(monthKey) ?? { revenue: 0, count: 0 };
+    existing.revenue += Number(session.totalCost);
+    existing.count += 1;
+    monthlyData.set(monthKey, existing);
+  }
+
+  return Array.from(monthlyData.entries()).map(([month, data]) => ({
+    month,
+    revenue: data.revenue,
+    count: data.count,
   }));
 });
 
@@ -91,22 +99,23 @@ export const getClientAcquisitionData = cache(async (months: number = 12) => {
   const startDate = new Date();
   startDate.setMonth(startDate.getMonth() - months);
 
-  const rows = await db.execute<{
-    month: string;
-    count: number;
-  }>(sql`
-    SELECT
-      to_char(date_trunc('month', "createdAt"), 'YYYY-MM') as month,
-      cast(count(*) as integer) as count
-    FROM "customer"
-    WHERE "createdAt" >= ${startDate}
-    GROUP BY date_trunc('month', "createdAt")
-    ORDER BY date_trunc('month', "createdAt")
-  `);
+  const customers = await db.select({
+    createdAt: customer.createdAt,
+  })
+    .from(customer)
+    .where(gte(customer.createdAt, startDate))
+    .orderBy(asc(customer.createdAt));
 
-  return rows.rows.map((row) => ({
-    month: row.month,
-    count: Number(row.count),
+  const monthlyData = new Map<string, number>();
+
+  for (const c of customers) {
+    const monthKey = `${c.createdAt.getFullYear()}-${String(c.createdAt.getMonth() + 1).padStart(2, '0')}`;
+    monthlyData.set(monthKey, (monthlyData.get(monthKey) ?? 0) + 1);
+  }
+
+  return Array.from(monthlyData.entries()).map(([month, count]) => ({
+    month,
+    count,
   }));
 });
 
@@ -132,24 +141,87 @@ export const getBookingTrends = cache(async (months: number = 6) => {
   startDate.setMonth(startDate.getMonth() - months);
   const endDate = new Date();
 
-  const rows = await db.execute<{
-    week: string;
-    bookings: number;
-    cancellations: number;
-  }>(sql`
-    SELECT
-      to_char(date_trunc('week', "scheduledDate"), 'YYYY-MM-DD') as week,
-      cast(count(*) filter (where "status" NOT IN ('CANCELLED', 'NO_SHOW')) as integer) as bookings,
-      cast(count(*) filter (where "status" IN ('CANCELLED', 'NO_SHOW')) as integer) as cancellations
-    FROM "appointment"
-    WHERE "scheduledDate" BETWEEN ${startDate} AND ${endDate}
-    GROUP BY date_trunc('week', "scheduledDate")
-    ORDER BY date_trunc('week', "scheduledDate")
-  `);
+  const appointments = await db.select({
+    scheduledDate: appointment.scheduledDate,
+    status: appointment.status,
+  })
+    .from(appointment)
+    .where(between(appointment.scheduledDate, startDate, endDate))
+    .orderBy(asc(appointment.scheduledDate));
 
-  return rows.rows.map((row) => ({
-    week: row.week,
-    bookings: Number(row.bookings),
-    cancellations: Number(row.cancellations),
+  const weeklyData = new Map<string, { bookings: number; cancellations: number }>();
+
+  for (const apt of appointments) {
+    const weekKey = format(startOfWeek(apt.scheduledDate, { weekStartsOn: 1 }), 'MMM d');
+    const existing = weeklyData.get(weekKey) ?? { bookings: 0, cancellations: 0 };
+    if (apt.status === 'CANCELLED' || apt.status === 'NO_SHOW') {
+      existing.cancellations += 1;
+    } else {
+      existing.bookings += 1;
+    }
+    weeklyData.set(weekKey, existing);
+  }
+
+  return Array.from(weeklyData.entries()).map(([week, data]) => ({
+    week,
+    bookings: data.bookings,
+    cancellations: data.cancellations,
+  }));
+});
+
+export const getPaymentMethodBreakdown = cache(async (startDate?: Date, endDate?: Date) => {
+  await requireStaffRole();
+
+  const conditions = [eq(payment.status, 'COMPLETED')];
+  if (startDate) conditions.push(gte(payment.createdAt, startDate));
+  if (endDate) conditions.push(lte(payment.createdAt, endDate));
+
+  const rows = await db.select({
+    type: payment.type,
+    total: sql<number>`coalesce(sum(${payment.amount}), 0)::numeric`,
+    count: sql<number>`cast(count(*) as integer)`,
+  })
+    .from(payment)
+    .where(and(...conditions))
+    .groupBy(payment.type);
+
+  return rows.map(row => ({
+    type: row.type,
+    total: Number(row.total),
+    count: row.count,
+  }));
+});
+
+export const getRevenueByDateRange = cache(async (startDate: Date, endDate: Date) => {
+  await requireStaffRole();
+
+  const sessions = await db.select({
+    appointmentDate: tattooSession.appointmentDate,
+    totalCost: tattooSession.totalCost,
+  })
+    .from(tattooSession)
+    .where(
+      and(
+        eq(tattooSession.status, 'COMPLETED'),
+        gte(tattooSession.appointmentDate, startDate),
+        lte(tattooSession.appointmentDate, endDate),
+      )
+    )
+    .orderBy(asc(tattooSession.appointmentDate));
+
+  const monthlyData = new Map<string, { revenue: number; count: number }>();
+
+  for (const session of sessions) {
+    const monthKey = `${session.appointmentDate.getFullYear()}-${String(session.appointmentDate.getMonth() + 1).padStart(2, '0')}`;
+    const existing = monthlyData.get(monthKey) ?? { revenue: 0, count: 0 };
+    existing.revenue += Number(session.totalCost);
+    existing.count += 1;
+    monthlyData.set(monthKey, existing);
+  }
+
+  return Array.from(monthlyData.entries()).map(([month, data]) => ({
+    month,
+    revenue: data.revenue,
+    count: data.count,
   }));
 });
