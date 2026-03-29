@@ -189,7 +189,7 @@ Plans:
 | 14. Data Layer Fixes | v2.0 | 0/? | Not started | - |
 | 15. UI Foundations | v2.0 | 0/? | Not started | - |
 | 16. Missing Pages -- Core | v2.0 | 2/2 | Complete    | 2026-03-29 |
-| 17. Missing Pages -- Operations | v2.0 | 3/3 | Complete   | 2026-03-29 |
+| 17. Missing Pages -- Operations | v2.0 | 3/3 | Complete    | 2026-03-29 |
 | 18. Feature Depth -- Records | v2.0 | 0/? | Not started | - |
 | 19. Feature Depth -- Platform | v2.0 | 0/? | Not started | - |
 | 20. Business Workflows | v2.0 | 0/? | Not started | - |
