@@ -28,8 +28,8 @@
 ### v2.0 Admin Panel
 
 - [ ] **Phase 13: Security Hardening** - Auth enforcement, rate limiting, input sanitization, webhook safety
-- [x] **Phase 14: Data Layer Fixes** - Pagination, consistent errors, DAL gaps, audit logging, webhook revalidation (completed 2026-03-28)
-- [x] **Phase 15: UI Foundations** - Loading/error/empty states, responsive tables, accessibility, form UX patterns (completed 2026-03-29)
+- [ ] **Phase 14: Data Layer Fixes** - Pagination, consistent errors, DAL gaps, audit logging, webhook revalidation
+- [ ] **Phase 15: UI Foundations** - Loading/error/empty states, responsive tables, accessibility, form UX patterns
 - [ ] **Phase 16: Missing Pages -- Core** - Artist profile, calendar view, contacts management, gift card management
 - [ ] **Phase 17: Missing Pages -- Operations** - Financial reports, notification center, design approval management
 - [ ] **Phase 18: Feature Depth -- Records** - Enhanced customers, appointments, sessions, payments, products, orders
@@ -74,15 +74,7 @@
   3. Deleting any record triggers an AlertDialog confirmation before proceeding -- no browser confirm() dialogs appear anywhere
   4. Submitting a form with invalid fields shows error messages directly below the invalid inputs, not just a toast notification
   5. All interactive elements are keyboard-navigable and have ARIA labels; screen reader announces all chart data via alt text
-**Plans**: 7 plans
-Plans:
-- [x] 15-01-PLAN.md -- Shared UI components, StatusBadge CSS vars, TypeScript fixes (completed 2026-03-28)
-- [x] 15-02-PLAN.md -- Responsive DataTable with mobile card view, mobile sidebar (completed 2026-03-28)
-- [x] 15-03-PLAN.md -- Loading skeletons and empty states for all 12 dashboard pages (completed 2026-03-28)
-- [x] 15-04-PLAN.md -- Form UX: field errors, DatePicker, AlertDialog, toast, unsaved changes (completed 2026-03-28)
-- [x] 15-05-PLAN.md -- Accessibility, dynamic breadcrumbs, dead import cleanup (completed 2026-03-28)
-- [ ] 15-06-PLAN.md -- Gap closure: wire ResponsiveDataTable into list pages, fix EmptyState consistency
-- [x] 15-07-PLAN.md -- Gap closure: update REQUIREMENTS.md for completed UI requirements (completed 2026-03-28)
+**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 16: Missing Pages -- Core
@@ -94,10 +86,7 @@ Plans:
   2. Artist can view appointments in day/week/month calendar views with color-coded status and click any appointment to see its details
   3. Artist can list, filter, and search contact form submissions, update their status, and add admin notes
   4. Artist can view all issued gift cards with balances, issue new gift cards, and deactivate compromised cards
-**Plans**: 2 plans
-Plans:
-- [ ] 16-01-PLAN.md -- Artist profile page + calendar view with FullCalendar + sidebar nav update
-- [ ] 16-02-PLAN.md -- Gift card management page + contacts page enhancement
+**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 17: Missing Pages -- Operations
@@ -190,9 +179,9 @@ Plans:
 | 11. Full Stack Integration | v1.0 | 6/6 | Complete | 2026-03-27 |
 | 12. Testing Foundation | v1.0 | 3/3 | Complete | 2026-03-27 |
 | 13. Security Hardening | v2.0 | 0/? | Not started | - |
-| 14. Data Layer Fixes | v2.0 | 4/4 | Complete    | 2026-03-28 |
-| 15. UI Foundations | v2.0 | 6/7 | Complete    | 2026-03-29 |
-| 16. Missing Pages -- Core | v2.0 | 0/2 | Not started | - |
+| 14. Data Layer Fixes | v2.0 | 0/? | Not started | - |
+| 15. UI Foundations | v2.0 | 0/? | Not started | - |
+| 16. Missing Pages -- Core | v2.0 | 1/? | In progress | Plan 01 complete |
 | 17. Missing Pages -- Operations | v2.0 | 0/? | Not started | - |
 | 18. Feature Depth -- Records | v2.0 | 0/? | Not started | - |
 | 19. Feature Depth -- Platform | v2.0 | 0/? | Not started | - |

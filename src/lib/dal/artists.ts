@@ -6,49 +6,46 @@ import { redirect } from 'next/navigation';
 import { eq } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 
-const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
+const ADMIN_ROLES = ['admin', 'super_admin'];
 
-async function requireStaffRole() {
+async function requireAdminRole() {
   const session = await getCurrentSession();
   if (!session?.user) redirect('/login');
-  if (!STAFF_ROLES.includes(session.user.role)) {
-    throw new Error('Insufficient permissions: requires staff role or above');
+  if (!ADMIN_ROLES.includes(session.user.role)) {
+    throw new Error('Insufficient permissions: requires admin role or above');
   }
   return session;
 }
 
-/**
- * Get the artist profile. Solo artist studio -- returns the first active tattooArtist record.
- * Requires staff role.
- */
 export const getArtistProfile = cache(async () => {
-  await requireStaffRole();
+  await requireAdminRole();
+  // Solo artist studio -- return the first (and only) active artist
   return db.query.tattooArtist.findFirst({
     where: eq(schema.tattooArtist.isActive, true),
   });
 });
 
-/**
- * Update the artist profile (solo artist studio).
- * Requires staff role.
- */
 export async function updateArtistProfile(
   id: string,
   data: {
     name?: string;
     email?: string;
-    phone?: string;
-    bio?: string;
+    phone?: string | null;
+    bio?: string | null;
     specialties?: string[];
     hourlyRate?: number;
     portfolio?: string[];
+    profileImage?: string | null;
+    instagramHandle?: string | null;
+    yearsExperience?: number | null;
+    isActive?: boolean;
   }
 ) {
-  await requireStaffRole();
-  const [result] = await db.update(schema.tattooArtist)
+  await requireAdminRole();
+  const [result] = await db
+    .update(schema.tattooArtist)
     .set(data)
     .where(eq(schema.tattooArtist.id, id))
     .returning();
-  if (!result) throw new Error('Artist profile not found');
   return result;
 }
