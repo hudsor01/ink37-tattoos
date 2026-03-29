@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Admin Panel
-status: planning
-stopped_at: "v2.0 roadmap created, ready for `/gsd:plan-phase 13`"
-last_updated: "2026-03-29T20:44:27.384Z"
-last_activity: 2026-03-27 -- v2.0 roadmap created (10 phases, 75 requirements)
+status: executing
+stopped_at: Phase 17 context gathered
+last_updated: "2026-03-29T20:36:44.843Z"
+last_activity: 2026-03-29 -- Phase 17 execution started
 progress:
   total_phases: 10
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 1
+  completed_phases: 4
+  total_plans: 19
+  completed_plans: 17
 ---
 
 # Project State
@@ -20,17 +20,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** The tattoo artist manages their entire business from one app while clients get a polished experience for discovering, booking, paying, and tracking their tattoo journey.
-**Current focus:** v2.0 Admin Panel -- rebuild admin dashboard from CRUD scaffold to production-grade
+**Current focus:** Phase 17 — missing-pages-operations
 
 ## Current Position
 
-Phase: 13 (Security Hardening) -- not yet started
-Plan: --
-Status: Roadmap complete, awaiting phase planning
-Last activity: 2026-03-27 -- v2.0 roadmap created (10 phases, 75 requirements)
+Phase: 17 (missing-pages-operations) — EXECUTING
+Plan: 2 of 3
+Status: Plan 17-01 complete, continuing Phase 17
+Last activity: 2026-03-29 -- Plan 17-01 complete (notification system)
 
 ```
-v2.0 Progress: [..........] 0/10 phases
+v2.0 Progress: [..........] 0/10 phases (14-01 complete)
 ```
 
 ## Previous Milestone
@@ -59,6 +59,13 @@ Archived to: .planning/milestones/
 
 See PROJECT.md Key Decisions table for full history.
 
+Phase 14-01 decisions:
+
+- Offset-based pagination (not cursor) -- fits admin dashboard page-number navigation
+- safeAction as callback wrapper -- simpler integration with existing varying-signature actions
+- Weighted tsvector (A/B/C/D) for relevance-ranked full-text search
+- SQL GROUP BY replaces JS Map/loop aggregation in analytics
+
 v2.0 roadmap decisions:
 
 - Security and data layer come first (phases 13-14) -- foundation for everything
@@ -69,6 +76,15 @@ v2.0 roadmap decisions:
 - Analytics depth after reports page and analytics page are enhanced
 - Testing last -- validates features built in all prior phases
 - Tech debt bundled with testing -- cleanup alongside verification
+- [Phase 14-data-layer-fixes]: requireRole stays outside safeAction for redirect propagation; public actions use 'anonymous' userId for audit logging
+- [Phase 14]: Used tattooArtist table for artist profile (not user table) -- already has bio, specialties, portfolio fields
+- [Phase 14]: ILIKE fallback for gift card search (small dataset, no tsvector needed)
+- [Phase 15-04]: Keep RHF in all forms, use form.setError() for server errors instead of rewriting to useActionState
+- [Phase 15-04]: Keep datetime-local for appointment/session datetime fields; only date-only fields get DatePicker
+- [Phase 15-05]: Wrapped charts in <figure role=img> with sr-only figcaption for screen reader data summaries
+- [Phase 15-05]: No dead imports found in form components -- prior plans already cleaned them
+- [Phase 17-01]: Created shared dal/types.ts with PaginationParams/PaginatedResult for reuse across DAL modules
+- [Phase 17-01]: Notification retention left as intentional tech debt (future scheduled purge job)
 
 ### Pending Todos
 
@@ -78,14 +94,8 @@ None yet.
 
 None.
 
-## Performance Metrics
-
-| Phase | Plan | Duration | Tasks | Files |
-|-------|------|----------|-------|-------|
-| 17 | 02 | 4min | 2 | 9 |
-
 ## Session Continuity
 
-Last session: 2026-03-29
-Stopped at: Completed 17-02-PLAN.md (Financial Reports Page)
-Resume with: Next plan in phase 17
+Last session: 2026-03-29T20:43:00Z
+Stopped at: Completed 17-01-PLAN.md (notification system)
+Resume with: Continue with 17-02 or 17-03

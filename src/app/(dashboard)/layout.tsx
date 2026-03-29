@@ -9,6 +9,7 @@ import {
   BreadcrumbPage,
 } from '@/components/ui/breadcrumb';
 import { ThemeToggle } from '@/components/dashboard/theme-toggle';
+import { NotificationBell } from '@/components/dashboard/notification-bell';
 import { PageTransition } from '@/components/page-transition';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -27,7 +28,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <NotificationBell />
             <ThemeToggle />
           </div>
         </header>
