@@ -40,7 +40,7 @@ Requirements for admin panel rebuild. Each maps to roadmap phases. Derived from 
 - [x] **UI-01**: Every dashboard page has loading.tsx with skeleton placeholders appropriate to the page layout
 - [x] **UI-02**: Every dashboard page has error.tsx with retry button and user-friendly error message
 - [x] **UI-03**: Every list page has an empty state component when no data exists (not blank space)
-- [ ] **UI-04**: All dashboard pages are responsive on mobile -- tables collapse to card views, forms stack vertically, sidebar collapses
+- [x] **UI-04**: All dashboard pages are responsive on mobile -- tables collapse to card views, forms stack vertically, sidebar collapses
 - [x] **UI-05**: All interactive elements have proper ARIA labels, all decorative icons have aria-hidden, all charts have alt text
 - [x] **UI-06**: All forms show field-level validation errors below inputs (not just toast on submit failure)
 - [x] **UI-07**: All destructive actions use AlertDialog confirmation (no browser confirm() calls)
@@ -170,7 +170,7 @@ Deferred beyond v2.0.
 | UI-01 | Phase 15 | Complete |
 | UI-02 | Phase 15 | Complete |
 | UI-03 | Phase 15 | Complete |
-| UI-04 | Phase 15 | Pending |
+| UI-04 | Phase 15 | Complete |
 | UI-05 | Phase 15 | Complete |
 | UI-06 | Phase 15 | Complete |
 | UI-07 | Phase 15 | Complete |
