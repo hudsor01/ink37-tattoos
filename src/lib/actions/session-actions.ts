@@ -1,15 +1,21 @@
 'use server';
 
 import { CreateSessionSchema, type CreateSessionData } from '@/lib/security/validation';
-import { createSession, updateSession, deleteSession, getSessionById } from '@/lib/dal/sessions';
+import { createSession, updateSession, deleteSession, getSessionById, getSessionWithDetails } from '@/lib/dal/sessions';
+import { getSettingByKey } from '@/lib/dal/settings';
 import { logAudit } from '@/lib/dal/audit';
-import { requireRole } from '@/lib/auth';
+import { requireRole, getCurrentSession } from '@/lib/auth';
+import { sendAftercareEmail } from '@/lib/email/resend';
 import { safeAction } from './safe-action';
 import type { ActionResult } from './types';
 import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { del } from '@vercel/blob';
+import { format } from 'date-fns';
+import { db } from '@/lib/db';
+import * as schema from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 
 export async function createSessionAction(formData: FormData): Promise<ActionResult<{ id: string }>> {
   const session = await requireRole('admin');
@@ -58,6 +64,37 @@ export async function updateSessionAction(id: string, formData: FormData): Promi
     if (raw.totalCost) data.totalCost = Number(raw.totalCost);
 
     const result = await updateSession(id, data as Partial<CreateSessionData>);
+
+    // Aftercare email trigger (BIZ-03, per D-05)
+    // Send aftercare email when session status changes to COMPLETED
+    if (data.status === 'COMPLETED') {
+      const sessionData = await getSessionWithDetails(id);
+      if (sessionData && !sessionData.aftercareProvided && sessionData.customer?.email) {
+        // Fetch configurable template from settings
+        const aftercareSettingRaw = await getSettingByKey('aftercare_template');
+        const aftercareTemplate = typeof aftercareSettingRaw?.value === 'string'
+          ? aftercareSettingRaw.value
+          : undefined;
+
+        after(async () => {
+          try {
+            await sendAftercareEmail({
+              to: sessionData.customer!.email!,
+              customerName: `${sessionData.customer!.firstName} ${sessionData.customer!.lastName}`,
+              sessionDate: format(sessionData.appointmentDate, 'MMMM d, yyyy'),
+              placement: sessionData.placement,
+              template: aftercareTemplate,
+            });
+            // Mark aftercareProvided to prevent re-sends
+            await db.update(schema.tattooSession)
+              .set({ aftercareProvided: true })
+              .where(eq(schema.tattooSession.id, id));
+          } catch (err) {
+            console.error('[Aftercare] Email failed:', err);
+          }
+        });
+      }
+    }
 
     const hdrs = await headers();
     after(() =>
@@ -108,6 +145,7 @@ const ALLOWED_INLINE_FIELDS = [
   'duration',
   'hourlyRate',
   'estimatedHours',
+  'status',
 ] as const;
 
 type InlineField = (typeof ALLOWED_INLINE_FIELDS)[number];
@@ -137,6 +175,34 @@ export async function updateSessionFieldAction(
   const result = await updateSession(id, {
     [field]: coercedValue,
   } as Partial<CreateSessionData>);
+
+  // Aftercare email trigger for inline status edit to COMPLETED (BIZ-03)
+  if (field === 'status' && value === 'COMPLETED') {
+    const sessionData = await getSessionWithDetails(id);
+    if (sessionData && !sessionData.aftercareProvided && sessionData.customer?.email) {
+      const aftercareSettingRaw = await getSettingByKey('aftercare_template');
+      const aftercareTemplate = typeof aftercareSettingRaw?.value === 'string'
+        ? aftercareSettingRaw.value
+        : undefined;
+
+      after(async () => {
+        try {
+          await sendAftercareEmail({
+            to: sessionData.customer!.email!,
+            customerName: `${sessionData.customer!.firstName} ${sessionData.customer!.lastName}`,
+            sessionDate: format(sessionData.appointmentDate, 'MMMM d, yyyy'),
+            placement: sessionData.placement,
+            template: aftercareTemplate,
+          });
+          await db.update(schema.tattooSession)
+            .set({ aftercareProvided: true })
+            .where(eq(schema.tattooSession.id, id));
+        } catch (err) {
+          console.error('[Aftercare] Email failed:', err);
+        }
+      });
+    }
+  }
 
   const hdrs = await headers();
   after(() =>
