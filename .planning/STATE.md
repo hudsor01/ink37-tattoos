@@ -25,8 +25,8 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 ## Current Position
 
 Phase: 19
-Plan: Not started
-Status: Executing Phase 18
+Plan: 1 of 3 complete
+Status: Executing Phase 19
 Last activity: 2026-03-30
 
 ```
@@ -84,6 +84,9 @@ v2.0 roadmap decisions:
 - [Phase 15-05]: Wrapped charts in <figure role=img> with sr-only figcaption for screen reader data summaries
 - [Phase 15-05]: No dead imports found in form components -- prior plans already cleaned them
 - [Phase 17]: Dialog used for rejection form (allows textarea), notification triggers wrapped in try/catch to isolate side effects
+- [Phase 19-01]: CSV export uses filtered rows from visible columns (excluding select/actions); Show All warns at >500 rows
+- [Phase 19-01]: getDashboardStatsWithTrend computes equal-length previous period and runs both in parallel
+- [Phase 19-01]: Dashboard date range defaults to last 30 days; KPI cards linked to detail pages
 
 ### Pending Todos
 
@@ -95,6 +98,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T05:00:21.402Z
-Stopped at: Phase 19 context gathered
-Resume with: Continue Phase 15 remaining plans (15-06) or transition to Phase 16
+Last session: 2026-03-30T05:36:32Z
+Stopped at: Completed 19-01-PLAN.md
+Resume with: Continue with 19-02-PLAN.md or 19-03-PLAN.md

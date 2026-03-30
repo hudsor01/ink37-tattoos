@@ -63,7 +63,7 @@ Requirements for admin panel rebuild. Each maps to roadmap phases. Derived from 
 
 ### Feature Depth -- Existing Pages
 
-- [ ] **FEAT-01**: Dashboard overview -- configurable date range picker, upcoming appointments today/this week, clickable widgets linking to detail pages
+- [x] **FEAT-01**: Dashboard overview -- configurable date range picker, upcoming appointments today/this week, clickable widgets linking to detail pages
 - [ ] **FEAT-02**: Customer list -- bulk actions (delete, export CSV), customer import from CSV, duplicate detection, customer lifecycle stage indicator
 - [ ] **FEAT-03**: Customer detail -- inline editing, create appointment/session from customer page, communication timeline, linked portal account indicator
 - [ ] **FEAT-04**: Appointment list -- conflict detection on create/edit, appointment reminders toggle, bulk status updates, notes visible in list
@@ -75,7 +75,7 @@ Requirements for admin panel rebuild. Each maps to roadmap phases. Derived from 
 - [ ] **FEAT-10**: Analytics -- custom date range picker, data export (CSV/PDF), comparison views (period vs period), more KPIs (CLV, no-show rate, avg session duration)
 - [ ] **FEAT-11**: Settings -- organized into logical tabs (Studio, Email, Payment, Hours, Terms), unsaved changes warning, operating hours/days management
 - [ ] **FEAT-12**: Audit log -- advanced filtering (date range, user, action type), search, export, before/after change detail
-- [ ] **FEAT-13**: All list pages -- data export to CSV, "show all" option alongside pagination, jump-to-page control
+- [x] **FEAT-13**: All list pages -- data export to CSV, "show all" option alongside pagination, jump-to-page control
 
 ### Business Workflows
 
@@ -194,12 +194,12 @@ Deferred beyond v2.0.
 | FEAT-06 | Phase 18 | Complete |
 | FEAT-07 | Phase 18 | Pending |
 | FEAT-08 | Phase 18 | Pending |
-| FEAT-01 | Phase 19 | Pending |
+| FEAT-01 | Phase 19 | Complete |
 | FEAT-09 | Phase 19 | Pending |
 | FEAT-10 | Phase 19 | Pending |
 | FEAT-11 | Phase 19 | Pending |
 | FEAT-12 | Phase 19 | Pending |
-| FEAT-13 | Phase 19 | Pending |
+| FEAT-13 | Phase 19 | Complete |
 | BIZ-01 | Phase 20 | Pending |
 | BIZ-02 | Phase 20 | Pending |
 | BIZ-03 | Phase 20 | Pending |
