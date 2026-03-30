@@ -100,7 +100,26 @@ const EMAIL_KEYS = [
   'aftercare_template',
 ] as const;
 
-const PAYMENT_KEYS = ['deposit_percentage', 'default_currency'] as const;
+const PAYMENT_KEYS = ['deposit_percentage', 'default_currency', 'deposit_config'] as const;
+
+// Appointment types for per-type deposit configuration (BIZ-01)
+const APPOINTMENT_TYPES = [
+  { value: 'CONSULTATION', label: 'Consultation' },
+  { value: 'DESIGN_REVIEW', label: 'Design Review' },
+  { value: 'TATTOO_SESSION', label: 'Tattoo Session' },
+  { value: 'TOUCH_UP', label: 'Touch Up' },
+  { value: 'REMOVAL', label: 'Removal' },
+] as const;
+
+type DepositConfig = Record<string, number>;
+
+const DEFAULT_DEPOSIT_CONFIG: DepositConfig = {
+  CONSULTATION: 0,
+  DESIGN_REVIEW: 0,
+  TATTOO_SESSION: 25,
+  TOUCH_UP: 15,
+  REMOVAL: 25,
+};
 
 const HOURS_KEYS = [
   'cal_username',
@@ -324,6 +343,24 @@ export function SettingsPageClient({ initialSettings }: SettingsPageClientProps)
       [day]: { ...businessHours[day], [field]: value },
     };
     updateLocal('business_hours', updated);
+  }
+
+  // -----------------------------------------------------------------------
+  // Deposit config helpers (BIZ-01)
+  // -----------------------------------------------------------------------
+
+  const depositConfig: DepositConfig = getJson(
+    settings,
+    'deposit_config',
+    DEFAULT_DEPOSIT_CONFIG,
+  );
+
+  function updateDepositConfig(appointmentType: string, percentage: number) {
+    const updated = {
+      ...depositConfig,
+      [appointmentType]: percentage,
+    };
+    updateLocal('deposit_config', updated);
   }
 
   // -----------------------------------------------------------------------
@@ -620,6 +657,47 @@ export function SettingsPageClient({ initialSettings }: SettingsPageClientProps)
                   <SelectItem value="GBP">GBP - British Pound</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="border-t pt-4">
+              <h3 className="mb-3 text-sm font-semibold text-muted-foreground">
+                Deposit Configuration by Appointment Type
+              </h3>
+              <p className="mb-3 text-xs text-muted-foreground">
+                Set deposit percentages for each appointment type. The default
+                deposit percentage above is used as a fallback when no per-type
+                config is set.
+              </p>
+              <div className="space-y-3">
+                {APPOINTMENT_TYPES.map((type) => (
+                  <div
+                    key={type.value}
+                    className="flex items-center gap-4 rounded-lg border p-3"
+                  >
+                    <span className="w-36 text-sm font-medium">
+                      {type.label}
+                    </span>
+                    <div className="relative w-28">
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={depositConfig[type.value] ?? 0}
+                        onChange={(e) =>
+                          updateDepositConfig(
+                            type.value,
+                            Math.max(0, Math.min(100, Number(e.target.value) || 0)),
+                          )
+                        }
+                        className="pr-8"
+                      />
+                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                        %
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="border-t pt-4">
