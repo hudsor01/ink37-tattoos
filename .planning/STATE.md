@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Admin Panel
-status: executing
-stopped_at: Completed 19-02-PLAN.md (media management + analytics enhancements)
-last_updated: "2026-03-30T05:40:00Z"
-last_activity: 2026-03-30
+status: Roadmap Complete
+stopped_at: Roadmap created, ready for phase planning
+last_updated: "2026-03-30T05:37:35.000Z"
 progress:
   total_phases: 10
-  completed_phases: 6
-  total_plans: 23
-  completed_plans: 24
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  plans_in_progress: 19-03
 ---
 
 # Project State
@@ -20,17 +20,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** The tattoo artist manages their entire business from one app while clients get a polished experience for discovering, booking, paying, and tracking their tattoo journey.
-**Current focus:** Phase 18 — feature-depth-records
+**Current focus:** v2.0 Admin Panel -- rebuild admin dashboard from CRUD scaffold to production-grade
 
 ## Current Position
 
-Phase: 19
-Plan: Not started
-Status: Executing Phase 18
-Last activity: 2026-03-30
+Phase: 13 (Security Hardening) -- not yet started
+Plan: --
+Status: Roadmap complete, awaiting phase planning
+Last activity: 2026-03-27 -- v2.0 roadmap created (10 phases, 75 requirements)
 
 ```
-v2.0 Progress: [..........] 0/10 phases (14-01 complete)
+v2.0 Progress: [..........] 0/10 phases
 ```
 
 ## Previous Milestone
@@ -59,15 +59,13 @@ Archived to: .planning/milestones/
 
 See PROJECT.md Key Decisions table for full history.
 
-Phase 14-01 decisions:
-
-- Offset-based pagination (not cursor) -- fits admin dashboard page-number navigation
-- safeAction as callback wrapper -- simpler integration with existing varying-signature actions
-- Weighted tsvector (A/B/C/D) for relevance-ranked full-text search
-- SQL GROUP BY replaces JS Map/loop aggregation in analytics
+Phase 19 Plan 03 decisions:
+- Store business_hours as single JSON setting with day-by-day open/close/isOpen structure
+- Merge old Appearance tab into Studio Info rather than creating 6th tab
+- Use URL params for audit log filters to enable server-side re-fetching
+- Use ILIKE text search for audit log search since tsvector column not in current schema
 
 v2.0 roadmap decisions:
-
 - Security and data layer come first (phases 13-14) -- foundation for everything
 - UI foundations before new pages -- establish patterns once, apply everywhere
 - Missing pages split into Core (13-dependent) and Operations (14+16 dependent)
@@ -76,14 +74,6 @@ v2.0 roadmap decisions:
 - Analytics depth after reports page and analytics page are enhanced
 - Testing last -- validates features built in all prior phases
 - Tech debt bundled with testing -- cleanup alongside verification
-- [Phase 14-data-layer-fixes]: requireRole stays outside safeAction for redirect propagation; public actions use 'anonymous' userId for audit logging
-- [Phase 14]: Used tattooArtist table for artist profile (not user table) -- already has bio, specialties, portfolio fields
-- [Phase 14]: ILIKE fallback for gift card search (small dataset, no tsvector needed)
-- [Phase 15-04]: Keep RHF in all forms, use form.setError() for server errors instead of rewriting to useActionState
-- [Phase 15-04]: Keep datetime-local for appointment/session datetime fields; only date-only fields get DatePicker
-- [Phase 15-05]: Wrapped charts in <figure role=img> with sr-only figcaption for screen reader data summaries
-- [Phase 15-05]: No dead imports found in form components -- prior plans already cleaned them
-- [Phase 17]: Dialog used for rejection form (allows textarea), notification triggers wrapped in try/catch to isolate side effects
 
 ### Pending Todos
 
@@ -95,6 +85,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T05:40:00Z
-Stopped at: Completed 19-02-PLAN.md (media management + analytics enhancements)
-Resume with: Continue Phase 19 remaining plans (19-01, 19-03)
+Last session: 2026-03-30
+Stopped at: Completed 19-03-PLAN.md (Settings & Audit Log)
+Resume with: Continue phase 19 execution or next phase

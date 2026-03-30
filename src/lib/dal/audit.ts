@@ -3,12 +3,12 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { eq, and, sql, desc } from 'drizzle-orm';
+import { eq, and, desc, gte, lte, sql, count } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
-import type { PaginationParams, PaginatedResult } from './types';
-import { DEFAULT_PAGE_SIZE } from './types';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
+
+const DEFAULT_PAGE_SIZE = 25;
 
 async function requireStaffRole() {
   const session = await getCurrentSession();
@@ -45,51 +45,81 @@ export async function logAudit(entry: AuditEntry) {
   }
 }
 
-export const getAuditLogs = cache(async (
-  params: PaginationParams = { page: 1, pageSize: DEFAULT_PAGE_SIZE }
-): Promise<PaginatedResult<{
-  id: string;
-  action: string;
-  resource: string;
-  resourceId: string | null;
-  userId: string | null;
-  ip: string;
-  timestamp: Date;
-  metadata: unknown;
-}>> => {
+export interface AuditLogParams {
+  page?: number;
+  pageSize?: number;
+  dateFrom?: Date;
+  dateTo?: Date;
+  action?: string;
+  resource?: string;
+  userId?: string;
+  search?: string;
+  /** Legacy compat */
+  limit?: number;
+  offset?: number;
+}
+
+export const getAuditLogs = cache(async (filters?: AuditLogParams) => {
   await requireStaffRole();
 
   const conditions = [];
-  if (params.search) {
+  if (filters?.userId) conditions.push(eq(schema.auditLog.userId, filters.userId));
+  if (filters?.resource) conditions.push(eq(schema.auditLog.resource, filters.resource));
+  if (filters?.action) conditions.push(eq(schema.auditLog.action, filters.action));
+  if (filters?.dateFrom) conditions.push(gte(schema.auditLog.timestamp, filters.dateFrom));
+  if (filters?.dateTo) conditions.push(lte(schema.auditLog.timestamp, filters.dateTo));
+  if (filters?.search) {
     conditions.push(
-      sql`${schema.auditLog.searchVector} @@ plainto_tsquery('english', ${params.search})`
+      sql`(${schema.auditLog.action} ILIKE ${'%' + filters.search + '%'} OR ${schema.auditLog.resource} ILIKE ${'%' + filters.search + '%'} OR CAST(${schema.auditLog.metadata} AS TEXT) ILIKE ${'%' + filters.search + '%'})`,
     );
   }
 
-  const results = await db.select({
-    id: schema.auditLog.id,
-    action: schema.auditLog.action,
-    resource: schema.auditLog.resource,
-    resourceId: schema.auditLog.resourceId,
-    userId: schema.auditLog.userId,
-    ip: schema.auditLog.ip,
-    timestamp: schema.auditLog.timestamp,
-    metadata: schema.auditLog.metadata,
-    total: sql<number>`cast(count(*) over() as integer)`,
-  })
-    .from(schema.auditLog)
-    .where(conditions.length > 0 ? and(...conditions) : undefined)
-    .orderBy(desc(schema.auditLog.timestamp))
-    .limit(params.pageSize)
-    .offset((params.page - 1) * params.pageSize);
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-  const total = results[0]?.total ?? 0;
+  // Calculate pagination
+  const page = filters?.page ?? 1;
+  const pageSize = filters?.pageSize ?? filters?.limit ?? DEFAULT_PAGE_SIZE;
+  const offset = filters?.offset ?? (page - 1) * pageSize;
+
+  // Get total count
+  const [{ total }] = await db
+    .select({ total: count() })
+    .from(schema.auditLog)
+    .where(whereClause);
+
+  // Get paginated results with user join
+  const data = await db.query.auditLog.findMany({
+    where: whereClause,
+    orderBy: [desc(schema.auditLog.timestamp)],
+    limit: pageSize,
+    offset,
+    with: { user: { columns: { name: true, email: true } } },
+  });
 
   return {
-    data: results.map(({ total: _, ...row }) => row),
+    data,
     total,
-    page: params.page,
-    pageSize: params.pageSize,
-    totalPages: Math.ceil(total / params.pageSize),
+    page,
+    pageSize,
+    totalPages: Math.ceil(total / pageSize),
   };
+});
+
+/**
+ * Returns distinct users who have audit log entries, for the user filter dropdown.
+ */
+export const getAuditLogUsers = cache(async () => {
+  await requireStaffRole();
+
+  const results = await db
+    .selectDistinctOn([schema.auditLog.userId], {
+      userId: schema.auditLog.userId,
+      name: schema.user.name,
+      email: schema.user.email,
+    })
+    .from(schema.auditLog)
+    .innerJoin(schema.user, eq(schema.auditLog.userId, schema.user.id))
+    .orderBy(schema.auditLog.userId);
+
+  return results;
 });
