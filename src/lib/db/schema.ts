@@ -10,19 +10,8 @@ import {
   jsonb,
   uniqueIndex,
   index,
-  customType,
 } from 'drizzle-orm/pg-core';
-import { relations, sql } from 'drizzle-orm';
-
-// ============================================================================
-// CUSTOM TYPES
-// ============================================================================
-
-export const tsvector = customType<{ data: string }>({
-  dataType() {
-    return 'tsvector';
-  },
-});
+import { relations } from 'drizzle-orm';
 
 // ============================================================================
 // ENUMS
@@ -36,7 +25,6 @@ export const sessionStatusEnum = pgEnum('SessionStatus', ['SCHEDULED', 'IN_PROGR
 export const contactStatusEnum = pgEnum('ContactStatus', ['NEW', 'READ', 'REPLIED', 'RESOLVED']);
 export const paymentTypeEnum = pgEnum('PaymentType', ['DEPOSIT', 'SESSION_BALANCE', 'REFUND']);
 export const paymentStatusEnum = pgEnum('PaymentStatus', ['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'REFUNDED']);
-export const notificationTypeEnum = pgEnum('NotificationType', ['BOOKING', 'PAYMENT', 'CONTACT', 'LOW_STOCK']);
 
 // ============================================================================
 // AUTH MODELS (managed by Better Auth via raw pg.Pool)
@@ -135,15 +123,11 @@ export const customer = pgTable('customer', {
   stripeCustomerId: text('stripeCustomerId'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow().$onUpdate(() => new Date()),
-  searchVector: tsvector('search_vector').generatedAlwaysAs(
-    sql`setweight(to_tsvector('english', coalesce("firstName", '') || ' ' || coalesce("lastName", '')), 'A') || setweight(to_tsvector('english', coalesce("email", '')), 'B') || setweight(to_tsvector('english', coalesce("phone", '')), 'C')`
-  ),
 }, (table) => [
   index('customer_email_idx').on(table.email),
   index('customer_phone_idx').on(table.phone),
   index('customer_firstName_lastName_idx').on(table.firstName, table.lastName),
   index('customer_createdAt_idx').on(table.createdAt),
-  index('customer_search_idx').using('gin', table.searchVector),
 ]);
 
 export const tattooArtist = pgTable('tattoo_artist', {
@@ -156,9 +140,6 @@ export const tattooArtist = pgTable('tattoo_artist', {
   isActive: boolean('isActive').notNull().default(true),
   portfolio: text('portfolio').array(),
   bio: text('bio'),
-  profileImage: text('profileImage'),
-  instagramHandle: text('instagramHandle'),
-  yearsExperience: integer('yearsExperience'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow().$onUpdate(() => new Date()),
 });
@@ -188,9 +169,6 @@ export const appointment = pgTable('appointment', {
   reminderSent: boolean('reminderSent').notNull().default(false),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow().$onUpdate(() => new Date()),
-  searchVector: tsvector('search_vector').generatedAlwaysAs(
-    sql`setweight(to_tsvector('english', coalesce("firstName", '') || ' ' || coalesce("lastName", '')), 'A') || setweight(to_tsvector('english', coalesce("email", '')), 'B') || setweight(to_tsvector('english', coalesce("description", '') || ' ' || coalesce("notes", '')), 'C') || setweight(to_tsvector('english', coalesce("type", '')), 'D')`
-  ),
 }, (table) => [
   index('appointment_scheduledDate_idx').on(table.scheduledDate),
   index('appointment_status_idx').on(table.status),
@@ -198,7 +176,6 @@ export const appointment = pgTable('appointment', {
   index('appointment_customerId_scheduledDate_idx').on(table.customerId, table.scheduledDate),
   index('appointment_scheduledDate_status_idx').on(table.scheduledDate, table.status),
   index('appointment_createdAt_idx').on(table.createdAt),
-  index('appointment_search_idx').using('gin', table.searchVector),
 ]);
 
 export const tattooSession = pgTable('tattoo_session', {
@@ -224,17 +201,15 @@ export const tattooSession = pgTable('tattoo_session', {
   consentSigned: boolean('consentSigned').notNull().default(false),
   consentSignedAt: timestamp('consentSignedAt'),
   consentSignedBy: text('consentSignedBy'),
+  consentFormVersion: integer('consentFormVersion'),
+  consentExpiresAt: timestamp('consentExpiresAt'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow().$onUpdate(() => new Date()),
-  searchVector: tsvector('search_vector').generatedAlwaysAs(
-    sql`setweight(to_tsvector('english', coalesce("designDescription", '')), 'A') || setweight(to_tsvector('english', coalesce("placement", '') || ' ' || coalesce("style", '')), 'B') || setweight(to_tsvector('english', coalesce("notes", '')), 'C')`
-  ),
 }, (table) => [
   index('tattoo_session_appointmentDate_idx').on(table.appointmentDate),
   index('tattoo_session_status_idx').on(table.status),
   index('tattoo_session_appointmentDate_status_idx').on(table.appointmentDate, table.status),
   index('tattoo_session_appointmentDate_totalCost_idx').on(table.appointmentDate, table.totalCost),
-  index('tattoo_session_search_idx').using('gin', table.searchVector),
 ]);
 
 export const tattooDesign = pgTable('tattoo_design', {
@@ -249,23 +224,18 @@ export const tattooDesign = pgTable('tattoo_design', {
   tags: text('tags').array(),
   isApproved: boolean('isApproved').notNull().default(false),
   isPublic: boolean('isPublic').notNull().default(true),
-  rejectionNotes: text('rejectionNotes'),
   estimatedHours: numeric('estimatedHours', { precision: 10, scale: 2, mode: 'number' }),
   popularity: integer('popularity').notNull().default(0),
   artistId: uuid('artistId').notNull().references(() => tattooArtist.id),
   customerId: uuid('customerId').references(() => customer.id),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow().$onUpdate(() => new Date()),
-  searchVector: tsvector('search_vector').generatedAlwaysAs(
-    sql`setweight(to_tsvector('english', coalesce("name", '')), 'A') || setweight(to_tsvector('english', coalesce("description", '') || ' ' || coalesce("style", '')), 'B')`
-  ),
 }, (table) => [
   index('tattoo_design_isApproved_idx').on(table.isApproved),
   index('tattoo_design_designType_idx').on(table.designType),
   index('tattoo_design_artistId_idx').on(table.artistId),
   index('tattoo_design_createdAt_idx').on(table.createdAt),
   index('tattoo_design_isApproved_createdAt_idx').on(table.isApproved, table.createdAt),
-  index('tattoo_design_search_idx').using('gin', table.searchVector),
 ]);
 
 export const contact = pgTable('contact', {
@@ -278,14 +248,10 @@ export const contact = pgTable('contact', {
   adminNotes: text('adminNotes'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow().$onUpdate(() => new Date()),
-  searchVector: tsvector('search_vector').generatedAlwaysAs(
-    sql`setweight(to_tsvector('english', coalesce("name", '')), 'A') || setweight(to_tsvector('english', coalesce("email", '')), 'B') || setweight(to_tsvector('english', coalesce("message", '')), 'C')`
-  ),
 }, (table) => [
   index('contact_email_idx').on(table.email),
   index('contact_status_idx').on(table.status),
   index('contact_createdAt_idx').on(table.createdAt),
-  index('contact_search_idx').using('gin', table.searchVector),
 ]);
 
 export const auditLog = pgTable('audit_log', {
@@ -298,15 +264,11 @@ export const auditLog = pgTable('audit_log', {
   userAgent: text('userAgent').notNull(),
   timestamp: timestamp('timestamp').notNull().defaultNow(),
   metadata: jsonb('metadata'),
-  searchVector: tsvector('search_vector').generatedAlwaysAs(
-    sql`setweight(to_tsvector('english', coalesce("action", '') || ' ' || coalesce("resource", '')), 'A')`
-  ),
 }, (table) => [
   index('audit_log_action_idx').on(table.action),
   index('audit_log_resource_idx').on(table.resource),
   index('audit_log_timestamp_idx').on(table.timestamp),
   index('audit_log_userId_idx').on(table.userId),
-  index('audit_log_search_idx').using('gin', table.searchVector),
 ]);
 
 export const settings = pgTable('settings', {
@@ -322,6 +284,16 @@ export const settings = pgTable('settings', {
   index('settings_category_idx').on(table.category),
   index('settings_key_idx').on(table.key),
 ]);
+
+export const consentForm = pgTable('consent_form', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  version: integer('version').notNull(),
+  title: text('title').notNull().default('Tattoo Consent Form'),
+  content: text('content').notNull(),
+  isActive: boolean('isActive').notNull().default(true),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow().$onUpdate(() => new Date()),
+});
 
 // ============================================================================
 // PAYMENT MODELS
@@ -359,20 +331,6 @@ export const stripeEvent = pgTable('stripe_event', {
   index('stripe_event_stripeEventId_idx').on(table.stripeEventId),
 ]);
 
-// Cal.com webhook event audit trail (D-10)
-// calEventUid is NOT unique because Cal.com sends the same booking UID
-// for CREATED, RESCHEDULED, CANCELLED events. This is an audit trail,
-// not an idempotency gate. Appointment upserts are already idempotent
-// via onConflictDoUpdate on calBookingUid.
-export const calEvent = pgTable('cal_event', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  calEventUid: text('cal_event_uid').notNull(),
-  triggerEvent: text('trigger_event').notNull(),
-  processedAt: timestamp('processed_at').notNull().defaultNow(),
-}, (table) => [
-  index('cal_event_uid_idx').on(table.calEventUid),
-]);
-
 // ============================================================================
 // STORE MODELS
 // ============================================================================
@@ -392,27 +350,10 @@ export const product = pgTable('product', {
   sortOrder: integer('sortOrder').notNull().default(0),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow().$onUpdate(() => new Date()),
-  searchVector: tsvector('search_vector').generatedAlwaysAs(
-    sql`setweight(to_tsvector('english', coalesce("name", '')), 'A') || setweight(to_tsvector('english', coalesce("description", '')), 'B')`
-  ),
 }, (table) => [
   index('product_productType_idx').on(table.productType),
   index('product_isActive_idx').on(table.isActive),
   index('product_isActive_productType_idx').on(table.isActive, table.productType),
-  index('product_search_idx').using('gin', table.searchVector),
-]);
-
-export const productImage = pgTable('product_image', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  productId: uuid('productId').notNull().references(() => product.id, { onDelete: 'cascade' }),
-  url: text('url').notNull(),
-  alt: text('alt'),
-  sortOrder: integer('sortOrder').notNull().default(0),
-  isVisible: boolean('isVisible').notNull().default(true),
-  createdAt: timestamp('createdAt').notNull().defaultNow(),
-}, (table) => [
-  index('product_image_productId_idx').on(table.productId),
-  index('product_image_productId_sortOrder_idx').on(table.productId, table.sortOrder),
 ]);
 
 export const order = pgTable('order', {
@@ -431,21 +372,15 @@ export const order = pgTable('order', {
   shippingState: text('shippingState'),
   shippingPostalCode: text('shippingPostalCode'),
   shippingCountry: text('shippingCountry'),
-  trackingNumber: text('trackingNumber'),
-  trackingCarrier: text('trackingCarrier'),
   giftCardCode: text('giftCardCode'),
   notes: text('notes'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow().$onUpdate(() => new Date()),
-  searchVector: tsvector('search_vector').generatedAlwaysAs(
-    sql`setweight(to_tsvector('english', coalesce("email", '')), 'A') || setweight(to_tsvector('english', coalesce("shippingName", '')), 'B')`
-  ),
 }, (table) => [
   index('order_email_idx').on(table.email),
   index('order_status_idx').on(table.status),
   index('order_createdAt_idx').on(table.createdAt),
   index('order_stripeCheckoutSessionId_idx').on(table.stripeCheckoutSessionId),
-  index('order_search_idx').using('gin', table.searchVector),
 ]);
 
 export const orderItem = pgTable('order_item', {
@@ -496,25 +431,6 @@ export const downloadToken = pgTable('download_token', {
 ]);
 
 // ============================================================================
-// NOTIFICATION MODELS
-// ============================================================================
-
-export const notification = pgTable('notification', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  userId: uuid('userId').notNull().references(() => user.id, { onDelete: 'cascade' }),
-  type: notificationTypeEnum('type').notNull(),
-  title: text('title').notNull(),
-  message: text('message').notNull(),
-  isRead: boolean('isRead').notNull().default(false),
-  metadata: jsonb('metadata'),
-  createdAt: timestamp('createdAt').notNull().defaultNow(),
-}, (table) => [
-  index('notification_userId_isRead_idx').on(table.userId, table.isRead),
-  index('notification_userId_createdAt_idx').on(table.userId, table.createdAt),
-  index('notification_createdAt_idx').on(table.createdAt),
-]);
-
-// ============================================================================
 // RELATIONS
 // ============================================================================
 
@@ -523,7 +439,6 @@ export const userRelations = relations(user, ({ many, one }) => ({
   accounts: many(account),
   sessions: many(session),
   auditLogs: many(auditLog),
-  notifications: many(notification),
   customer: one(customer, { fields: [user.id], references: [customer.userId] }),
 }));
 
@@ -576,10 +491,7 @@ export const auditLogRelations = relations(auditLog, ({ one }) => ({
 
 export const settingsRelations = relations(settings, () => ({}));
 
-// Notification relations
-export const notificationRelations = relations(notification, ({ one }) => ({
-  user: one(user, { fields: [notification.userId], references: [user.id] }),
-}));
+export const consentFormRelations = relations(consentForm, () => ({}));
 
 // Payment relations
 export const paymentRelations = relations(payment, ({ one }) => ({
@@ -589,16 +501,9 @@ export const paymentRelations = relations(payment, ({ one }) => ({
 
 export const stripeEventRelations = relations(stripeEvent, () => ({}));
 
-export const calEventRelations = relations(calEvent, () => ({}));
-
 // Store relations
 export const productRelations = relations(product, ({ many }) => ({
   orderItems: many(orderItem),
-  images: many(productImage),
-}));
-
-export const productImageRelations = relations(productImage, ({ one }) => ({
-  product: one(product, { fields: [productImage.productId], references: [product.id] }),
 }));
 
 export const orderRelations = relations(order, ({ many }) => ({
