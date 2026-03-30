@@ -2,26 +2,11 @@ import { connection } from 'next/server';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { ArrowLeft, Mail, Phone, MapPin } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
-import { getCustomerWithDetails } from '@/lib/dal/customers';
-import { StatusBadge } from '@/components/dashboard/status-badge';
-import { Badge } from '@/components/ui/badge';
+import { getCustomerWithDetails, getCustomerTimeline } from '@/lib/dal/customers';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { CustomerDetailClient } from './customer-detail-client';
 
 interface CustomerDetailPageProps {
   params: Promise<{ id: string }>;
@@ -32,25 +17,14 @@ export default async function CustomerDetailPage({
 }: CustomerDetailPageProps) {
   await connection();
   const { id } = await params;
-  const customer = await getCustomerWithDetails(id);
+  const [customer, timeline] = await Promise.all([
+    getCustomerWithDetails(id),
+    getCustomerTimeline(id),
+  ]);
 
   if (!customer) {
     notFound();
   }
-
-  type Customer = typeof customer;
-  type Appointment = Customer['appointments'][number];
-  type Session = Customer['tattooSessions'][number];
-
-  const fullAddress = [
-    customer.address,
-    customer.city,
-    customer.state,
-    customer.postalCode,
-    customer.country,
-  ]
-    .filter(Boolean)
-    .join(', ');
 
   return (
     <div className="space-y-6">
@@ -73,186 +47,10 @@ export default async function CustomerDetailPage({
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Contact Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Contact Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {customer.email && (
-              <div className="flex items-center gap-2 text-sm">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span>{customer.email}</span>
-              </div>
-            )}
-            {customer.phone && (
-              <div className="flex items-center gap-2 text-sm">
-                <Phone className="h-4 w-4 text-muted-foreground" />
-                <span>{customer.phone}</span>
-              </div>
-            )}
-            {fullAddress && (
-              <div className="flex items-center gap-2 text-sm">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span>{fullAddress}</span>
-              </div>
-            )}
-            {!customer.email && !customer.phone && !fullAddress && (
-              <p className="text-sm text-muted-foreground">
-                No contact information on file.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Medical Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Medical Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Allergies
-              </p>
-              {customer.allergies && customer.allergies.length > 0 ? (
-                <div className="mt-1 flex flex-wrap gap-1">
-                  {customer.allergies.map((allergy: string) => (
-                    <Badge key={allergy} variant="outline">
-                      {allergy}
-                    </Badge>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm">None reported</p>
-              )}
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Medical Conditions
-              </p>
-              {customer.medicalConditions && customer.medicalConditions.length > 0 ? (
-                <div className="mt-1 flex flex-wrap gap-1">
-                  {customer.medicalConditions.map((condition: string) => (
-                    <Badge key={condition} variant="outline">
-                      {condition}
-                    </Badge>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm">None reported</p>
-              )}
-            </div>
-            {customer.emergencyName && (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Emergency Contact
-                </p>
-                <p className="text-sm">
-                  {customer.emergencyName}
-                  {customer.emergencyRel && ` (${customer.emergencyRel})`}
-                  {customer.emergencyPhone && ` - ${customer.emergencyPhone}`}
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Appointment History */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Appointment History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {customer.appointments.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Description</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {customer.appointments.map((appt: Appointment) => (
-                  <TableRow key={appt.id}>
-                    <TableCell>
-                      {format(
-                        new Date(appt.scheduledDate),
-                        'MMM d, yyyy'
-                      )}
-                    </TableCell>
-                    <TableCell className="capitalize">
-                      {appt.type.replace(/_/g, ' ').toLowerCase()}
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={appt.status} />
-                    </TableCell>
-                    <TableCell className="max-w-xs truncate">
-                      {appt.description ?? '-'}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <p className="py-4 text-center text-sm text-muted-foreground">
-              No appointments scheduled
-            </p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Session History */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Session History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {customer.tattooSessions.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Design</TableHead>
-                  <TableHead>Placement</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Cost</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {customer.tattooSessions.map((session: Session) => (
-                  <TableRow key={session.id}>
-                    <TableCell>
-                      {format(
-                        new Date(session.appointmentDate),
-                        'MMM d, yyyy'
-                      )}
-                    </TableCell>
-                    <TableCell className="max-w-xs truncate">
-                      {session.designDescription}
-                    </TableCell>
-                    <TableCell>{session.placement}</TableCell>
-                    <TableCell>
-                      <StatusBadge status={session.status} />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      ${session.totalCost.toString()}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <p className="py-4 text-center text-sm text-muted-foreground">
-              No sessions recorded
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      <CustomerDetailClient
+        customer={customer}
+        timeline={timeline}
+      />
     </div>
   );
 }
