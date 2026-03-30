@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Admin Panel
 status: executing
-stopped_at: Completed 22-03-PLAN.md
-last_updated: "2026-03-30T15:39:08.035Z"
+stopped_at: Completed 22-02-PLAN.md
+last_updated: "2026-03-30T15:38:48.087Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 10
@@ -85,7 +85,7 @@ v2.0 roadmap decisions:
 - [Phase 15-05]: No dead imports found in form components -- prior plans already cleaned them
 - [Phase 17]: Dialog used for rejection form (allows textarea), notification triggers wrapped in try/catch to isolate side effects
 - [Phase 21]: PeakHoursHeatmap uses CSS grid instead of Recharts (no native heatmap); ChurnRiskTable uses HTML table (small dataset); tab state from URL searchParams for deep-linking
-- [Phase 22]: Adapted API route test plan to actual routes (no cron/notifications/calendar/PDF routes exist); tested all existing routes instead
+- [Phase 22]: safeAction error tests use toBeDefined() not exact message matching (safeAction wraps unrecognized errors generically)
 
 ### Pending Todos
 
@@ -97,6 +97,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T15:39:08.033Z
-Stopped at: Completed 22-03-PLAN.md
+Last session: 2026-03-30T15:38:48.085Z
+Stopped at: Completed 22-02-PLAN.md
 Resume with: Continue with remaining Phase 20 plans or transition
