@@ -3,9 +3,8 @@
 import { type ColumnDef } from '@/components/dashboard/data-table';
 import { type MobileField } from '@/components/dashboard/responsive-data-table';
 import { StatusBadge } from '@/components/dashboard/status-badge';
+import { ReceiptDownloadButton } from '@/components/dashboard/receipt-download-button';
 import { format } from 'date-fns';
-import { ExternalLink } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 // Type matching the shape returned by getPayments (with includes)
 export type PaymentRow = {
@@ -67,16 +66,14 @@ export const columns: ColumnDef<PaymentRow, unknown>[] = [
   },
   {
     id: 'receipt',
-    header: 'Receipt',
-    cell: ({ row }) =>
-      row.original.receiptUrl ? (
-        <Button variant="ghost" size="sm" render={<a href={row.original.receiptUrl} target="_blank" rel="noopener noreferrer" aria-label="View receipt" />}>
-          <ExternalLink className="h-4 w-4 mr-1" />
-          View
-        </Button>
-      ) : (
-        <span className="text-xs text-muted-foreground">--</span>
-      ),
+    header: '',
+    enableSorting: false,
+    cell: ({ row }) => (
+      <ReceiptDownloadButton
+        paymentId={row.original.id}
+        disabled={row.original.status !== 'COMPLETED'}
+      />
+    ),
   },
 ];
 

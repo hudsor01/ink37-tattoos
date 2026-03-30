@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Admin Panel
-status: planning
-stopped_at: Completed 18-03-PLAN.md
-last_updated: "2026-03-30T04:16:30.894Z"
-last_activity: 2026-03-27 -- v2.0 roadmap created (10 phases, 75 requirements)
+status: executing
+stopped_at: Completed 18-04-PLAN.md
+last_updated: "2026-03-30T04:10:40Z"
+last_activity: 2026-03-30 -- Phase 18 plan 04 complete
 progress:
   total_phases: 10
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 1
+  completed_phases: 5
+  total_plans: 23
+  completed_plans: 20
 ---
 
 # Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** The tattoo artist manages their entire business from one app while clients get a polished experience for discovering, booking, paying, and tracking their tattoo journey.
-**Current focus:** v2.0 Admin Panel -- rebuild admin dashboard from CRUD scaffold to production-grade
+**Current focus:** Phase 18 -- feature-depth-records
 
 ## Current Position
 
-Phase: 13 (Security Hardening) -- not yet started
-Plan: --
-Status: Roadmap complete, awaiting phase planning
-Last activity: 2026-03-27 -- v2.0 roadmap created (10 phases, 75 requirements)
+Phase: 18 (feature-depth-records) -- EXECUTING
+Plan: 4 of 4 (complete)
+Status: Executing Phase 18
+Last activity: 2026-03-30 -- Phase 18 plan 04 complete (PDF receipt generation)
 
 ```
 v2.0 Progress: [..........] 0/10 phases
@@ -60,7 +60,6 @@ Archived to: .planning/milestones/
 See PROJECT.md Key Decisions table for full history.
 
 v2.0 roadmap decisions:
-
 - Security and data layer come first (phases 13-14) -- foundation for everything
 - UI foundations before new pages -- establish patterns once, apply everywhere
 - Missing pages split into Core (13-dependent) and Operations (14+16 dependent)
@@ -69,8 +68,11 @@ v2.0 roadmap decisions:
 - Analytics depth after reports page and analytics page are enhanced
 - Testing last -- validates features built in all prior phases
 - Tech debt bundled with testing -- cleanup alongside verification
-- [Phase 18]: Used direct db.update for syncPrimaryImage to support null imageUrl
-- [Phase 18]: Separated SortableImageGrid (presentational) from ProductImageGallery (action wiring) for testability
+
+Phase 18-04 decisions:
+- [Phase 18-04]: HEAD pre-check with 5s timeout on Stirling PDF before full conversion request
+- [Phase 18-04]: Accept HTTP 405 on health check as valid service-up signal
+- [Phase 18-04]: Replace static receiptUrl link column with dynamic PDF download button
 
 ### Pending Todos
 
@@ -82,6 +84,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T04:16:30.893Z
-Stopped at: Completed 18-03-PLAN.md
-Resume with: `/gsd:plan-phase 13` to begin Security Hardening
+Last session: 2026-03-30T04:10:40Z
+Stopped at: Completed 18-04-PLAN.md
+Resume with: Continue Phase 18 remaining plans or transition to Phase 19

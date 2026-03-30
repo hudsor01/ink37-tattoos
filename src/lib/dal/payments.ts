@@ -140,6 +140,23 @@ export const getPaymentsBySession = cache(
 );
 
 /**
+ * Get a single payment with full customer and session details (for receipts).
+ * Requires staff role.
+ */
+export const getPaymentWithDetails = cache(
+  async (paymentId: string) => {
+    await requireStaffRole();
+    return db.query.payment.findFirst({
+      where: eq(schema.payment.id, paymentId),
+      with: {
+        customer: true,
+        tattooSession: true,
+      },
+    });
+  }
+);
+
+/**
  * Get aggregate payment stats. Requires staff role.
  */
 export const getPaymentStats = cache(async () => {
