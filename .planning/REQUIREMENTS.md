@@ -64,8 +64,8 @@ Requirements for admin panel rebuild. Each maps to roadmap phases. Derived from 
 ### Feature Depth -- Existing Pages
 
 - [ ] **FEAT-01**: Dashboard overview -- configurable date range picker, upcoming appointments today/this week, clickable widgets linking to detail pages
-- [ ] **FEAT-02**: Customer list -- bulk actions (delete, export CSV), customer import from CSV, duplicate detection, customer lifecycle stage indicator
-- [ ] **FEAT-03**: Customer detail -- inline editing, create appointment/session from customer page, communication timeline, linked portal account indicator
+- [x] **FEAT-02**: Customer list -- bulk actions (delete, export CSV), customer import from CSV, duplicate detection, customer lifecycle stage indicator
+- [x] **FEAT-03**: Customer detail -- inline editing, create appointment/session from customer page, communication timeline, linked portal account indicator
 - [ ] **FEAT-04**: Appointment list -- conflict detection on create/edit, appointment reminders toggle, bulk status updates, notes visible in list
 - [ ] **FEAT-05**: Session management -- edit mode for existing sessions, session detail view with full expanded info, linked payment records, image gallery per session
 - [ ] **FEAT-06**: Payment pages -- payment receipt PDF generation/download, payment plan support (split across sessions), late payment reminder trigger
@@ -187,8 +187,8 @@ Deferred beyond v2.0.
 | PAGE-03 | Phase 17 | Pending |
 | PAGE-06 | Phase 17 | Pending |
 | PAGE-07 | Phase 17 | Pending |
-| FEAT-02 | Phase 18 | Pending |
-| FEAT-03 | Phase 18 | Pending |
+| FEAT-02 | Phase 18 | Complete |
+| FEAT-03 | Phase 18 | Complete |
 | FEAT-04 | Phase 18 | Pending |
 | FEAT-05 | Phase 18 | Pending |
 | FEAT-06 | Phase 18 | Pending |
