@@ -143,7 +143,7 @@ Deferred beyond v2.0.
 
 ## v3.0 Requirements
 
-Requirements for production launch. Derived from comprehensive project audit (2026-03-30). 20 requirements across 6 categories.
+Requirements for production launch. Derived from comprehensive project audit (2026-03-30). 21 requirements across 7 categories.
 
 ### Git & Merge
 
@@ -263,12 +263,32 @@ Requirements for production launch. Derived from comprehensive project audit (20
 | DEBT-02 | Phase 22 | Complete |
 | DEBT-03 | Phase 22 | Complete |
 | DEBT-04 | Phase 22 | Complete |
+| GIT-01 | Phase 23 | Pending |
+| GIT-02 | Phase 23 | Pending |
+| GIT-03 | Phase 23 | Pending |
+| CICD-01 | Phase 23 | Pending |
+| CICD-02 | Phase 23 | Pending |
+| CICD-03 | Phase 23 | Pending |
+| MON-01 | Phase 24 | Pending |
+| MON-02 | Phase 24 | Pending |
+| MON-03 | Phase 24 | Pending |
+| MON-04 | Phase 24 | Pending |
+| DB-01 | Phase 25 | Pending |
+| DB-02 | Phase 25 | Pending |
+| INFRA-02 | Phase 25 | Pending |
+| INFRA-03 | Phase 25 | Pending |
+| ASSET-01 | Phase 26 | Pending |
+| ASSET-02 | Phase 26 | Pending |
+| ASSET-03 | Phase 26 | Pending |
+| INFRA-01 | Phase 26 | Pending |
+| INFRA-04 | Phase 26 | Pending |
+| DOC-01 | Phase 27 | Pending |
+| DOC-02 | Phase 27 | Pending |
 
 **Coverage:**
-- v2.0 requirements: 75 total
-- Mapped to phases: 75
-- Unmapped: 0
+- v2.0 requirements: 75 total, mapped: 75, unmapped: 0
+- v3.0 requirements: 21 total, mapped: 21, unmapped: 0
 
 ---
 *Requirements defined: 2026-03-27*
-*Last updated: 2026-03-27 after v2.0 roadmap creation*
+*Last updated: 2026-03-28 after v3.0 roadmap creation*
