@@ -88,10 +88,10 @@ Requirements for admin panel rebuild. Each maps to roadmap phases. Derived from 
 
 ### Analytics Depth
 
-- [ ] **ANLYT-01**: Revenue analytics -- revenue by design type/size, average transaction value, payment success rate, refund rate
-- [ ] **ANLYT-02**: Booking analytics -- booking conversion funnel, lead time analysis, peak hours detection, capacity utilization
-- [ ] **ANLYT-03**: Customer analytics -- customer lifetime value calculation, repeat client percentage, churn risk indicators, referral tracking
-- [ ] **ANLYT-04**: Operational metrics -- average session duration by type, no-show rate trends, scheduling efficiency
+- [x] **ANLYT-01**: Revenue analytics -- revenue by design type/size, average transaction value, payment success rate, refund rate
+- [x] **ANLYT-02**: Booking analytics -- booking conversion funnel, lead time analysis, peak hours detection, capacity utilization
+- [x] **ANLYT-03**: Customer analytics -- customer lifetime value calculation, repeat client percentage, churn risk indicators, referral tracking
+- [x] **ANLYT-04**: Operational metrics -- average session duration by type, no-show rate trends, scheduling efficiency
 
 ### Testing Coverage
 
@@ -206,10 +206,10 @@ Deferred beyond v2.0.
 | BIZ-04 | Phase 20 | Pending |
 | BIZ-05 | Phase 20 | Complete |
 | BIZ-06 | Phase 20 | Pending |
-| ANLYT-01 | Phase 21 | Pending |
-| ANLYT-02 | Phase 21 | Pending |
-| ANLYT-03 | Phase 21 | Pending |
-| ANLYT-04 | Phase 21 | Pending |
+| ANLYT-01 | Phase 21 | Complete |
+| ANLYT-02 | Phase 21 | Complete |
+| ANLYT-03 | Phase 21 | Complete |
+| ANLYT-04 | Phase 21 | Complete |
 | TEST-01 | Phase 22 | Pending |
 | TEST-02 | Phase 22 | Pending |
 | TEST-03 | Phase 22 | Pending |

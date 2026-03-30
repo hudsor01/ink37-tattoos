@@ -34,7 +34,7 @@
 - [ ] **Phase 17: Missing Pages -- Operations** - Financial reports, notification center, design approval management
 - [ ] **Phase 18: Feature Depth -- Records** - Enhanced customers, appointments, sessions, payments, products, orders
 - [ ] **Phase 19: Feature Depth -- Platform** - Dashboard overview, media, analytics, settings, audit log, list export
-- [x] **Phase 20: Business Workflows** - Deposits, consent, aftercare, reminders, invoices, portal onboarding (completed 2026-03-30)
+- [ ] **Phase 20: Business Workflows** - Deposits, consent, aftercare, reminders, invoices, portal onboarding
 - [ ] **Phase 21: Analytics Depth** - Revenue, booking, customer, and operational analytics
 - [ ] **Phase 22: Testing and Tech Debt** - Server action tests, API tests, E2E, RBAC, webhook tests, debt cleanup
 
@@ -147,10 +147,7 @@
   2. Booking analytics show a conversion funnel from inquiry to completed appointment, peak hours, and capacity utilization
   3. Customer analytics display lifetime value per client, repeat client percentage, and churn risk indicators
   4. Operational metrics show average session duration by type, no-show rate trends, and scheduling efficiency over time
-**Plans:** 2 plans
-Plans:
-- [ ] 21-01-PLAN.md -- Analytics depth DAL functions (13 SQL aggregation queries + tests)
-- [ ] 21-02-PLAN.md -- Tab-based UI with 9 chart/visualization components
+**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 22: Testing and Tech Debt
@@ -188,6 +185,6 @@ Plans:
 | 17. Missing Pages -- Operations | v2.0 | 0/? | Not started | - |
 | 18. Feature Depth -- Records | v2.0 | 0/? | Not started | - |
 | 19. Feature Depth -- Platform | v2.0 | 0/? | Not started | - |
-| 20. Business Workflows | v2.0 | 2/3 | Complete    | 2026-03-30 |
-| 21. Analytics Depth | v2.0 | 0/2 | Not started | - |
+| 20. Business Workflows | v2.0 | 0/? | Not started | - |
+| 21. Analytics Depth | v2.0 | 1/2 | In progress | - |
 | 22. Testing and Tech Debt | v2.0 | 0/? | Not started | - |
