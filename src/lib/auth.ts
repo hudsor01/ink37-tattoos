@@ -35,9 +35,22 @@ function createAuth() {
                 .where(eq(schema.customer.email, user.email))
                 .limit(1);
               if (existing[0] && !existing[0].userId) {
-                await db.update(schema.customer)
-                  .set({ userId: user.id })
-                  .where(eq(schema.customer.id, existing[0].id));
+                try {
+                  await db.update(schema.customer)
+                    .set({ userId: user.id })
+                    .where(eq(schema.customer.id, existing[0].id));
+                } catch (linkError: unknown) {
+                  // Handle unique constraint violation on customer.userId
+                  const message = linkError instanceof Error ? linkError.message : String(linkError);
+                  if (message.includes('unique constraint') || message.includes('duplicate key')) {
+                    console.error('[Auth Hook] Customer userId conflict -- admin resolution needed:', {
+                      email: user.email,
+                      customerId: existing[0].id,
+                    });
+                  } else {
+                    throw linkError;
+                  }
+                }
               } else if (!existing[0]) {
                 // D-02: No match -- create new Customer record
                 const [firstName, ...rest] = (user.name || 'Client').split(' ');
@@ -102,3 +115,31 @@ export async function getCurrentSession() {
 }
 
 export type Session = Awaited<ReturnType<typeof getCurrentSession>>;
+
+// Role hierarchy for authorization checks
+type Role = 'user' | 'staff' | 'manager' | 'admin' | 'super_admin';
+const ROLE_HIERARCHY: Record<Role, number> = {
+  user: 0,
+  staff: 1,
+  manager: 2,
+  admin: 3,
+  super_admin: 4,
+};
+
+/**
+ * Require the current user to have at least the specified role.
+ * Throws 'Unauthorized' if no session, 'Forbidden' if insufficient role.
+ * Returns the session with guaranteed non-null user for downstream use.
+ */
+export async function requireRole(minimumRole: Role) {
+  const session = await getCurrentSession();
+  if (!session?.user) {
+    throw new Error('Unauthorized');
+  }
+  const userLevel = ROLE_HIERARCHY[session.user.role as Role] ?? 0;
+  const requiredLevel = ROLE_HIERARCHY[minimumRole];
+  if (userLevel < requiredLevel) {
+    throw new Error('Forbidden');
+  }
+  return session as NonNullable<typeof session>;
+}

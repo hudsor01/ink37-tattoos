@@ -73,41 +73,41 @@ Requirements for admin panel rebuild. Each maps to roadmap phases. Derived from 
 - [ ] **FEAT-08**: Order management -- order status timeline/history, shipping tracking field, fulfillment workflow steps, return management
 - [ ] **FEAT-09**: Media management -- bulk upload, folder/album organization, thumbnail grid view, tagging/search, approval workflow UI, linked sessions
 - [ ] **FEAT-10**: Analytics -- custom date range picker, data export (CSV/PDF), comparison views (period vs period), more KPIs (CLV, no-show rate, avg session duration)
-- [ ] **FEAT-11**: Settings -- organized into logical tabs (Studio, Email, Payment, Hours, Terms), unsaved changes warning, operating hours/days management
-- [ ] **FEAT-12**: Audit log -- advanced filtering (date range, user, action type), search, export, before/after change detail
+- [x] **FEAT-11**: Settings -- organized into logical tabs (Studio, Email, Payment, Hours, Terms), unsaved changes warning, operating hours/days management
+- [x] **FEAT-12**: Audit log -- advanced filtering (date range, user, action type), search, export, before/after change detail
 - [ ] **FEAT-13**: All list pages -- data export to CSV, "show all" option alongside pagination, jump-to-page control
 
 ### Business Workflows
 
 - [ ] **BIZ-01**: Deposit workflow -- configurable deposit requirements by appointment type, automatic balance calculation, balance due reminders
-- [ ] **BIZ-02**: Consent management -- digital consent form capture with version tracking, expiration, admin view/download of signed forms
+- [x] **BIZ-02**: Consent management -- digital consent form capture with version tracking, expiration, admin view/download of signed forms
 - [ ] **BIZ-03**: Aftercare workflow -- aftercare template management, automatic aftercare email after session completion
 - [ ] **BIZ-04**: Appointment reminders -- configurable reminder emails before appointments (24h, 48h), no-show follow-up
-- [ ] **BIZ-05**: Invoice generation -- generate and download invoice PDFs for completed payments, email invoice to customer
+- [x] **BIZ-05**: Invoice generation -- generate and download invoice PDFs for completed payments, email invoice to customer
 - [ ] **BIZ-06**: Customer portal onboarding -- automatic Customer record creation when portal user registers (currently only via Cal.com or admin)
 
 ### Analytics Depth
 
-- [ ] **ANLYT-01**: Revenue analytics -- revenue by design type/size, average transaction value, payment success rate, refund rate
-- [ ] **ANLYT-02**: Booking analytics -- booking conversion funnel, lead time analysis, peak hours detection, capacity utilization
-- [ ] **ANLYT-03**: Customer analytics -- customer lifetime value calculation, repeat client percentage, churn risk indicators, referral tracking
-- [ ] **ANLYT-04**: Operational metrics -- average session duration by type, no-show rate trends, scheduling efficiency
+- [x] **ANLYT-01**: Revenue analytics -- revenue by design type/size, average transaction value, payment success rate, refund rate
+- [x] **ANLYT-02**: Booking analytics -- booking conversion funnel, lead time analysis, peak hours detection, capacity utilization
+- [x] **ANLYT-03**: Customer analytics -- customer lifetime value calculation, repeat client percentage, churn risk indicators, referral tracking
+- [x] **ANLYT-04**: Operational metrics -- average session duration by type, no-show rate trends, scheduling efficiency
 
 ### Testing Coverage
 
-- [ ] **TEST-01**: All server actions have unit tests with mocked auth and DAL (media, session, product, order, gift-card, settings actions)
+- [x] **TEST-01**: All server actions have unit tests with mocked auth and DAL (media, session, product, order, gift-card, settings actions)
 - [ ] **TEST-02**: All API routes have integration tests covering auth enforcement, input validation, and error responses
-- [ ] **TEST-03**: E2E test scenarios for critical flows: guest checkout, tattoo session payment, portal consent signing, admin CRUD
-- [ ] **TEST-04**: RBAC tests verify role enforcement at route, action, and DAL levels (staff vs admin vs user rejection)
+- [x] **TEST-03**: E2E test scenarios for critical flows: guest checkout, tattoo session payment, portal consent signing, admin CRUD
+- [x] **TEST-04**: RBAC tests verify role enforcement at route, action, and DAL levels (staff vs admin vs user rejection)
 - [ ] **TEST-05**: Webhook handlers tested with malformed payloads, missing fields, and concurrent duplicate events
 - [ ] **TEST-06**: Rate limiter tested under concurrent load conditions
 
 ### Tech Debt
 
-- [ ] **DEBT-01**: Replace all asChild prop usage with base-ui render prop pattern in remaining files (TD-01)
-- [ ] **DEBT-02**: Create contacts admin page or remove orphaned contacts DAL exports (TD-02 -- resolved by PAGE-04)
-- [ ] **DEBT-03**: Audit log filter selects replaced with accessible Shadcn Select components
-- [ ] **DEBT-04**: Session form converted from raw register() to Shadcn Form wrapper pattern (consistent with other forms)
+- [x] **DEBT-01**: Replace all asChild prop usage with base-ui render prop pattern in remaining files (TD-01)
+- [x] **DEBT-02**: Create contacts admin page or remove orphaned contacts DAL exports (TD-02 -- resolved by PAGE-04)
+- [x] **DEBT-03**: Audit log filter selects replaced with accessible Shadcn Select components
+- [x] **DEBT-04**: Session form converted from raw register() to Shadcn Form wrapper pattern (consistent with other forms)
 
 ## Future Requirements
 
@@ -140,6 +140,49 @@ Deferred beyond v2.0.
 | POS/in-person payments | Not needed for web platform |
 | Video consultations | Cal.com handles meeting links |
 | Multi-location support | Single studio operation |
+
+## v3.0 Requirements
+
+Requirements for production launch. Derived from comprehensive project audit (2026-03-30). 21 requirements across 7 categories.
+
+### Git & Merge
+
+- [ ] **GIT-01**: All v2.0 phase branch commits are merged to main via clean PR
+- [ ] **GIT-02**: All worktree-agent-* branches are deleted after merge
+- [ ] **GIT-03**: Phase branches are cleaned up (delete after merge to main)
+
+### CI/CD
+
+- [ ] **CICD-01**: GitHub Actions workflow runs `bun run test` on all PRs to main
+- [ ] **CICD-02**: GitHub Actions workflow runs `bun run build` on all PRs to main
+- [ ] **CICD-03**: Vercel auto-deploys on merge to main (Vercel GitHub integration)
+
+### Monitoring & Observability
+
+- [ ] **MON-01**: Sentry SDK integrated for error tracking in production
+- [ ] **MON-02**: Health check endpoint at /api/health returns 200 + DB connectivity status
+- [ ] **MON-03**: Structured logging with Pino replaces console.error/log
+- [ ] **MON-04**: Vercel Analytics or Web Vitals tracking enabled
+
+### Missing Assets
+
+- [ ] **ASSET-01**: 7 gallery video files (.mov) copied from source repo to public/videos/
+- [ ] **ASSET-02**: Search engine verification files (Bing, Google) copied from source repo
+- [ ] **ASSET-03**: PWA manifest.json + site.webmanifest + service worker from source repo
+
+### Database & Infrastructure
+
+- [ ] **DB-01**: Drizzle migrations consolidated -- single clean migration from baseline to v3.0 schema
+- [ ] **DB-02**: Production database seeded with initial data (artist profile, default settings, consent form)
+- [ ] **INFRA-01**: n8n workflows configured at n8n.thehudsonfam.com (balance-due daily + no-show hourly cron)
+- [ ] **INFRA-02**: CSP tightened -- replace unsafe-inline/unsafe-eval with nonce-based CSP where possible
+- [ ] **INFRA-03**: Rate limiting added to admin API routes (/api/admin/*, /api/upload/*)
+- [ ] **INFRA-04**: Production environment variables documented and audited in Vercel dashboard
+
+### Documentation
+
+- [ ] **DOC-01**: DEPLOYMENT.md -- production deployment checklist, env var setup, DNS cutover, rollback
+- [ ] **DOC-02**: README.md updated with project overview, setup instructions, architecture
 
 ## Traceability
 
@@ -197,35 +240,55 @@ Deferred beyond v2.0.
 | FEAT-01 | Phase 19 | Pending |
 | FEAT-09 | Phase 19 | Pending |
 | FEAT-10 | Phase 19 | Pending |
-| FEAT-11 | Phase 19 | Pending |
-| FEAT-12 | Phase 19 | Pending |
+| FEAT-11 | Phase 19 | Complete |
+| FEAT-12 | Phase 19 | Complete |
 | FEAT-13 | Phase 19 | Pending |
 | BIZ-01 | Phase 20 | Pending |
-| BIZ-02 | Phase 20 | Pending |
+| BIZ-02 | Phase 20 | Complete |
 | BIZ-03 | Phase 20 | Pending |
 | BIZ-04 | Phase 20 | Pending |
-| BIZ-05 | Phase 20 | Pending |
+| BIZ-05 | Phase 20 | Complete |
 | BIZ-06 | Phase 20 | Pending |
-| ANLYT-01 | Phase 21 | Pending |
-| ANLYT-02 | Phase 21 | Pending |
-| ANLYT-03 | Phase 21 | Pending |
-| ANLYT-04 | Phase 21 | Pending |
-| TEST-01 | Phase 22 | Pending |
+| ANLYT-01 | Phase 21 | Complete |
+| ANLYT-02 | Phase 21 | Complete |
+| ANLYT-03 | Phase 21 | Complete |
+| ANLYT-04 | Phase 21 | Complete |
+| TEST-01 | Phase 22 | Complete |
 | TEST-02 | Phase 22 | Pending |
-| TEST-03 | Phase 22 | Pending |
-| TEST-04 | Phase 22 | Pending |
+| TEST-03 | Phase 22 | Complete |
+| TEST-04 | Phase 22 | Complete |
 | TEST-05 | Phase 22 | Pending |
 | TEST-06 | Phase 22 | Pending |
-| DEBT-01 | Phase 22 | Pending |
-| DEBT-02 | Phase 22 | Pending |
-| DEBT-03 | Phase 22 | Pending |
-| DEBT-04 | Phase 22 | Pending |
+| DEBT-01 | Phase 22 | Complete |
+| DEBT-02 | Phase 22 | Complete |
+| DEBT-03 | Phase 22 | Complete |
+| DEBT-04 | Phase 22 | Complete |
+| GIT-01 | Phase 23 | Pending |
+| GIT-02 | Phase 23 | Pending |
+| GIT-03 | Phase 23 | Pending |
+| CICD-01 | Phase 23 | Pending |
+| CICD-02 | Phase 23 | Pending |
+| CICD-03 | Phase 23 | Pending |
+| MON-01 | Phase 24 | Pending |
+| MON-02 | Phase 24 | Pending |
+| MON-03 | Phase 24 | Pending |
+| MON-04 | Phase 24 | Pending |
+| DB-01 | Phase 25 | Pending |
+| DB-02 | Phase 25 | Pending |
+| INFRA-02 | Phase 25 | Pending |
+| INFRA-03 | Phase 25 | Pending |
+| ASSET-01 | Phase 26 | Pending |
+| ASSET-02 | Phase 26 | Pending |
+| ASSET-03 | Phase 26 | Pending |
+| INFRA-01 | Phase 26 | Pending |
+| INFRA-04 | Phase 26 | Pending |
+| DOC-01 | Phase 27 | Pending |
+| DOC-02 | Phase 27 | Pending |
 
 **Coverage:**
-- v2.0 requirements: 75 total
-- Mapped to phases: 75
-- Unmapped: 0
+- v2.0 requirements: 75 total, mapped: 75, unmapped: 0
+- v3.0 requirements: 21 total, mapped: 21, unmapped: 0
 
 ---
 *Requirements defined: 2026-03-27*
-*Last updated: 2026-03-27 after v2.0 roadmap creation*
+*Last updated: 2026-03-28 after v3.0 roadmap creation*

@@ -29,11 +29,14 @@ vi.mock('@/lib/email/resend', () => ({
   sendContactNotification: (...args: unknown[]) => mockSendContactNotification(...args),
 }));
 
-// Mock the rate limiter
-const mockRateLimit = vi.fn().mockReturnValue(true);
+// Mock the rate limiter (new Upstash-backed API)
+const mockRateLimitResult = vi.fn().mockResolvedValue({ success: true, reset: Date.now() + 60000 });
 
 vi.mock('@/lib/security/rate-limiter', () => ({
-  rateLimit: (...args: unknown[]) => mockRateLimit(...args),
+  rateLimiters: {
+    contact: { limit: (...args: unknown[]) => mockRateLimitResult(...args) },
+  },
+  getHeaderIp: vi.fn().mockReturnValue('127.0.0.1'),
 }));
 
 // Mock next/headers
@@ -43,6 +46,16 @@ vi.mock('next/headers', () => ({
   headers: vi.fn().mockResolvedValue({
     get: (...args: unknown[]) => mockHeadersGet(...args),
   }),
+}));
+
+// Mock next/server after()
+vi.mock('next/server', () => ({
+  after: vi.fn((fn: () => void) => fn()),
+}));
+
+// Mock audit logging
+vi.mock('@/lib/dal/audit', () => ({
+  logAudit: vi.fn().mockResolvedValue(undefined),
 }));
 
 describe('ContactFormSchema validation', () => {
@@ -110,7 +123,7 @@ describe('submitContactForm Server Action', () => {
     vi.clearAllMocks();
 
     // Re-establish default mock return values after clearing
-    mockRateLimit.mockReturnValue(true);
+    mockRateLimitResult.mockResolvedValue({ success: true, reset: Date.now() + 60000 });
     mockHeadersGet.mockReturnValue('127.0.0.1');
     mockCreateContact.mockResolvedValue({
       id: 'test-id',
@@ -153,8 +166,11 @@ describe('submitContactForm Server Action', () => {
 
     const result = await submitContactForm(formData);
     expect(result.success).toBe(false);
-    expect(result.errors).toBeDefined();
-    expect(result.errors?.email).toBeDefined();
+    if (!result.success) {
+      expect(result.error).toBe('Validation failed');
+      expect(result.fieldErrors).toBeDefined();
+      expect(result.fieldErrors?.email).toBeDefined();
+    }
   });
 
   it('returns errors for empty name', async () => {
@@ -169,8 +185,11 @@ describe('submitContactForm Server Action', () => {
 
     const result = await submitContactForm(formData);
     expect(result.success).toBe(false);
-    expect(result.errors).toBeDefined();
-    expect(result.errors?.name).toBeDefined();
+    if (!result.success) {
+      expect(result.error).toBe('Validation failed');
+      expect(result.fieldErrors).toBeDefined();
+      expect(result.fieldErrors?.name).toBeDefined();
+    }
   });
 
   it('returns errors for empty message', async () => {
@@ -185,12 +204,15 @@ describe('submitContactForm Server Action', () => {
 
     const result = await submitContactForm(formData);
     expect(result.success).toBe(false);
-    expect(result.errors).toBeDefined();
-    expect(result.errors?.message).toBeDefined();
+    if (!result.success) {
+      expect(result.error).toBe('Validation failed');
+      expect(result.fieldErrors).toBeDefined();
+      expect(result.fieldErrors?.message).toBeDefined();
+    }
   });
 
   it('returns rate limit error when rate limited', async () => {
-    mockRateLimit.mockReturnValue(false);
+    mockRateLimitResult.mockResolvedValue({ success: false, reset: Date.now() + 60000 });
 
     const { submitContactForm } = await import(
       '@/lib/actions/contact-actions'
@@ -203,7 +225,9 @@ describe('submitContactForm Server Action', () => {
 
     const result = await submitContactForm(formData);
     expect(result.success).toBe(false);
-    expect(result.error).toContain('Too many requests');
+    if (!result.success) {
+      expect(result.error).toContain('Too many');
+    }
   });
 
   it('creates contact in database with valid data', async () => {

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { stripe, stripeCentsToDollars } from '@/lib/stripe';
 import { db } from '@/lib/db';
 import { eq, and, or, sql } from 'drizzle-orm';
@@ -6,11 +7,20 @@ import * as schema from '@/lib/db/schema';
 import type Stripe from 'stripe';
 import { getOrderByCheckoutSessionId } from '@/lib/dal/orders';
 import { createGiftCard, redeemGiftCard } from '@/lib/dal/gift-cards';
+import { createNotificationForAdmins } from '@/lib/dal/notifications';
 import { sendOrderConfirmationEmail, sendGiftCardEmail, sendGiftCardPurchaseConfirmationEmail } from '@/lib/email/resend';
+import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(request: Request) {
+  // Rate limiting
+  const ip = getRequestIp(request);
+  const { success, reset } = await rateLimiters.webhook.limit(ip);
+  if (!success) {
+    return rateLimitResponse(reset);
+  }
+
   // D-13 / SEC-05: Raw body for signature verification
   const body = await request.text();
   const sig = request.headers.get('stripe-signature');
@@ -33,11 +43,18 @@ export async function POST(request: Request) {
     );
   }
 
-  // D-12: Idempotency -- check if event already processed
-  const existingEvent = await db.query.stripeEvent.findFirst({
-    where: eq(schema.stripeEvent.stripeEventId, event.id),
-  });
-  if (existingEvent) {
+  // D-09/SEC-07: Atomic idempotency -- single INSERT with ON CONFLICT
+  const [inserted] = await db.insert(schema.stripeEvent)
+    .values({
+      stripeEventId: event.id,
+      type: event.type,
+      processedAt: new Date(),
+    })
+    .onConflictDoNothing({ target: schema.stripeEvent.stripeEventId })
+    .returning();
+
+  if (!inserted) {
+    // Event already processed -- idempotent success
     return NextResponse.json({ received: true });
   }
 
@@ -49,34 +66,54 @@ export async function POST(request: Request) {
         const orderType = checkoutSession.metadata?.orderType;
         if (orderType === 'store') {
           await handleStoreCheckoutCompleted(checkoutSession);
+          revalidatePath('/dashboard/orders');
         } else if (orderType === 'gift_card') {
           await handleGiftCardCheckoutCompleted(checkoutSession);
+          // No dashboard page for gift cards yet (Phase 16)
         } else {
           await handleCheckoutCompleted(checkoutSession);
+          revalidatePath('/dashboard/payments');
+          revalidatePath('/dashboard/sessions');
         }
+        revalidatePath('/portal');
+
+        // Notification: inform admins of payment received
+        try {
+          const amount = stripeCentsToDollars(checkoutSession.amount_total ?? 0);
+          await createNotificationForAdmins({
+            type: 'PAYMENT',
+            title: 'Payment Received',
+            message: `$${amount.toFixed(2)} payment completed${orderType === 'store' ? ' (store order)' : orderType === 'gift_card' ? ' (gift card)' : ''}`,
+            metadata: { sessionId: checkoutSession.id, amount, orderType },
+          });
+        } catch (err) {
+          console.error('Failed to create payment notification:', err);
+          // Do not re-throw -- notification failure must not break webhook
+        }
+
         break;
       }
       case 'payment_intent.succeeded':
         await handlePaymentSucceeded(
           event.data.object as Stripe.PaymentIntent
         );
+        revalidatePath('/dashboard/payments');
+        revalidatePath('/portal');
         break;
       case 'payment_intent.payment_failed':
         await handlePaymentFailed(
           event.data.object as Stripe.PaymentIntent
         );
+        revalidatePath('/dashboard/payments');
         break;
       case 'charge.refunded':
         await handleChargeRefunded(event.data.object as Stripe.Charge);
+        revalidatePath('/dashboard/payments');
+        revalidatePath('/dashboard/sessions');
+        revalidatePath('/portal');
         break;
     }
 
-    // Mark event as processed (D-12)
-    await db.insert(schema.stripeEvent).values({
-      stripeEventId: event.id,
-      type: event.type,
-      processedAt: new Date(),
-    });
   } catch (err) {
     console.error(`Webhook handler error for ${event.type}:`, err);
     return NextResponse.json(

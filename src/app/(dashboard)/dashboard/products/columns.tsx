@@ -1,6 +1,7 @@
 'use client';
 
 import { type ColumnDef } from '@/components/dashboard/data-table';
+import { type MobileField } from '@/components/dashboard/responsive-data-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -207,4 +208,11 @@ export const productColumns: ColumnDef<ProductWithCount, unknown>[] = [
     },
     enableSorting: false,
   },
+];
+
+export const productMobileFields: MobileField<ProductWithCount>[] = [
+  { label: 'Name', accessor: (p) => p.name },
+  { label: 'Type', accessor: (p) => typeLabels[p.productType] ?? p.productType },
+  { label: 'Price', accessor: (p) => currencyFormatter.format(Number(p.price.toString())) },
+  { label: 'Status', accessor: (p) => p.isActive ? 'Active' : 'Inactive' },
 ];

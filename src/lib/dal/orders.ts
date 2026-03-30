@@ -7,6 +7,8 @@ import { eq, and, sql, desc, inArray } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 import { randomBytes } from 'node:crypto';
 import { DOWNLOAD_LINK_EXPIRY_HOURS, MAX_DOWNLOADS_PER_TOKEN } from '@/lib/store-helpers';
+import type { PaginationParams, PaginatedResult } from './types';
+import { DEFAULT_PAGE_SIZE } from './types';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
 
@@ -20,30 +22,58 @@ async function requireStaffRole() {
 }
 
 /**
- * Get orders with optional filters. Requires staff role.
+ * Get orders with pagination and search. Requires staff role.
  */
-export const getOrders = cache(
-  async (filters?: {
-    status?: string;
-    limit?: number;
-    offset?: number;
-  }) => {
-    await requireStaffRole();
+export const getOrders = cache(async (
+  params: PaginationParams = { page: 1, pageSize: DEFAULT_PAGE_SIZE }
+): Promise<PaginatedResult<{
+  id: string;
+  email: string;
+  status: string;
+  subtotal: number;
+  shippingAmount: number;
+  discountAmount: number;
+  total: number;
+  createdAt: Date;
+  shippingName: string | null;
+}>> => {
+  await requireStaffRole();
 
-    const conditions = [];
-    if (filters?.status) {
-      conditions.push(eq(schema.order.status, filters.status as 'PENDING' | 'PAID' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REFUNDED'));
-    }
-
-    return db.query.order.findMany({
-      where: conditions.length > 0 ? and(...conditions) : undefined,
-      orderBy: [desc(schema.order.createdAt)],
-      with: { items: true },
-      limit: filters?.limit ?? 50,
-      offset: filters?.offset ?? 0,
-    });
+  const conditions = [];
+  if (params.search) {
+    conditions.push(
+      sql`${schema.order.searchVector} @@ plainto_tsquery('english', ${params.search})`
+    );
   }
-);
+
+  const results = await db.select({
+    id: schema.order.id,
+    email: schema.order.email,
+    status: schema.order.status,
+    subtotal: schema.order.subtotal,
+    shippingAmount: schema.order.shippingAmount,
+    discountAmount: schema.order.discountAmount,
+    total: schema.order.total,
+    createdAt: schema.order.createdAt,
+    shippingName: schema.order.shippingName,
+    totalCount: sql<number>`cast(count(*) over() as integer)`,
+  })
+    .from(schema.order)
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(desc(schema.order.createdAt))
+    .limit(params.pageSize)
+    .offset((params.page - 1) * params.pageSize);
+
+  const total = results[0]?.totalCount ?? 0;
+
+  return {
+    data: results.map(({ totalCount: _, ...row }) => row),
+    total,
+    page: params.page,
+    pageSize: params.pageSize,
+    totalPages: Math.ceil(total / params.pageSize),
+  };
+});
 
 /**
  * Get a single order by ID with full details. Requires staff role.
@@ -162,6 +192,29 @@ export async function updateOrderStatus(data: {
     })
     .where(eq(schema.order.id, data.orderId))
     .returning();
+  if (!result) throw new Error('Order not found');
+  return result;
+}
+
+/**
+ * Update order tracking information (carrier and tracking number). Requires staff role.
+ */
+export async function updateOrderTracking(data: {
+  id: string;
+  trackingNumber: string;
+  trackingCarrier: string;
+}) {
+  await requireStaffRole();
+  const [result] = await db.update(schema.order)
+    .set({
+      trackingNumber: data.trackingNumber,
+      trackingCarrier: data.trackingCarrier,
+    })
+    .where(eq(schema.order.id, data.id))
+    .returning();
+  if (!result) {
+    throw new Error('Order not found');
+  }
   return result;
 }
 

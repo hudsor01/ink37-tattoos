@@ -1,7 +1,7 @@
 import { connection } from 'next/server';
 import { getProducts } from '@/lib/dal/products';
-import { DataTable } from '@/components/dashboard/data-table';
-import { productColumns } from './columns';
+import { ResponsiveDataTable } from '@/components/dashboard/responsive-data-table';
+import { productColumns, productMobileFields } from './columns';
 import { Button } from '@/components/ui/button';
 import {
   Breadcrumb,
@@ -9,6 +9,7 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
 } from '@/components/ui/breadcrumb';
+import { EmptyState } from '@/components/dashboard/empty-state';
 import { Plus, Package } from 'lucide-react';
 import Link from 'next/link';
 
@@ -40,25 +41,30 @@ export default async function ProductsPage() {
       </div>
 
       {products.length > 0 ? (
-        <DataTable
+        <ResponsiveDataTable
           columns={productColumns}
           data={products}
           searchKey="name"
           searchPlaceholder="Search products..."
           pageSize={15}
+          mobileFields={productMobileFields}
+          enableCsvExport
+          csvFilename="products.csv"
+          enableShowAll
+          enablePageJump
         />
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-          <Package className="h-12 w-12 text-muted-foreground/50 mb-4" />
-          <h3 className="text-lg font-semibold">No products yet</h3>
-          <p className="text-sm text-muted-foreground mt-1 mb-4 max-w-sm">
-            Add your first product to start selling merchandise, prints, or gift cards.
-          </p>
-          <Button render={<Link href="/dashboard/products/new" />}>
-            <Plus className="h-4 w-4" />
-            Add Product
-          </Button>
-        </div>
+        <EmptyState
+          icon={Package}
+          title="No products yet"
+          description="Add products to sell through your online store."
+          action={
+            <Button render={<Link href="/dashboard/products/new" />}>
+              <Plus className="h-4 w-4" />
+              Add Product
+            </Button>
+          }
+        />
       )}
     </div>
   );

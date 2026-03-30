@@ -3,9 +3,11 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { eq, asc, desc, sql } from 'drizzle-orm';
+import { eq, and, asc, desc, sql } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 import type { CreateProductData, UpdateProductData } from '@/lib/security/validation';
+import type { PaginationParams, PaginatedResult } from './types';
+import { DEFAULT_PAGE_SIZE } from './types';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
 
@@ -38,32 +40,56 @@ export const getProductById = cache(async (id: string) => {
 });
 
 /**
- * Get all products (including inactive) for admin product list. Requires staff role.
- * Includes order item count via extras subquery.
+ * Get all products (including inactive) for admin product list with pagination and search.
+ * Requires staff role. Includes order item count via subquery.
  */
-export const getProducts = cache(async () => {
+export const getProducts = cache(async (
+  params: PaginationParams = { page: 1, pageSize: DEFAULT_PAGE_SIZE }
+): Promise<PaginatedResult<{
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  productType: string;
+  isActive: boolean;
+  createdAt: Date;
+  stripePriceId: string | null;
+}>> => {
   await requireStaffRole();
-  return db.select({
+
+  const conditions = [];
+  if (params.search) {
+    conditions.push(
+      sql`${schema.product.searchVector} @@ plainto_tsquery('english', ${params.search})`
+    );
+  }
+
+  const results = await db.select({
     id: schema.product.id,
     name: schema.product.name,
     description: schema.product.description,
     price: schema.product.price,
     productType: schema.product.productType,
-    imageUrl: schema.product.imageUrl,
-    digitalFilePathname: schema.product.digitalFilePathname,
-    digitalFileName: schema.product.digitalFileName,
-    stripeProductId: schema.product.stripeProductId,
-    stripePriceId: schema.product.stripePriceId,
     isActive: schema.product.isActive,
-    sortOrder: schema.product.sortOrder,
     createdAt: schema.product.createdAt,
-    updatedAt: schema.product.updatedAt,
-    _count: {
-      orderItems: sql<number>`cast((select count(*) from order_item where order_item."productId" = ${schema.product.id}) as integer)`,
-    },
+    stripePriceId: schema.product.stripePriceId,
+    total: sql<number>`cast(count(*) over() as integer)`,
   })
     .from(schema.product)
-    .orderBy(asc(schema.product.sortOrder), desc(schema.product.createdAt));
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(asc(schema.product.sortOrder), desc(schema.product.createdAt))
+    .limit(params.pageSize)
+    .offset((params.page - 1) * params.pageSize);
+
+  const total = results[0]?.total ?? 0;
+
+  return {
+    data: results.map(({ total: _, ...row }) => row),
+    total,
+    page: params.page,
+    pageSize: params.pageSize,
+    totalPages: Math.ceil(total / params.pageSize),
+  };
 });
 
 /**
@@ -84,6 +110,7 @@ export async function createProduct(data: CreateProductData & { stripeProductId?
     stripeProductId: data.stripeProductId,
     stripePriceId: data.stripePriceId,
   }).returning();
+  if (!result) throw new Error('Failed to create product: no result returned');
   return result;
 }
 
@@ -97,6 +124,7 @@ export async function updateProduct(data: UpdateProductData & { stripePriceId?: 
     .set(updateData)
     .where(eq(schema.product.id, id))
     .returning();
+  if (!result) throw new Error('Product not found');
   return result;
 }
 
@@ -109,5 +137,6 @@ export async function deleteProduct(id: string) {
     .set({ isActive: false })
     .where(eq(schema.product.id, id))
     .returning();
+  if (!result) throw new Error('Product not found');
   return result;
 }

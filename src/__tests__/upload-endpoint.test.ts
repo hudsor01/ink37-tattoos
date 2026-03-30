@@ -36,49 +36,32 @@ describe('Upload Token Endpoint', () => {
     vi.clearAllMocks();
   });
 
-  it('returns 400 when handleUpload throws', async () => {
-    mockHandleUpload.mockRejectedValue(new Error('Unauthorized'));
+  it('rejects unauthenticated users (no session)', async () => {
+    mockGetCurrentSession.mockResolvedValue(null);
     const { POST } = await import('@/app/api/upload/token/route');
     const response = await POST(makeRequest());
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(401);
     const data = await response.json();
     expect(data.error).toBe('Unauthorized');
   });
 
-  it('rejects unauthenticated users (no session)', async () => {
-    mockGetCurrentSession.mockResolvedValue(null);
-    let capturedCallback: (() => Promise<unknown>) | null = null;
-    mockHandleUpload.mockImplementation(async (opts: { onBeforeGenerateToken: () => Promise<unknown> }) => {
-      capturedCallback = opts.onBeforeGenerateToken;
-      return await opts.onBeforeGenerateToken();
-    });
-    const { POST } = await import('@/app/api/upload/token/route');
-    const response = await POST(makeRequest());
-    expect(response.status).toBe(400);
-    expect(capturedCallback).not.toBeNull();
-  });
-
   it('rejects user role', async () => {
     mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'user' } });
-    mockHandleUpload.mockImplementation(async (opts: { onBeforeGenerateToken: () => Promise<unknown> }) => {
-      return await opts.onBeforeGenerateToken();
-    });
     const { POST } = await import('@/app/api/upload/token/route');
     const response = await POST(makeRequest());
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(403);
+    const data = await response.json();
+    expect(data.error).toBe('Forbidden');
   });
 
-  it('accepts staff role', async () => {
-    mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'staff' } });
-    let tokenResult: unknown = null;
-    mockHandleUpload.mockImplementation(async (opts: { onBeforeGenerateToken: () => Promise<unknown> }) => {
-      tokenResult = await opts.onBeforeGenerateToken();
-      return { success: true };
-    });
+  it('returns 500 when handleUpload throws', async () => {
+    mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'admin' } });
+    mockHandleUpload.mockRejectedValue(new Error('Upload failed'));
     const { POST } = await import('@/app/api/upload/token/route');
-    await POST(makeRequest());
-    expect(tokenResult).toBeDefined();
-    expect((tokenResult as { allowedContentTypes: string[] }).allowedContentTypes).toBeDefined();
+    const response = await POST(makeRequest());
+    expect(response.status).toBe(500);
+    const data = await response.json();
+    expect(data.error).toBe('Internal server error');
   });
 
   it('accepts admin role', async () => {
@@ -106,7 +89,7 @@ describe('Upload Token Endpoint', () => {
   });
 
   it('returns correct allowedContentTypes', async () => {
-    mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'staff' } });
+    mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'admin' } });
     let tokenResult: unknown = null;
     mockHandleUpload.mockImplementation(async (opts: { onBeforeGenerateToken: () => Promise<unknown> }) => {
       tokenResult = await opts.onBeforeGenerateToken();

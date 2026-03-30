@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useOptimistic, useTransition, useEffect } from 'react';
+import { useState, useMemo, useOptimistic, useTransition, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
 import { format, differenceInDays, differenceInHours } from 'date-fns';
@@ -8,7 +8,7 @@ import { MoreHorizontal, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryState, parseAsString } from 'nuqs';
 
-import { DataTable } from '@/components/dashboard/data-table';
+import { ResponsiveDataTable, type MobileField } from '@/components/dashboard/responsive-data-table';
 import { StatusBadge } from '@/components/dashboard/status-badge';
 import { AppointmentForm } from '@/components/dashboard/appointment-form';
 import { Button } from '@/components/ui/button';
@@ -44,6 +44,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  createAppointmentAction,
   deleteAppointmentAction,
   updateAppointmentAction,
 } from '@/lib/actions/appointment-actions';
@@ -104,6 +105,9 @@ export function AppointmentListClient() {
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [conflictDialogOpen, setConflictDialogOpen] = useState(false);
+  const [isOverriding, setIsOverriding] = useState(false);
+  const pendingFormData = useRef<{ formData: FormData; appointmentId?: string } | null>(null);
 
   useEffect(() => {
     return () => { toast.dismiss(); };
@@ -158,6 +162,42 @@ export function AppointmentListClient() {
       setIsDeleting(false);
       setDeleteId(null);
     }
+  }
+
+  function handleConflict(formData: FormData, appointmentId?: string) {
+    pendingFormData.current = { formData, appointmentId };
+    setConflictDialogOpen(true);
+  }
+
+  async function handleConflictOverride() {
+    if (!pendingFormData.current) return;
+    setIsOverriding(true);
+    try {
+      const { formData, appointmentId } = pendingFormData.current;
+      const result = appointmentId
+        ? await updateAppointmentAction(appointmentId, formData, { forceOverride: true })
+        : await createAppointmentAction(formData, { forceOverride: true });
+
+      if (result && 'success' in result && !result.success) {
+        toast.error("Changes couldn't be saved. Please try again.");
+        return;
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      toast.success(appointmentId ? 'Appointment updated successfully' : 'Appointment created successfully');
+      setCreateOpen(false);
+    } catch {
+      toast.error("Changes couldn't be saved. Please try again.");
+    } finally {
+      setIsOverriding(false);
+      setConflictDialogOpen(false);
+      pendingFormData.current = null;
+    }
+  }
+
+  function handleConflictCancel() {
+    setConflictDialogOpen(false);
+    pendingFormData.current = null;
   }
 
   function handleStatusUpdate(id: string, status: string) {
@@ -266,6 +306,13 @@ export function AppointmentListClient() {
     },
   ];
 
+  const mobileFields: MobileField<Appointment>[] = [
+    { label: 'Customer', accessor: (a) => `${a.customer.firstName} ${a.customer.lastName}` },
+    { label: 'Date', accessor: (a) => format(new Date(a.scheduledDate), 'MMM d, yyyy h:mm a') },
+    { label: 'Type', accessor: (a) => a.type.replace(/_/g, ' ').toLowerCase() },
+    { label: 'Status', accessor: (a) => <StatusBadge status={a.status} /> },
+  ];
+
   if (appointments.length === 0) {
     return (
       <div className="space-y-6">
@@ -293,10 +340,34 @@ export function AppointmentListClient() {
               <DialogHeader>
                 <DialogTitle>New Appointment</DialogTitle>
               </DialogHeader>
-              <AppointmentForm onSuccess={() => setCreateOpen(false)} />
+              <AppointmentForm
+                onSuccess={() => setCreateOpen(false)}
+                onConflict={handleConflict}
+              />
             </DialogContent>
           </Dialog>
         </div>
+
+        {/* Conflict Warning Dialog */}
+        <AlertDialog open={conflictDialogOpen} onOpenChange={setConflictDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Scheduling Conflict</AlertDialogTitle>
+              <AlertDialogDescription>
+                Another appointment already exists at this time. Do you want to schedule anyway?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={handleConflictCancel}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleConflictOverride}
+                disabled={isOverriding}
+              >
+                {isOverriding ? 'Scheduling...' : 'Schedule Anyway'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     );
   }
@@ -319,7 +390,10 @@ export function AppointmentListClient() {
             <DialogHeader>
               <DialogTitle>New Appointment</DialogTitle>
             </DialogHeader>
-            <AppointmentForm onSuccess={() => setCreateOpen(false)} />
+            <AppointmentForm
+              onSuccess={() => setCreateOpen(false)}
+              onConflict={handleConflict}
+            />
           </DialogContent>
         </Dialog>
       </div>
@@ -342,11 +416,39 @@ export function AppointmentListClient() {
         </Select>
       </div>
 
-      <DataTable
+      <ResponsiveDataTable
         columns={columns}
         data={filteredAppointments}
         searchKey="firstName"
         searchPlaceholder="Search by customer name..."
+        mobileFields={mobileFields}
+        enableCsvExport
+        csvFilename="appointments.csv"
+        enableShowAll
+        enablePageJump
+        mobileActions={(row) => (
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">Actions</span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleStatusUpdate(row.id, 'CONFIRMED')}>
+                Confirm
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleStatusUpdate(row.id, 'COMPLETED')}>
+                Mark Completed
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleStatusUpdate(row.id, 'NO_SHOW')}>
+                Mark No-Show
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="destructive" onClick={() => setDeleteId(row.id)}>
+                Cancel Appointment
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       />
 
       {/* Delete Confirmation */}
@@ -370,6 +472,27 @@ export function AppointmentListClient() {
               variant="destructive"
             >
               {isDeleting ? 'Cancelling...' : 'Cancel Appointment'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Conflict Warning Dialog */}
+      <AlertDialog open={conflictDialogOpen} onOpenChange={setConflictDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Scheduling Conflict</AlertDialogTitle>
+            <AlertDialogDescription>
+              Another appointment already exists at this time. Do you want to schedule anyway?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleConflictCancel}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConflictOverride}
+              disabled={isOverriding}
+            >
+              {isOverriding ? 'Scheduling...' : 'Schedule Anyway'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

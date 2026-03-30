@@ -33,12 +33,13 @@ export function SearchInput({
 
   return (
     <div className="relative max-w-sm">
-      <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
       <Input
         placeholder={placeholder}
         value={internalValue}
         onChange={(e) => setInternalValue(e.target.value)}
         className="pl-8"
+        aria-label={placeholder}
       />
     </div>
   );

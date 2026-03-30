@@ -2,15 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Module-scope mocks (replaces vi.hoisted)
 const mockConstructEvent = vi.fn();
-const mockFindFirst = vi.fn();
-const mockInsertValues = vi.fn().mockReturnThis();
+const mockInsertValues = vi.fn();
+const mockOnConflictDoNothing = vi.fn();
 const mockInsertReturning = vi.fn();
-const mockInsert = vi.fn((_table?: unknown) => ({
-  values: (...args: unknown[]) => {
-    mockInsertValues(...args);
-    return { returning: (...rArgs: unknown[]) => mockInsertReturning(...rArgs) };
-  },
-}));
 
 // Mock server-only (no-op in test environment)
 vi.mock('server-only', () => ({}));
@@ -52,6 +46,15 @@ vi.mock('@/lib/dal/gift-cards', () => ({
   redeemGiftCard: vi.fn(),
 }));
 
+// Mock rate limiter
+vi.mock('@/lib/security/rate-limiter', () => ({
+  rateLimiters: {
+    webhook: { limit: vi.fn().mockResolvedValue({ success: true, reset: Date.now() + 60000 }) },
+  },
+  getRequestIp: vi.fn().mockReturnValue('127.0.0.1'),
+  rateLimitResponse: vi.fn().mockReturnValue(Response.json({ error: 'Too many requests' }, { status: 429 })),
+}));
+
 // Mock drizzle-orm operators
 vi.mock('drizzle-orm', () => ({
   eq: vi.fn((...args: unknown[]) => args),
@@ -85,18 +88,28 @@ vi.mock('@/lib/stripe', () => ({
   stripeCentsToDollars: (cents: number) => cents / 100,
 }));
 
-// Mock the db module with Drizzle API shape
+// Mock the db module with Drizzle API shape -- supports atomic onConflictDoNothing chain
 vi.mock('@/lib/db', () => ({
   db: {
     query: {
-      stripeEvent: {
-        findFirst: (...args: unknown[]) => mockFindFirst(...args),
-      },
       payment: {
         findFirst: vi.fn(),
       },
     },
-    insert: (table: unknown) => mockInsert(table),
+    insert: vi.fn(() => ({
+      values: (...args: unknown[]) => {
+        mockInsertValues(...args);
+        return {
+          onConflictDoNothing: (...ocArgs: unknown[]) => {
+            mockOnConflictDoNothing(...ocArgs);
+            return {
+              returning: () => mockInsertReturning(),
+            };
+          },
+          returning: () => mockInsertReturning(),
+        };
+      },
+    })),
     update: vi.fn(() => ({
       set: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
@@ -168,12 +181,8 @@ describe('Stripe Webhook Security', () => {
     };
 
     mockConstructEvent.mockReturnValue(mockEvent as never);
-    mockFindFirst.mockResolvedValue({
-      id: '1',
-      stripeEventId: 'evt_123',
-      type: 'checkout.session.completed',
-      processedAt: new Date(),
-    });
+    // Atomic insert returns empty array (onConflictDoNothing -- event already exists)
+    mockInsertReturning.mockResolvedValue([]);
 
     const { POST } = await import('@/app/api/webhooks/stripe/route');
 
@@ -187,7 +196,45 @@ describe('Stripe Webhook Security', () => {
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.received).toBe(true);
-    // Should not insert a new event record since it was already processed
-    expect(mockInsert).not.toHaveBeenCalled();
+    // Atomic insert was called (values + onConflictDoNothing + returning)
+    expect(mockInsertValues).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stripeEventId: 'evt_123',
+        type: 'checkout.session.completed',
+      })
+    );
+    expect(mockOnConflictDoNothing).toHaveBeenCalled();
+  });
+
+  it('processes new events through the handler', async () => {
+    const mockEvent = {
+      id: 'evt_new_456',
+      type: 'payment_intent.succeeded',
+      data: { object: { id: 'pi_test', metadata: {} } },
+    };
+
+    mockConstructEvent.mockReturnValue(mockEvent as never);
+    // Atomic insert returns the inserted row (new event)
+    mockInsertReturning.mockResolvedValue([{
+      id: '1',
+      stripeEventId: 'evt_new_456',
+      type: 'payment_intent.succeeded',
+      processedAt: new Date(),
+    }]);
+
+    const { POST } = await import('@/app/api/webhooks/stripe/route');
+
+    const request = new Request('http://localhost/api/webhooks/stripe', {
+      method: 'POST',
+      body: JSON.stringify(mockEvent),
+      headers: { 'stripe-signature': 'valid_sig' },
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.received).toBe(true);
+    // Verify the atomic insert was used, not read-then-write
+    expect(mockOnConflictDoNothing).toHaveBeenCalled();
   });
 });

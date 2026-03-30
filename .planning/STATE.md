@@ -1,12 +1,13 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: Admin Panel
-status: Roadmap Complete
-stopped_at: Roadmap created, ready for phase planning
-last_updated: "2026-03-27T21:00:00.000Z"
+milestone: v3.0
+milestone_name: Production Launch
+status: active
+stopped_at: Roadmap created -- ready for phase planning
+last_updated: "2026-03-28"
+last_activity: 2026-03-28
 progress:
-  total_phases: 10
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -16,41 +17,37 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-27)
+See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** The tattoo artist manages their entire business from one app while clients get a polished experience for discovering, booking, paying, and tracking their tattoo journey.
-**Current focus:** v2.0 Admin Panel -- rebuild admin dashboard from CRUD scaffold to production-grade
+**Current focus:** v3.0 Production Launch -- roadmap created, ready for Phase 23 planning
 
 ## Current Position
 
-Phase: 13 (Security Hardening) -- not yet started
-Plan: --
-Status: Roadmap complete, awaiting phase planning
-Last activity: 2026-03-27 -- v2.0 roadmap created (10 phases, 75 requirements)
+Phase: 23 (not started)
+Plan: Not started
+Status: Roadmap created, awaiting phase planning
+Last activity: 2026-03-28
 
 ```
-v2.0 Progress: [..........] 0/10 phases
+v3.0 Progress: [..........] 0/5 phases
 ```
 
-## Previous Milestone
+## Previous Milestones
 
-v1.0 MVP shipped 2026-03-27 -- 12 phases, 37 plans, 354 tests
-Archived to: .planning/milestones/
+- v1.0 MVP shipped 2026-03-27 -- 12 phases, 37 plans, 354 tests
+- v2.0 Admin Panel shipped 2026-03-30 -- 10 phases, 35 plans, 471 tests
+- Archives: .planning/milestones/
 
 ## Phase Overview
 
 | Phase | Reqs | Key Focus |
 |-------|------|-----------|
-| 13 | 10 | Auth enforcement, rate limiting, input sanitization, webhook safety |
-| 14 | 12 | Pagination, consistent errors, DAL gaps, audit logging |
-| 15 | 13 | Loading/error/empty states, responsive, accessibility, form UX |
-| 16 | 4 | Artist profile, calendar, contacts page, gift card management |
-| 17 | 3 | Financial reports, notifications, design approvals |
-| 18 | 7 | Bulk actions, inline edit, conflict detection on record pages |
-| 19 | 6 | Dashboard overview, media, analytics, settings, audit log, export |
-| 20 | 6 | Deposits, consent, aftercare, reminders, invoices, onboarding |
-| 21 | 4 | Revenue/booking/customer/operational analytics |
-| 22 | 10 | Server action tests, API tests, E2E, RBAC tests, tech debt |
+| 23 | 6 | Git merge v2.0 to main, branch cleanup, GitHub Actions CI/CD, Vercel deploy |
+| 24 | 4 | Sentry error tracking, health check endpoint, Pino logging, web vitals |
+| 25 | 4 | Migration consolidation, production seed, CSP nonces, admin rate limiting |
+| 26 | 5 | Gallery videos, search verification, PWA manifest, n8n workflows, env audit |
+| 27 | 2 | DEPLOYMENT.md checklist, README.md update |
 
 ## Accumulated Context
 
@@ -58,26 +55,26 @@ Archived to: .planning/milestones/
 
 See PROJECT.md Key Decisions table for full history.
 
-v2.0 roadmap decisions:
-- Security and data layer come first (phases 13-14) -- foundation for everything
-- UI foundations before new pages -- establish patterns once, apply everywhere
-- Missing pages split into Core (13-dependent) and Operations (14+16 dependent)
-- Feature depth split into Records (entity pages) and Platform (cross-cutting)
-- Business workflows after record pages have the UI to surface them
-- Analytics depth after reports page and analytics page are enhanced
-- Testing last -- validates features built in all prior phases
-- Tech debt bundled with testing -- cleanup alongside verification
+v3.0 roadmap decisions:
+
+- Git merge + CI/CD first -- nothing can deploy without merging v2.0 to main and setting up the pipeline
+- Monitoring before hardening -- need observability in place to catch issues from migration/security changes
+- DB + security together -- migration consolidation and CSP/rate-limiting are both pre-launch hardening
+- Assets + infra together -- all remaining pieces needed before going live (videos, PWA, n8n, env vars)
+- Documentation last -- captures final state after all infrastructure is complete
+- Deployment safety sequencing: merge -> observe -> harden -> complete -> document
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
-None.
+- v2.0 branches (223 commits across 10 phase branches) are NOT merged to main yet -- Phase 23 is the critical path
+- Must verify Vercel GitHub integration is configured before relying on auto-deploy
 
 ## Session Continuity
 
-Last session: 2026-03-27
-Stopped at: v2.0 roadmap created, ready for `/gsd:plan-phase 13`
-Resume with: `/gsd:plan-phase 13` to begin Security Hardening
+Last session: 2026-03-28
+Stopped at: Roadmap created -- ready for phase planning
+Resume with: `/gsd:plan-phase 23` to begin Git Merge + CI/CD Pipeline

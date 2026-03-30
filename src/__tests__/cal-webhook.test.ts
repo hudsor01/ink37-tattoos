@@ -44,6 +44,15 @@ vi.mock('next/server', () => ({
   },
 }));
 
+// Mock rate limiter
+vi.mock('@/lib/security/rate-limiter', () => ({
+  rateLimiters: {
+    webhook: { limit: vi.fn().mockResolvedValue({ success: true, reset: Date.now() + 60000 }) },
+  },
+  getRequestIp: vi.fn().mockReturnValue('127.0.0.1'),
+  rateLimitResponse: vi.fn().mockReturnValue(Response.json({ error: 'Too many requests' }, { status: 429 })),
+}));
+
 // Mock Cal.com verification
 vi.mock('@/lib/cal/verify', () => ({
   verifyCalSignature: (...args: unknown[]) => mockVerifyCalSignature(...args),
@@ -56,7 +65,7 @@ vi.mock('@/lib/db', () => ({
       customer: { findFirst: (...args: unknown[]) => mockCustomerFindFirst(...args) },
       settings: { findFirst: (...args: unknown[]) => mockSettingsFindFirst(...args) },
     },
-    insert: vi.fn(() => ({
+    insert: vi.fn((table: unknown) => ({
       values: (...args: unknown[]) => {
         mockInsertValues(...args);
         return {
@@ -96,6 +105,7 @@ vi.mock('@/lib/db/schema', () => ({
   },
   customer: { email: 'email', id: 'id' },
   settings: { key: 'key' },
+  calEvent: { id: 'id', calEventUid: 'calEventUid', triggerEvent: 'triggerEvent', processedAt: 'processedAt' },
   appointmentTypeEnum: {
     enumValues: ['CONSULTATION', 'DESIGN_REVIEW', 'TATTOO_SESSION', 'TOUCH_UP', 'REMOVAL'],
   },

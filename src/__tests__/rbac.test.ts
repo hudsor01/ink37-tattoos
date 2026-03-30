@@ -105,7 +105,7 @@ describe('RBAC enforcement', () => {
     expect(index).toContain('createCustomer');
     expect(index).toContain('updateCustomer');
     expect(index).toContain('deleteCustomer');
-    expect(index).toContain('searchCustomers');
+    // searchCustomers removed in 14-02 -- search integrated into getCustomers via PaginationParams
 
     // Appointment exports
     expect(index).toContain('getAppointments');
