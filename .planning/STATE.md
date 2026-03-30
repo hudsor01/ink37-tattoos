@@ -2,14 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Admin Panel
-status: Roadmap Complete
-stopped_at: Roadmap created, ready for phase planning
-last_updated: "2026-03-27T21:00:00.000Z"
+status: executing
+stopped_at: "Completed 20-01-PLAN.md"
+last_updated: "2026-03-30T07:01:15.000Z"
+last_activity: 2026-03-30 -- Phase 20 plan 01 completed
 progress:
   total_phases: 10
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  completed_phases: 7
+  total_plans: 29
+  completed_plans: 27
 ---
 
 # Project State
@@ -19,17 +20,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** The tattoo artist manages their entire business from one app while clients get a polished experience for discovering, booking, paying, and tracking their tattoo journey.
-**Current focus:** v2.0 Admin Panel -- rebuild admin dashboard from CRUD scaffold to production-grade
+**Current focus:** Phase 20 -- business-workflows
 
 ## Current Position
 
-Phase: 13 (Security Hardening) -- not yet started
-Plan: --
-Status: Roadmap complete, awaiting phase planning
-Last activity: 2026-03-27 -- v2.0 roadmap created (10 phases, 75 requirements)
+Phase: 20 (business-workflows) -- EXECUTING
+Plan: 2 of 3
+Status: Executing Phase 20
+Last activity: 2026-03-30 -- Phase 20 plan 01 completed
 
 ```
-v2.0 Progress: [..........] 0/10 phases
+v2.0 Progress: [..........] 0/10 phases (14-01 complete)
 ```
 
 ## Previous Milestone
@@ -58,7 +59,15 @@ Archived to: .planning/milestones/
 
 See PROJECT.md Key Decisions table for full history.
 
+Phase 14-01 decisions:
+
+- Offset-based pagination (not cursor) -- fits admin dashboard page-number navigation
+- safeAction as callback wrapper -- simpler integration with existing varying-signature actions
+- Weighted tsvector (A/B/C/D) for relevance-ranked full-text search
+- SQL GROUP BY replaces JS Map/loop aggregation in analytics
+
 v2.0 roadmap decisions:
+
 - Security and data layer come first (phases 13-14) -- foundation for everything
 - UI foundations before new pages -- establish patterns once, apply everywhere
 - Missing pages split into Core (13-dependent) and Operations (14+16 dependent)
@@ -67,6 +76,17 @@ v2.0 roadmap decisions:
 - Analytics depth after reports page and analytics page are enhanced
 - Testing last -- validates features built in all prior phases
 - Tech debt bundled with testing -- cleanup alongside verification
+- [Phase 14-data-layer-fixes]: requireRole stays outside safeAction for redirect propagation; public actions use 'anonymous' userId for audit logging
+- [Phase 14]: Used tattooArtist table for artist profile (not user table) -- already has bio, specialties, portfolio fields
+- [Phase 14]: ILIKE fallback for gift card search (small dataset, no tsvector needed)
+- [Phase 15-04]: Keep RHF in all forms, use form.setError() for server errors instead of rewriting to useActionState
+- [Phase 15-04]: Keep datetime-local for appointment/session datetime fields; only date-only fields get DatePicker
+- [Phase 15-05]: Wrapped charts in <figure role=img> with sr-only figcaption for screen reader data summaries
+- [Phase 15-05]: No dead imports found in form components -- prior plans already cleaned them
+- [Phase 17]: Dialog used for rejection form (allows textarea), notification triggers wrapped in try/catch to isolate side effects
+- [Phase 20-01]: Parameterized auth guard on getActiveConsentForm (requireStaff option) to serve both admin and portal
+- [Phase 20-01]: Local escapeHtml in templates.ts for XSS safety in email templates
+- [Phase 20-01]: Resend SDK uses contentType (not content_type) for attachment MIME type
 
 ### Pending Todos
 
@@ -78,6 +98,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-27
-Stopped at: v2.0 roadmap created, ready for `/gsd:plan-phase 13`
-Resume with: `/gsd:plan-phase 13` to begin Security Hardening
+Last session: 2026-03-30T07:01:15.000Z
+Stopped at: Completed 20-01-PLAN.md
+Resume with: Continue Phase 20 remaining plans (20-02, 20-03)
