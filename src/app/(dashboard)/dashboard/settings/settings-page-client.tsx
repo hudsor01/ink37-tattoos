@@ -608,7 +608,7 @@ export function SettingsPageClient({ initialSettings }: SettingsPageClientProps)
               <span className="text-sm font-medium">Default Currency</span>
               <Select
                 value={getVal(settings, 'default_currency', 'USD')}
-                onValueChange={(val) => updateLocal('default_currency', val)}
+                onValueChange={(val) => val && updateLocal('default_currency', val)}
               >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Select currency" />
