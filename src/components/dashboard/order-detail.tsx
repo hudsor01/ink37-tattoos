@@ -1,11 +1,20 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { StatusBadge } from '@/components/dashboard/status-badge';
+import { OrderFulfillmentTimeline } from '@/components/dashboard/order-fulfillment-timeline';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,10 +26,25 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { updateOrderStatusAction, refundOrderAction } from '@/lib/actions/order-actions';
+import {
+  updateOrderStatusAction,
+  updateOrderTrackingAction,
+  refundOrderAction,
+} from '@/lib/actions/order-actions';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { Truck, PackageCheck, XCircle, RotateCcw, Download, Mail, MapPin, Calendar } from 'lucide-react';
+import {
+  Truck,
+  PackageCheck,
+  XCircle,
+  RotateCcw,
+  Download,
+  Mail,
+  MapPin,
+  Calendar,
+  Package,
+  Save,
+} from 'lucide-react';
 
 type OrderItem = {
   id: string;
@@ -58,6 +82,8 @@ type OrderWithFullDetails = {
   shippingState: string | null;
   shippingPostalCode: string | null;
   shippingCountry: string | null;
+  trackingNumber: string | null;
+  trackingCarrier: string | null;
   giftCardCode: string | null;
   notes: string | null;
   stripePaymentIntentId: string | null;
@@ -83,6 +109,8 @@ function formatAmount(amount: number | { toString(): string }): string {
 export function OrderDetail({ order }: OrderDetailProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [trackingNumber, setTrackingNumber] = useState('');
+  const [trackingCarrier, setTrackingCarrier] = useState('');
 
   function handleStatusUpdate(status: string) {
     startTransition(() => {
@@ -123,156 +151,185 @@ export function OrderDetail({ order }: OrderDetailProps) {
     });
   }
 
+  function handleSaveTracking() {
+    if (!trackingNumber || !trackingCarrier) {
+      toast.error('Please enter both carrier and tracking number.');
+      return;
+    }
+
+    startTransition(() => {
+      const formData = new FormData();
+      formData.append('id', order.id);
+      formData.append('trackingNumber', trackingNumber);
+      formData.append('trackingCarrier', trackingCarrier);
+      toast.promise(
+        updateOrderTrackingAction(formData).then((result) => {
+          if (!result.success) throw new Error('Failed');
+          router.refresh();
+          return result;
+        }),
+        {
+          loading: 'Saving tracking info...',
+          success: 'Tracking information saved.',
+          error: "Changes couldn't be saved. Please try again.",
+        }
+      );
+    });
+  }
+
   const hasPhysicalItems = order.items.some(
     (item) => item.product?.productType === 'PHYSICAL'
   );
   const hasShippingInfo = order.shippingName || order.shippingAddress;
+  const isTerminalStatus = ['CANCELLED', 'REFUNDED'].includes(order.status);
+  const showTrackingForm =
+    ['PAID', 'SHIPPED'].includes(order.status) && !order.trackingNumber;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_350px]">
-      {/* Left column: Order items */}
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Order Items</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {order.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between gap-4"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{item.productName}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Qty: {item.quantity} x {formatAmount(item.unitPrice)}
-                    </p>
-                  </div>
-                  <p className="font-medium shrink-0">
-                    {formatAmount(item.totalPrice)}
-                  </p>
-                </div>
-              ))}
+    <div className="space-y-6">
+      {/* Fulfillment Timeline - full width at top */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Order Fulfillment</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <OrderFulfillmentTimeline
+            currentStatus={order.status}
+            trackingNumber={order.trackingNumber}
+            trackingCarrier={order.trackingCarrier}
+          />
+        </CardContent>
+      </Card>
 
-              <Separator />
-
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span>{formatAmount(order.subtotal)}</span>
-                </div>
-                {Number(order.shippingAmount.toString()) > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Shipping</span>
-                    <span>{formatAmount(order.shippingAmount)}</span>
-                  </div>
-                )}
-                {Number(order.discountAmount.toString()) > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Discount</span>
-                    <span className="text-green-600">
-                      -{formatAmount(order.discountAmount)}
-                    </span>
-                  </div>
-                )}
-                <Separator />
-                <div className="flex justify-between font-semibold text-base">
-                  <span>Total</span>
-                  <span>{formatAmount(order.total)}</span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Download Tokens */}
-        {order.downloadTokens.length > 0 && (
+      <div className="grid gap-6 lg:grid-cols-[1fr_350px]">
+        {/* Left column: Order items */}
+        <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Download className="h-4 w-4" />
-                Download Tokens
-              </CardTitle>
+              <CardTitle>Order Items</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {order.downloadTokens.map((token) => (
+              <div className="space-y-4">
+                {order.items.map((item) => (
                   <div
-                    key={token.id}
-                    className="flex items-center justify-between rounded-md border p-3"
+                    key={item.id}
+                    className="flex items-center justify-between gap-4"
                   >
-                    <div>
-                      <p className="font-mono text-sm">{token.token.slice(0, 16)}...</p>
-                      <p className="text-xs text-muted-foreground">
-                        Downloads: {token.downloadCount}/{token.maxDownloads}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{item.productName}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Qty: {item.quantity} x {formatAmount(item.unitPrice)}
                       </p>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Expires: {format(new Date(token.expiresAt), 'MMM d, yyyy HH:mm')}
+                    <p className="font-medium shrink-0">
+                      {formatAmount(item.totalPrice)}
                     </p>
                   </div>
                 ))}
+
+                <Separator />
+
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span>{formatAmount(order.subtotal)}</span>
+                  </div>
+                  {Number(order.shippingAmount.toString()) > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Shipping</span>
+                      <span>{formatAmount(order.shippingAmount)}</span>
+                    </div>
+                  )}
+                  {Number(order.discountAmount.toString()) > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Discount</span>
+                      <span className="text-green-600">
+                        -{formatAmount(order.discountAmount)}
+                      </span>
+                    </div>
+                  )}
+                  <Separator />
+                  <div className="flex justify-between font-semibold text-base">
+                    <span>Total</span>
+                    <span>{formatAmount(order.total)}</span>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
-        )}
-      </div>
 
-      {/* Right column: Status + Shipping + Customer */}
-      <div className="space-y-6">
-        {/* Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Status</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-2">
-              <StatusBadge status={order.status} />
-            </div>
+          {/* Download Tokens */}
+          {order.downloadTokens.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Download className="h-4 w-4" />
+                  Download Tokens
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {order.downloadTokens.map((token) => (
+                    <div
+                      key={token.id}
+                      className="flex items-center justify-between rounded-md border p-3"
+                    >
+                      <div>
+                        <p className="font-mono text-sm">{token.token.slice(0, 16)}...</p>
+                        <p className="text-xs text-muted-foreground">
+                          Downloads: {token.downloadCount}/{token.maxDownloads}
+                        </p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Expires: {format(new Date(token.expiresAt), 'MMM d, yyyy HH:mm')}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
 
-            <div className="flex flex-col gap-2">
-              {order.status === 'PENDING' && (
-                <AlertDialog>
-                  <AlertDialogTrigger
-                    render={
-                      <Button variant="destructive" className="w-full" disabled={isPending}>
-                        <XCircle className="h-4 w-4" />
-                        Cancel Order
-                      </Button>
-                    }
-                  />
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Cancel Order</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will cancel the order. The customer will be notified and refunded if payment was collected.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Keep Order</AlertDialogCancel>
-                      <AlertDialogAction
-                        variant="destructive"
-                        onClick={() => handleStatusUpdate('CANCELLED')}
-                        disabled={isPending}
-                      >
-                        {isPending ? 'Cancelling...' : 'Cancel Order'}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
+        {/* Right column: Status + Tracking + Shipping + Customer */}
+        <div className="space-y-6">
+          {/* Status & Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Status</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-2">
+                <StatusBadge status={order.status} />
+              </div>
 
-              {order.status === 'PAID' && (
-                <>
+              {/* Status progression buttons */}
+              <div className="flex flex-col gap-2">
+                {order.status === 'PAID' && (
                   <Button
                     className="w-full"
+                    variant="outline"
                     onClick={() => handleStatusUpdate('SHIPPED')}
                     disabled={isPending}
                   >
                     <Truck className="h-4 w-4" />
                     {isPending ? 'Updating...' : 'Mark as Shipped'}
                   </Button>
+                )}
+
+                {order.status === 'SHIPPED' && (
+                  <Button
+                    className="w-full"
+                    onClick={() => handleStatusUpdate('DELIVERED')}
+                    disabled={isPending}
+                  >
+                    <PackageCheck className="h-4 w-4" />
+                    {isPending ? 'Updating...' : 'Mark as Delivered'}
+                  </Button>
+                )}
+
+                {/* Cancel button for non-terminal statuses */}
+                {!isTerminalStatus && order.status !== 'DELIVERED' && (
                   <AlertDialog>
                     <AlertDialogTrigger
                       render={
@@ -301,6 +358,10 @@ export function OrderDetail({ order }: OrderDetailProps) {
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
+                )}
+
+                {/* Refund button for paid/shipped/delivered */}
+                {['PAID', 'SHIPPED', 'DELIVERED'].includes(order.status) && (
                   <AlertDialog>
                     <AlertDialogTrigger
                       render={
@@ -329,159 +390,144 @@ export function OrderDetail({ order }: OrderDetailProps) {
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
-                </>
-              )}
-
-              {order.status === 'SHIPPED' && (
-                <>
-                  <Button
-                    className="w-full"
-                    onClick={() => handleStatusUpdate('DELIVERED')}
-                    disabled={isPending}
-                  >
-                    <PackageCheck className="h-4 w-4" />
-                    {isPending ? 'Updating...' : 'Mark as Delivered'}
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger
-                      render={
-                        <Button variant="outline" className="w-full text-destructive" disabled={isPending}>
-                          <RotateCcw className="h-4 w-4" />
-                          Issue Refund
-                        </Button>
-                      }
-                    />
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Issue Refund</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This will process a refund through Stripe. The customer will receive the refund within 5-10 business days.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          variant="destructive"
-                          onClick={handleRefund}
-                          disabled={isPending}
-                        >
-                          {isPending ? 'Processing...' : 'Issue Refund'}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </>
-              )}
-
-              {order.status === 'DELIVERED' && (
-                <AlertDialog>
-                  <AlertDialogTrigger
-                    render={
-                      <Button variant="outline" className="w-full text-destructive" disabled={isPending}>
-                        <RotateCcw className="h-4 w-4" />
-                        Issue Refund
-                      </Button>
-                    }
-                  />
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Issue Refund</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will process a refund through Stripe. The customer will receive the refund within 5-10 business days.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        variant="destructive"
-                        onClick={handleRefund}
-                        disabled={isPending}
-                      >
-                        {isPending ? 'Processing...' : 'Issue Refund'}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
-            </div>
-
-            {order.notes && (
-              <div className="rounded-md bg-muted p-3">
-                <p className="text-xs font-medium text-muted-foreground mb-1">Notes</p>
-                <p className="text-sm">{order.notes}</p>
+                )}
               </div>
-            )}
-          </CardContent>
-        </Card>
 
-        {/* Shipping Info */}
-        {hasPhysicalItems && hasShippingInfo && (
+              {order.notes && (
+                <div className="rounded-md bg-muted p-3">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Notes</p>
+                  <p className="text-sm">{order.notes}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Tracking Info */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                Shipping Address
+                <Package className="h-4 w-4" />
+                Tracking Info
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-sm space-y-1">
-                {order.shippingName && (
-                  <p className="font-medium">{order.shippingName}</p>
-                )}
-                {order.shippingAddress && <p>{order.shippingAddress}</p>}
-                {(order.shippingCity || order.shippingState || order.shippingPostalCode) && (
-                  <p>
-                    {[order.shippingCity, order.shippingState, order.shippingPostalCode]
-                      .filter(Boolean)
-                      .join(', ')}
-                  </p>
-                )}
-                {order.shippingCountry && <p>{order.shippingCountry}</p>}
+              {order.trackingNumber ? (
+                <div className="text-sm space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Carrier</span>
+                    <span>{order.trackingCarrier}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Tracking #</span>
+                    <span className="font-mono">{order.trackingNumber}</span>
+                  </div>
+                </div>
+              ) : showTrackingForm ? (
+                <div className="space-y-3">
+                  <Select value={trackingCarrier} onValueChange={(v) => setTrackingCarrier(v ?? '')}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select carrier" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USPS">USPS</SelectItem>
+                      <SelectItem value="UPS">UPS</SelectItem>
+                      <SelectItem value="FedEx">FedEx</SelectItem>
+                      <SelectItem value="DHL">DHL</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    placeholder="Tracking number"
+                    value={trackingNumber}
+                    onChange={(e) => setTrackingNumber(e.target.value)}
+                  />
+                  <Button
+                    className="w-full"
+                    size="sm"
+                    onClick={handleSaveTracking}
+                    disabled={isPending || !trackingNumber || !trackingCarrier}
+                  >
+                    <Save className="h-3.5 w-3.5" />
+                    {isPending ? 'Saving...' : 'Save Tracking'}
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No tracking information available.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Shipping Info */}
+          {hasPhysicalItems && hasShippingInfo && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  Shipping Address
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-sm space-y-1">
+                  {order.shippingName && (
+                    <p className="font-medium">{order.shippingName}</p>
+                  )}
+                  {order.shippingAddress && <p>{order.shippingAddress}</p>}
+                  {(order.shippingCity || order.shippingState || order.shippingPostalCode) && (
+                    <p>
+                      {[order.shippingCity, order.shippingState, order.shippingPostalCode]
+                        .filter(Boolean)
+                        .join(', ')}
+                    </p>
+                  )}
+                  {order.shippingCountry && <p>{order.shippingCountry}</p>}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Customer */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                Customer
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm">{order.email}</p>
+              {order.giftCardCode && (
+                <div className="mt-2 rounded-md bg-muted p-2">
+                  <p className="text-xs text-muted-foreground">Gift card applied</p>
+                  <p className="text-sm font-mono">{order.giftCardCode}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Dates */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Dates
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Created</span>
+                  <span>{format(new Date(order.createdAt), 'MMM d, yyyy HH:mm')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Updated</span>
+                  <span>{format(new Date(order.updatedAt), 'MMM d, yyyy HH:mm')}</span>
+                </div>
               </div>
             </CardContent>
           </Card>
-        )}
-
-        {/* Customer */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mail className="h-4 w-4" />
-              Customer
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm">{order.email}</p>
-            {order.giftCardCode && (
-              <div className="mt-2 rounded-md bg-muted p-2">
-                <p className="text-xs text-muted-foreground">Gift card applied</p>
-                <p className="text-sm font-mono">{order.giftCardCode}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Dates */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Dates
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm space-y-2">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Created</span>
-                <span>{format(new Date(order.createdAt), 'MMM d, yyyy HH:mm')}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Updated</span>
-                <span>{format(new Date(order.updatedAt), 'MMM d, yyyy HH:mm')}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        </div>
       </div>
     </div>
   );
