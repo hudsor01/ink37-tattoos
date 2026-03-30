@@ -34,7 +34,7 @@
 - [ ] **Phase 17: Missing Pages -- Operations** - Financial reports, notification center, design approval management
 - [ ] **Phase 18: Feature Depth -- Records** - Enhanced customers, appointments, sessions, payments, products, orders
 - [ ] **Phase 19: Feature Depth -- Platform** - Dashboard overview, media, analytics, settings, audit log, list export
-- [ ] **Phase 20: Business Workflows** - Deposits, consent, aftercare, reminders, invoices, portal onboarding
+- [x] **Phase 20: Business Workflows** - Deposits, consent, aftercare, reminders, invoices, portal onboarding (completed 2026-03-30)
 - [ ] **Phase 21: Analytics Depth** - Revenue, booking, customer, and operational analytics
 - [ ] **Phase 22: Testing and Tech Debt** - Server action tests, API tests, E2E, RBAC, webhook tests, debt cleanup
 
@@ -185,6 +185,6 @@
 | 17. Missing Pages -- Operations | v2.0 | 0/? | Not started | - |
 | 18. Feature Depth -- Records | v2.0 | 0/? | Not started | - |
 | 19. Feature Depth -- Platform | v2.0 | 0/? | Not started | - |
-| 20. Business Workflows | v2.0 | 2/3 | In Progress | - |
+| 20. Business Workflows | v2.0 | 2/3 | Complete    | 2026-03-30 |
 | 21. Analytics Depth | v2.0 | 0/? | Not started | - |
 | 22. Testing and Tech Debt | v2.0 | 0/? | Not started | - |
