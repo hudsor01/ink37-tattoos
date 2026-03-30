@@ -140,6 +140,18 @@ export const RequestBalanceSchema = z.object({
 
 
 // ============================================================================
+// CONSENT FORM MANAGEMENT
+// ============================================================================
+
+export const ConsentFormSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(200, 'Title must be 200 characters or less'),
+  content: z.string().min(10, 'Content must be at least 10 characters'),
+});
+
+export type ConsentFormData = z.infer<typeof ConsentFormSchema>;
+
+
+// ============================================================================
 // PORTAL: CONSENT SIGNING (D-06, D-07)
 // ============================================================================
 
