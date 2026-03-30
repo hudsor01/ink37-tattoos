@@ -2,14 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Admin Panel
-status: Roadmap Complete
-stopped_at: Roadmap created, ready for phase planning
-last_updated: "2026-03-27T21:00:00.000Z"
+status: executing
+stopped_at: Phase 22 Plan 1 complete
+last_updated: "2026-03-30T15:23:30Z"
+last_activity: 2026-03-30 -- Phase 22-01 complete
 progress:
   total_phases: 10
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  completed_phases: 9
+  total_plans: 35
+  completed_plans: 32
 ---
 
 # Project State
@@ -19,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** The tattoo artist manages their entire business from one app while clients get a polished experience for discovering, booking, paying, and tracking their tattoo journey.
-**Current focus:** v2.0 Admin Panel -- rebuild admin dashboard from CRUD scaffold to production-grade
+**Current focus:** Phase 22 -- testing-and-tech-debt
 
 ## Current Position
 
-Phase: 13 (Security Hardening) -- not yet started
-Plan: --
-Status: Roadmap complete, awaiting phase planning
-Last activity: 2026-03-27 -- v2.0 roadmap created (10 phases, 75 requirements)
+Phase: 22 (testing-and-tech-debt) -- EXECUTING
+Plan: 2 of 4
+Status: Executing Phase 22
+Last activity: 2026-03-30 -- Phase 22-01 complete (test baseline + tech debt)
 
 ```
 v2.0 Progress: [..........] 0/10 phases
@@ -68,6 +69,11 @@ v2.0 roadmap decisions:
 - Testing last -- validates features built in all prior phases
 - Tech debt bundled with testing -- cleanup alongside verification
 
+Phase 22-01 decisions:
+- All 354 tests already pass -- no test fixes needed (plan expected 21 failures)
+- DEBT-03 audit log selects not resolved by Phase 19 as research claimed -- fixed inline
+- Shadcn Checkbox (base-ui) used for session form boolean fields
+
 ### Pending Todos
 
 None yet.
@@ -78,6 +84,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-27
-Stopped at: v2.0 roadmap created, ready for `/gsd:plan-phase 13`
-Resume with: `/gsd:plan-phase 13` to begin Security Hardening
+Last session: 2026-03-30T15:23:30Z
+Stopped at: Phase 22 Plan 1 complete
+Resume with: Continue with Phase 22 Plans 2-4
