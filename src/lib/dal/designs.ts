@@ -70,7 +70,7 @@ export const getAllDesigns = cache(async (
   const conditions = [];
   if (params.search) {
     conditions.push(
-      sql`${schema.tattooDesign.searchVector} @@ plainto_tsquery('english', ${params.search})`
+      sql`(${schema.tattooDesign.name} ilike ${'%' + params.search + '%'} or ${schema.tattooDesign.description} ilike ${'%' + params.search + '%'})`
     );
   }
 

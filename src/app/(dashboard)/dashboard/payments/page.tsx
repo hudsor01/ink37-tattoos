@@ -1,6 +1,6 @@
 import { connection } from 'next/server';
 import { getPayments, getPaymentStats } from '@/lib/dal/payments';
-import { getSessions } from '@/lib/dal/sessions';
+import { getSessionsForPaymentDialog } from '@/lib/dal/sessions';
 import { ResponsiveDataTable } from '@/components/dashboard/responsive-data-table';
 import { KPICard } from '@/components/dashboard/kpi-card';
 import { RequestPaymentDialog } from '@/components/dashboard/request-payment-dialog';
@@ -16,11 +16,13 @@ const currencyFormatter = new Intl.NumberFormat('en-US', {
 
 export default async function PaymentsPage() {
   await connection();
-  const [payments, stats, sessions] = await Promise.all([
+  const [paymentsResult, stats, sessions] = await Promise.all([
     getPayments(),
     getPaymentStats(),
-    getSessions({ limit: 100 }),
+    getSessionsForPaymentDialog(),
   ]);
+
+  const payments = paymentsResult.data;
 
   return (
     <div className="space-y-6">

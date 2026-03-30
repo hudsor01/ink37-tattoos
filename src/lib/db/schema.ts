@@ -140,6 +140,9 @@ export const tattooArtist = pgTable('tattoo_artist', {
   isActive: boolean('isActive').notNull().default(true),
   portfolio: text('portfolio').array(),
   bio: text('bio'),
+  profileImage: text('profileImage'),
+  instagramHandle: text('instagramHandle'),
+  yearsExperience: integer('yearsExperience'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow().$onUpdate(() => new Date()),
 });
@@ -224,6 +227,7 @@ export const tattooDesign = pgTable('tattoo_design', {
   tags: text('tags').array(),
   isApproved: boolean('isApproved').notNull().default(false),
   isPublic: boolean('isPublic').notNull().default(true),
+  rejectionNotes: text('rejectionNotes'),
   estimatedHours: numeric('estimatedHours', { precision: 10, scale: 2, mode: 'number' }),
   popularity: integer('popularity').notNull().default(0),
   artistId: uuid('artistId').notNull().references(() => tattooArtist.id),
@@ -296,6 +300,39 @@ export const consentForm = pgTable('consent_form', {
 });
 
 // ============================================================================
+// CAL.COM EVENT TRACKING
+// ============================================================================
+
+export const calEvent = pgTable('cal_event', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  calEventUid: text('calEventUid').notNull(),
+  triggerEvent: text('triggerEvent').notNull(),
+  processedAt: timestamp('processedAt').notNull().defaultNow(),
+}, (table) => [
+  index('cal_event_calEventUid_idx').on(table.calEventUid),
+]);
+
+// ============================================================================
+// NOTIFICATION MODEL
+// ============================================================================
+
+export const notification = pgTable('notification', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('userId').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  type: text('type').notNull(),
+  title: text('title').notNull(),
+  message: text('message').notNull(),
+  isRead: boolean('isRead').notNull().default(false),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+}, (table) => [
+  index('notification_userId_idx').on(table.userId),
+  index('notification_isRead_idx').on(table.isRead),
+  index('notification_createdAt_idx').on(table.createdAt),
+  index('notification_userId_isRead_idx').on(table.userId, table.isRead),
+]);
+
+// ============================================================================
 // PAYMENT MODELS
 // ============================================================================
 
@@ -356,6 +393,19 @@ export const product = pgTable('product', {
   index('product_isActive_productType_idx').on(table.isActive, table.productType),
 ]);
 
+export const productImage = pgTable('product_image', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  productId: uuid('productId').notNull().references(() => product.id, { onDelete: 'cascade' }),
+  url: text('url').notNull(),
+  alt: text('alt'),
+  sortOrder: integer('sortOrder').notNull().default(0),
+  isVisible: boolean('isVisible').notNull().default(true),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+}, (table) => [
+  index('product_image_productId_idx').on(table.productId),
+  index('product_image_sortOrder_idx').on(table.sortOrder),
+]);
+
 export const order = pgTable('order', {
   id: uuid('id').defaultRandom().primaryKey(),
   email: text('email').notNull(),
@@ -373,6 +423,8 @@ export const order = pgTable('order', {
   shippingPostalCode: text('shippingPostalCode'),
   shippingCountry: text('shippingCountry'),
   giftCardCode: text('giftCardCode'),
+  trackingNumber: text('trackingNumber'),
+  trackingCarrier: text('trackingCarrier'),
   notes: text('notes'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow().$onUpdate(() => new Date()),
@@ -439,6 +491,7 @@ export const userRelations = relations(user, ({ many, one }) => ({
   accounts: many(account),
   sessions: many(session),
   auditLogs: many(auditLog),
+  notifications: many(notification),
   customer: one(customer, { fields: [user.id], references: [customer.userId] }),
 }));
 
@@ -501,9 +554,20 @@ export const paymentRelations = relations(payment, ({ one }) => ({
 
 export const stripeEventRelations = relations(stripeEvent, () => ({}));
 
+export const calEventRelations = relations(calEvent, () => ({}));
+
+export const notificationRelations = relations(notification, ({ one }) => ({
+  user: one(user, { fields: [notification.userId], references: [user.id] }),
+}));
+
 // Store relations
 export const productRelations = relations(product, ({ many }) => ({
   orderItems: many(orderItem),
+  images: many(productImage),
+}));
+
+export const productImageRelations = relations(productImage, ({ one }) => ({
+  product: one(product, { fields: [productImage.productId], references: [product.id] }),
 }));
 
 export const orderRelations = relations(order, ({ many }) => ({

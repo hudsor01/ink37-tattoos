@@ -41,8 +41,9 @@ export const getAppointments = cache(async (
 
   const conditions = [];
   if (params.search) {
+    const term = `%${params.search}%`;
     conditions.push(
-      sql`${schema.appointment.searchVector} @@ plainto_tsquery('english', ${params.search})`
+      sql`(${schema.appointment.firstName} ilike ${term} or ${schema.appointment.lastName} ilike ${term} or ${schema.appointment.email} ilike ${term})`
     );
   }
 

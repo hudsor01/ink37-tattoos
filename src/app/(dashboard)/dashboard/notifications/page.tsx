@@ -23,11 +23,12 @@ export default async function NotificationsPage({ searchParams }: NotificationsP
     search,
   });
 
-  // Serialize dates for client component
+  // Serialize dates for client component and cast type for NotificationType union
   const serialized = {
     ...result,
     data: result.data.map((n) => ({
       ...n,
+      type: n.type as 'BOOKING' | 'PAYMENT' | 'CONTACT' | 'LOW_STOCK',
       createdAt: n.createdAt.toISOString(),
     })),
   };
