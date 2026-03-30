@@ -64,13 +64,13 @@ Requirements for admin panel rebuild. Each maps to roadmap phases. Derived from 
 ### Feature Depth -- Existing Pages
 
 - [ ] **FEAT-01**: Dashboard overview -- configurable date range picker, upcoming appointments today/this week, clickable widgets linking to detail pages
-- [x] **FEAT-02**: Customer list -- bulk actions (delete, export CSV), customer import from CSV, duplicate detection, customer lifecycle stage indicator
-- [x] **FEAT-03**: Customer detail -- inline editing, create appointment/session from customer page, communication timeline, linked portal account indicator
+- [ ] **FEAT-02**: Customer list -- bulk actions (delete, export CSV), customer import from CSV, duplicate detection, customer lifecycle stage indicator
+- [ ] **FEAT-03**: Customer detail -- inline editing, create appointment/session from customer page, communication timeline, linked portal account indicator
 - [ ] **FEAT-04**: Appointment list -- conflict detection on create/edit, appointment reminders toggle, bulk status updates, notes visible in list
 - [ ] **FEAT-05**: Session management -- edit mode for existing sessions, session detail view with full expanded info, linked payment records, image gallery per session
-- [ ] **FEAT-06**: Payment pages -- payment receipt PDF generation/download, payment plan support (split across sessions), late payment reminder trigger
-- [x] **FEAT-07**: Product management -- product image galleries (multiple images), product visibility toggle for public store, category/tagging
-- [x] **FEAT-08**: Order management -- order status timeline/history, shipping tracking field, fulfillment workflow steps, return management
+- [x] **FEAT-06**: Payment pages -- payment receipt PDF generation/download, payment plan support (split across sessions), late payment reminder trigger
+- [ ] **FEAT-07**: Product management -- product image galleries (multiple images), product visibility toggle for public store, category/tagging
+- [ ] **FEAT-08**: Order management -- order status timeline/history, shipping tracking field, fulfillment workflow steps, return management
 - [ ] **FEAT-09**: Media management -- bulk upload, folder/album organization, thumbnail grid view, tagging/search, approval workflow UI, linked sessions
 - [ ] **FEAT-10**: Analytics -- custom date range picker, data export (CSV/PDF), comparison views (period vs period), more KPIs (CLV, no-show rate, avg session duration)
 - [ ] **FEAT-11**: Settings -- organized into logical tabs (Studio, Email, Payment, Hours, Terms), unsaved changes warning, operating hours/days management
@@ -187,13 +187,13 @@ Deferred beyond v2.0.
 | PAGE-03 | Phase 17 | Pending |
 | PAGE-06 | Phase 17 | Pending |
 | PAGE-07 | Phase 17 | Pending |
-| FEAT-02 | Phase 18 | Complete |
-| FEAT-03 | Phase 18 | Complete |
+| FEAT-02 | Phase 18 | Pending |
+| FEAT-03 | Phase 18 | Pending |
 | FEAT-04 | Phase 18 | Pending |
 | FEAT-05 | Phase 18 | Pending |
-| FEAT-06 | Phase 18 | Pending |
-| FEAT-07 | Phase 18 | Complete |
-| FEAT-08 | Phase 18 | Complete |
+| FEAT-06 | Phase 18 | Complete |
+| FEAT-07 | Phase 18 | Pending |
+| FEAT-08 | Phase 18 | Pending |
 | FEAT-01 | Phase 19 | Pending |
 | FEAT-09 | Phase 19 | Pending |
 | FEAT-10 | Phase 19 | Pending |
