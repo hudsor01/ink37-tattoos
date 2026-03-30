@@ -7,6 +7,15 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from '@/components/ui/form';
 import { createSessionAction } from '@/lib/actions/session-actions';
 import { toast } from 'sonner';
 
@@ -29,20 +38,16 @@ const SessionFormSchema = z.object({
   notes: z.string().optional(),
 });
 
+type SessionFormData = z.infer<typeof SessionFormSchema>;
 
 interface SessionFormProps {
   onSuccess?: () => void;
 }
 
 export function SessionForm({ onSuccess }: SessionFormProps) {
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    formState: { errors, isSubmitting },
-  } = useForm({
-    resolver: zodResolver(SessionFormSchema) as never,
+  const form = useForm<SessionFormData>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- zodResolver typing mismatch with .default() in Zod schema
+    resolver: zodResolver(SessionFormSchema) as any,
     defaultValues: {
       customerId: '',
       artistId: '',
@@ -63,17 +68,17 @@ export function SessionForm({ onSuccess }: SessionFormProps) {
     },
   });
 
-  const hourlyRate = watch('hourlyRate');
-  const estimatedHours = watch('estimatedHours');
+  const hourlyRate = form.watch('hourlyRate');
+  const estimatedHours = form.watch('estimatedHours');
 
   useEffect(() => {
     if (hourlyRate && estimatedHours) {
       const calculated = hourlyRate * estimatedHours;
-      setValue('totalCost', calculated);
+      form.setValue('totalCost', calculated);
     }
-  }, [hourlyRate, estimatedHours, setValue]);
+  }, [hourlyRate, estimatedHours, form]);
 
-  async function onSubmit(data: Record<string, unknown>) {
+  async function onSubmit(data: SessionFormData) {
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
@@ -95,164 +100,263 @@ export function SessionForm({ onSuccess }: SessionFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-h-[60vh] overflow-y-auto px-1">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="text-sm font-medium">Customer ID
-          <Input {...register('customerId')} placeholder="Customer UUID" />
-          </label>
-          {errors.customerId && (
-            <p className="text-xs text-destructive mt-1">{errors.customerId.message}</p>
-          )}
-        </div>
-        <div>
-          <label className="text-sm font-medium">Artist ID
-          <Input {...register('artistId')} placeholder="Artist UUID" />
-          </label>
-          {errors.artistId && (
-            <p className="text-xs text-destructive mt-1">{errors.artistId.message}</p>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="text-sm font-medium">Date
-          <Input type="datetime-local" {...register('appointmentDate')} />
-          </label>
-          {errors.appointmentDate && (
-            <p className="text-xs text-destructive mt-1">{errors.appointmentDate.message}</p>
-          )}
-        </div>
-        <div>
-          <label className="text-sm font-medium">Duration (minutes)
-          <Input
-            type="number"
-            {...register('duration', { valueAsNumber: true })}
-            placeholder="120"
-          />
-          </label>
-          {errors.duration && (
-            <p className="text-xs text-destructive mt-1">{errors.duration.message}</p>
-          )}
-        </div>
-      </div>
-
-      <div>
-        <label className="text-sm font-medium">Design Description
-        <Textarea {...register('designDescription')} placeholder="Describe the tattoo design..." />
-        </label>
-        {errors.designDescription && (
-          <p className="text-xs text-destructive mt-1">{errors.designDescription.message}</p>
-        )}
-      </div>
-
-      <div className="grid grid-cols-3 gap-4">
-        <div>
-          <label className="text-sm font-medium">Placement
-          <Input {...register('placement')} placeholder="e.g., Upper arm" />
-          </label>
-          {errors.placement && (
-            <p className="text-xs text-destructive mt-1">{errors.placement.message}</p>
-          )}
-        </div>
-        <div>
-          <label className="text-sm font-medium">Size
-          <Input {...register('size')} placeholder='e.g., 6"x4"' />
-          </label>
-          {errors.size && (
-            <p className="text-xs text-destructive mt-1">{errors.size.message}</p>
-          )}
-        </div>
-        <div>
-          <label className="text-sm font-medium">Style
-          <Input {...register('style')} placeholder="e.g., Realism" />
-          </label>
-          {errors.style && (
-            <p className="text-xs text-destructive mt-1">{errors.style.message}</p>
-          )}
-        </div>
-      </div>
-
-      <div className="border-t pt-4">
-        <h4 className="text-sm font-semibold mb-3">Pricing</h4>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[60vh] overflow-y-auto px-1">
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm font-medium">Hourly Rate ($)
-            <Input
-              type="number"
-              step="0.01"
-              {...register('hourlyRate', { valueAsNumber: true })}
-              placeholder="150.00"
-            />
-            </label>
-            {errors.hourlyRate && (
-              <p className="text-xs text-destructive mt-1">{errors.hourlyRate.message}</p>
+          <FormField
+            control={form.control}
+            name="customerId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Customer ID</FormLabel>
+                <FormControl>
+                  <Input placeholder="Customer UUID" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
-          </div>
-          <div>
-            <label className="text-sm font-medium">Estimated Hours
-            <Input
-              type="number"
-              step="0.5"
-              {...register('estimatedHours', { valueAsNumber: true })}
-              placeholder="3"
-            />
-            </label>
-            {errors.estimatedHours && (
-              <p className="text-xs text-destructive mt-1">{errors.estimatedHours.message}</p>
+          />
+          <FormField
+            control={form.control}
+            name="artistId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Artist ID</FormLabel>
+                <FormControl>
+                  <Input placeholder="Artist UUID" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
-          </div>
-          <div>
-            <label className="text-sm font-medium">Deposit ($)
-            <Input
-              type="number"
-              step="0.01"
-              {...register('depositAmount', { valueAsNumber: true })}
-              placeholder="0.00"
-            />
-            </label>
-          </div>
-          <div>
-            <label className="text-sm font-medium">Total Cost ($)
-            <Input
-              type="number"
-              step="0.01"
-              {...register('totalCost', { valueAsNumber: true })}
-              placeholder="Calculated"
-              readOnly
-              className="bg-muted"
-            />
-            </label>
-            {errors.totalCost && (
-              <p className="text-xs text-destructive mt-1">{errors.totalCost.message}</p>
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="appointmentDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Date</FormLabel>
+                <FormControl>
+                  <Input type="datetime-local" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
+          />
+          <FormField
+            control={form.control}
+            name="duration"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Duration (minutes)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="120"
+                    {...field}
+                    onChange={(e) => field.onChange(e.target.valueAsNumber || 0)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="designDescription"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Design Description</FormLabel>
+              <FormControl>
+                <Textarea placeholder="Describe the tattoo design..." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="grid grid-cols-3 gap-4">
+          <FormField
+            control={form.control}
+            name="placement"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Placement</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g., Upper arm" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="size"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Size</FormLabel>
+                <FormControl>
+                  <Input placeholder='e.g., 6"x4"' {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="style"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Style</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g., Realism" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="border-t pt-4">
+          <h4 className="text-sm font-semibold mb-3">Pricing</h4>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="hourlyRate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Hourly Rate ($)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="150.00"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.valueAsNumber || 0)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="estimatedHours"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Estimated Hours</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.5"
+                      placeholder="3"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.valueAsNumber || 0)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="depositAmount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Deposit ($)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.valueAsNumber || 0)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="totalCost"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Total Cost ($)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="Calculated"
+                      readOnly
+                      className="bg-muted"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
         </div>
-      </div>
 
-      <div className="border-t pt-4">
-        <div className="flex gap-6">
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" {...register('consentSigned')} className="rounded" />
-            Consent Signed
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" {...register('aftercareProvided')} className="rounded" />
-            Aftercare Provided
-          </label>
+        <div className="border-t pt-4">
+          <div className="flex gap-6">
+            <FormField
+              control={form.control}
+              name="consentSigned"
+              render={({ field }) => (
+                <FormItem className="flex items-center gap-2 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormLabel className="font-normal">Consent Signed</FormLabel>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="aftercareProvided"
+              render={({ field }) => (
+                <FormItem className="flex items-center gap-2 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormLabel className="font-normal">Aftercare Provided</FormLabel>
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
-      </div>
 
-      <div>
-        <label className="text-sm font-medium">Notes
-        <Textarea {...register('notes')} placeholder="Additional notes..." />
-        </label>
-      </div>
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Notes</FormLabel>
+              <FormControl>
+                <Textarea placeholder="Additional notes..." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? 'Saving...' : 'Log Session'}
-      </Button>
-    </form>
+        <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting ? 'Saving...' : 'Log Session'}
+        </Button>
+      </form>
+    </Form>
   );
 }
