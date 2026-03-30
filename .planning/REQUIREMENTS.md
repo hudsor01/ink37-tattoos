@@ -96,11 +96,11 @@ Requirements for admin panel rebuild. Each maps to roadmap phases. Derived from 
 ### Testing Coverage
 
 - [ ] **TEST-01**: All server actions have unit tests with mocked auth and DAL (media, session, product, order, gift-card, settings actions)
-- [ ] **TEST-02**: All API routes have integration tests covering auth enforcement, input validation, and error responses
+- [x] **TEST-02**: All API routes have integration tests covering auth enforcement, input validation, and error responses
 - [ ] **TEST-03**: E2E test scenarios for critical flows: guest checkout, tattoo session payment, portal consent signing, admin CRUD
 - [ ] **TEST-04**: RBAC tests verify role enforcement at route, action, and DAL levels (staff vs admin vs user rejection)
-- [ ] **TEST-05**: Webhook handlers tested with malformed payloads, missing fields, and concurrent duplicate events
-- [ ] **TEST-06**: Rate limiter tested under concurrent load conditions
+- [x] **TEST-05**: Webhook handlers tested with malformed payloads, missing fields, and concurrent duplicate events
+- [x] **TEST-06**: Rate limiter tested under concurrent load conditions
 
 ### Tech Debt
 
@@ -211,11 +211,11 @@ Deferred beyond v2.0.
 | ANLYT-03 | Phase 21 | Complete |
 | ANLYT-04 | Phase 21 | Complete |
 | TEST-01 | Phase 22 | Pending |
-| TEST-02 | Phase 22 | Pending |
+| TEST-02 | Phase 22 | Complete |
 | TEST-03 | Phase 22 | Pending |
 | TEST-04 | Phase 22 | Pending |
-| TEST-05 | Phase 22 | Pending |
-| TEST-06 | Phase 22 | Pending |
+| TEST-05 | Phase 22 | Complete |
+| TEST-06 | Phase 22 | Complete |
 | DEBT-01 | Phase 22 | Complete |
 | DEBT-02 | Phase 22 | Complete |
 | DEBT-03 | Phase 22 | Complete |
