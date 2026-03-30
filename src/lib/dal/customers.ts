@@ -3,7 +3,7 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { eq, or, ilike, desc } from 'drizzle-orm';
+import { eq, or, ilike, desc, inArray } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 import type { CreateCustomerData, UpdateCustomerData } from '@/lib/security/validation';
 
@@ -76,6 +76,20 @@ export async function deleteCustomer(id: string) {
     .where(eq(schema.customer.id, id))
     .returning();
   return result;
+}
+
+export async function checkDuplicateEmails(emails: string[]): Promise<string[]> {
+  await requireStaffRole();
+  if (emails.length === 0) return [];
+
+  const results = await db.query.customer.findMany({
+    where: inArray(schema.customer.email, emails),
+    columns: { email: true },
+  });
+
+  return results
+    .map((r) => r.email)
+    .filter((e): e is string => e !== null);
 }
 
 export const searchCustomers = cache(async (query: string) => {
