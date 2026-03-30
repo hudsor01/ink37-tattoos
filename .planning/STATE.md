@@ -4,12 +4,13 @@ milestone: v2.0
 milestone_name: Admin Panel
 status: Roadmap Complete
 stopped_at: Roadmap created, ready for phase planning
-last_updated: "2026-03-27T21:00:00.000Z"
+last_updated: "2026-03-30T05:37:35.000Z"
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
+  plans_in_progress: 19-03
 ---
 
 # Project State
@@ -58,6 +59,12 @@ Archived to: .planning/milestones/
 
 See PROJECT.md Key Decisions table for full history.
 
+Phase 19 Plan 03 decisions:
+- Store business_hours as single JSON setting with day-by-day open/close/isOpen structure
+- Merge old Appearance tab into Studio Info rather than creating 6th tab
+- Use URL params for audit log filters to enable server-side re-fetching
+- Use ILIKE text search for audit log search since tsvector column not in current schema
+
 v2.0 roadmap decisions:
 - Security and data layer come first (phases 13-14) -- foundation for everything
 - UI foundations before new pages -- establish patterns once, apply everywhere
@@ -78,6 +85,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-27
-Stopped at: v2.0 roadmap created, ready for `/gsd:plan-phase 13`
-Resume with: `/gsd:plan-phase 13` to begin Security Hardening
+Last session: 2026-03-30
+Stopped at: Completed 19-03-PLAN.md (Settings & Audit Log)
+Resume with: Continue phase 19 execution or next phase
