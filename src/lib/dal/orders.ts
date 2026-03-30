@@ -197,6 +197,28 @@ export async function updateOrderStatus(data: {
 }
 
 /**
+ * Update order tracking information (carrier and tracking number). Requires staff role.
+ */
+export async function updateOrderTracking(data: {
+  id: string;
+  trackingNumber: string;
+  trackingCarrier: string;
+}) {
+  await requireStaffRole();
+  const [result] = await db.update(schema.order)
+    .set({
+      trackingNumber: data.trackingNumber,
+      trackingCarrier: data.trackingCarrier,
+    })
+    .where(eq(schema.order.id, data.id))
+    .returning();
+  if (!result) {
+    throw new Error('Order not found');
+  }
+  return result;
+}
+
+/**
  * Get aggregate order stats. Requires staff role.
  */
 export const getOrderStats = cache(async () => {

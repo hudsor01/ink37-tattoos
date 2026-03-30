@@ -2,9 +2,10 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Admin Panel
-status: In Progress
-stopped_at: "Completed 18-01-PLAN.md"
-last_updated: "2026-03-30T04:16:00.000Z"
+status: planning
+stopped_at: Completed 18-03-PLAN.md
+last_updated: "2026-03-30T04:16:30.894Z"
+last_activity: 2026-03-27 -- v2.0 roadmap created (10 phases, 75 requirements)
 progress:
   total_phases: 10
   completed_phases: 0
@@ -23,13 +24,13 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 
 ## Current Position
 
-Phase: 18 (Feature Depth Records)
-Plan: 01 complete
-Status: In progress
-Last activity: 2026-03-30 -- 18-01 Customer Records Depth completed
+Phase: 13 (Security Hardening) -- not yet started
+Plan: --
+Status: Roadmap complete, awaiting phase planning
+Last activity: 2026-03-27 -- v2.0 roadmap created (10 phases, 75 requirements)
 
 ```
-v2.0 Progress: [..........] 0/10 phases (18-01 plan complete)
+v2.0 Progress: [..........] 0/10 phases
 ```
 
 ## Previous Milestone
@@ -58,12 +59,8 @@ Archived to: .planning/milestones/
 
 See PROJECT.md Key Decisions table for full history.
 
-18-01 decisions:
-- DataTable internal rowSelection state used via enableRowSelection prop
-- Timeline entries capped at 20 total (10 appointments + 10 contacts merged)
-- Contact matching for timeline uses customer email rather than FK
-
 v2.0 roadmap decisions:
+
 - Security and data layer come first (phases 13-14) -- foundation for everything
 - UI foundations before new pages -- establish patterns once, apply everywhere
 - Missing pages split into Core (13-dependent) and Operations (14+16 dependent)
@@ -72,6 +69,8 @@ v2.0 roadmap decisions:
 - Analytics depth after reports page and analytics page are enhanced
 - Testing last -- validates features built in all prior phases
 - Tech debt bundled with testing -- cleanup alongside verification
+- [Phase 18]: Used direct db.update for syncPrimaryImage to support null imageUrl
+- [Phase 18]: Separated SortableImageGrid (presentational) from ProductImageGallery (action wiring) for testability
 
 ### Pending Todos
 
@@ -83,6 +82,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30
-Stopped at: Completed 18-01-PLAN.md (Customer Records Depth)
-Resume with: Next plan in phase 18 or parallel phase execution
+Last session: 2026-03-30T04:16:30.893Z
+Stopped at: Completed 18-03-PLAN.md
+Resume with: `/gsd:plan-phase 13` to begin Security Hardening
