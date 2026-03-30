@@ -1,12 +1,17 @@
 'use server';
 
+import { z } from 'zod';
 import { CreateCustomerSchema, UpdateCustomerSchema } from '@/lib/security/validation';
-import { createCustomer, updateCustomer, deleteCustomer } from '@/lib/dal/customers';
+import { createCustomer, updateCustomer, deleteCustomer, checkDuplicateEmails } from '@/lib/dal/customers';
 import { logAudit } from '@/lib/dal/audit';
 import { getCurrentSession } from '@/lib/auth';
 import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
+import { db } from '@/lib/db';
+import * as schema from '@/lib/db/schema';
+import { inArray } from 'drizzle-orm';
+import type { ActionResult } from '@/lib/actions/types';
 
 export async function createCustomerAction(formData: FormData) {
   const session = await getCurrentSession();
@@ -88,4 +93,130 @@ export async function deleteCustomerAction(id: string) {
   );
 
   revalidatePath('/dashboard/customers');
+}
+
+// ============================================================================
+// BULK ACTIONS
+// ============================================================================
+
+const bulkDeleteSchema = z.object({
+  ids: z.array(z.string().uuid()),
+});
+
+export async function bulkDeleteCustomersAction(
+  ids: string[]
+): Promise<ActionResult<{ deletedCount: number }>> {
+  const session = await getCurrentSession();
+  if (!session?.user) throw new Error('Unauthorized');
+
+  const validated = bulkDeleteSchema.safeParse({ ids });
+  if (!validated.success) {
+    return { success: false, error: 'Invalid customer IDs provided' };
+  }
+
+  const deleted = await db
+    .delete(schema.customer)
+    .where(inArray(schema.customer.id, validated.data.ids))
+    .returning({ id: schema.customer.id });
+
+  const hdrs = await headers();
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'BULK_DELETE',
+      resource: 'customer',
+      resourceId: 'bulk',
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+      metadata: {
+        deletedIds: deleted.map((d) => d.id),
+        count: deleted.length,
+      },
+    })
+  );
+
+  revalidatePath('/dashboard/customers');
+  return { success: true, data: { deletedCount: deleted.length } };
+}
+
+const csvRowSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  email: z.union([z.string().email(), z.literal('')]).optional(),
+  phone: z.string().optional(),
+});
+
+const importSchema = z.object({
+  customers: z.array(csvRowSchema),
+});
+
+export async function importCustomersAction(
+  customers: { firstName: string; lastName: string; email?: string; phone?: string }[]
+): Promise<ActionResult<{ imported: number; skipped: number }>> {
+  const session = await getCurrentSession();
+  if (!session?.user) throw new Error('Unauthorized');
+
+  const validated = importSchema.safeParse({ customers });
+  if (!validated.success) {
+    return {
+      success: false,
+      error: 'Validation failed for one or more rows',
+      fieldErrors: Object.fromEntries(
+        validated.error.issues.map((i) => [i.path.join('.'), [i.message]])
+      ),
+    };
+  }
+
+  let imported = 0;
+  let skipped = 0;
+
+  for (const customer of validated.data.customers) {
+    try {
+      await db.insert(schema.customer).values({
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+        email: customer.email && customer.email !== '' ? customer.email : null,
+        phone: customer.phone || null,
+      });
+      imported++;
+    } catch (err: unknown) {
+      // Skip rows that violate unique constraints (duplicate email)
+      if (err instanceof Error && err.message.includes('unique')) {
+        skipped++;
+      } else {
+        skipped++;
+      }
+    }
+  }
+
+  const hdrs = await headers();
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'IMPORT',
+      resource: 'customer',
+      resourceId: 'bulk',
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+      metadata: { imported, skipped },
+    })
+  );
+
+  revalidatePath('/dashboard/customers');
+  return { success: true, data: { imported, skipped } };
+}
+
+export async function checkDuplicateEmailsAction(
+  emails: string[]
+): Promise<ActionResult<string[]>> {
+  const session = await getCurrentSession();
+  if (!session?.user) throw new Error('Unauthorized');
+
+  const validEmails = emails.filter((e) => e && e.includes('@'));
+  if (validEmails.length === 0) {
+    return { success: true, data: [] };
+  }
+
+  const duplicates = await checkDuplicateEmails(validEmails);
+  return { success: true, data: duplicates };
 }
