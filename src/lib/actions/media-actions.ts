@@ -1,6 +1,14 @@
 'use server';
 
-import { createMediaItem, updateMediaItem, deleteMediaItem, getMediaItemById, togglePublicVisibility } from '@/lib/dal/media';
+import {
+  createMediaItem,
+  updateMediaItem,
+  deleteMediaItem,
+  getMediaItemById,
+  togglePublicVisibility,
+  bulkUpdateTags,
+  toggleMediaApproval,
+} from '@/lib/dal/media';
 import { logAudit } from '@/lib/dal/audit';
 import { requireRole } from '@/lib/auth';
 import { safeAction } from './safe-action';
@@ -124,6 +132,125 @@ export async function toggleVisibilityAction(id: string, isPublic: boolean): Pro
 
   return safeAction(async () => {
     const result = await togglePublicVisibility(id, isPublic);
+
+    const hdrs = await headers();
+    after(() =>
+      logAudit({
+        userId: session.user.id,
+        action: 'UPDATE',
+        resource: 'media',
+        resourceId: id,
+        ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+        userAgent: hdrs.get('user-agent') ?? 'unknown',
+        metadata: { isPublic },
+      })
+    );
+
+    revalidatePath('/dashboard/media');
+    return { id: result.id };
+  });
+}
+
+export async function bulkUploadMediaAction(
+  files: { name: string; fileUrl: string; thumbnailUrl?: string }[],
+  tags: string[],
+  artistId: string
+): Promise<ActionResult<{ count: number }>> {
+  const session = await requireRole('admin');
+
+  return safeAction(async () => {
+    let successCount = 0;
+    for (const file of files) {
+      await createMediaItem({
+        name: file.name,
+        fileUrl: file.fileUrl,
+        thumbnailUrl: file.thumbnailUrl,
+        tags,
+        artistId,
+      });
+      successCount++;
+    }
+
+    const hdrs = await headers();
+    after(() =>
+      logAudit({
+        userId: session.user.id,
+        action: 'CREATE',
+        resource: 'media',
+        resourceId: 'bulk',
+        ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+        userAgent: hdrs.get('user-agent') ?? 'unknown',
+        metadata: { count: successCount, tags },
+      })
+    );
+
+    revalidatePath('/dashboard/media');
+    return { count: successCount };
+  });
+}
+
+export async function bulkAssignTagsAction(
+  ids: string[],
+  tags: string[]
+): Promise<ActionResult<{ count: number }>> {
+  const session = await requireRole('admin');
+
+  return safeAction(async () => {
+    const results = await bulkUpdateTags(ids, tags);
+
+    const hdrs = await headers();
+    after(() =>
+      logAudit({
+        userId: session.user.id,
+        action: 'UPDATE',
+        resource: 'media',
+        resourceId: 'bulk',
+        ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+        userAgent: hdrs.get('user-agent') ?? 'unknown',
+        metadata: { ids, tags },
+      })
+    );
+
+    revalidatePath('/dashboard/media');
+    return { count: results.length };
+  });
+}
+
+export async function toggleMediaApprovalAction(
+  id: string,
+  isApproved: boolean
+): Promise<ActionResult<{ id: string }>> {
+  const session = await requireRole('admin');
+
+  return safeAction(async () => {
+    const result = await toggleMediaApproval(id, isApproved);
+
+    const hdrs = await headers();
+    after(() =>
+      logAudit({
+        userId: session.user.id,
+        action: 'UPDATE',
+        resource: 'media',
+        resourceId: id,
+        ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+        userAgent: hdrs.get('user-agent') ?? 'unknown',
+        metadata: { isApproved },
+      })
+    );
+
+    revalidatePath('/dashboard/media');
+    return { id: result.id };
+  });
+}
+
+export async function toggleMediaVisibilityAction(
+  id: string,
+  isPublic: boolean
+): Promise<ActionResult<{ id: string }>> {
+  const session = await requireRole('admin');
+
+  return safeAction(async () => {
+    const result = await updateMediaItem(id, { isPublic });
 
     const hdrs = await headers();
     after(() =>
