@@ -68,6 +68,10 @@ export default async function PaymentsPage() {
         searchPlaceholder="Search by customer name..."
         pageSize={15}
         mobileFields={paymentMobileFields}
+        enableCsvExport
+        csvFilename="payments.csv"
+        enableShowAll
+        enablePageJump
       />
     </div>
   );

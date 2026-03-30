@@ -220,7 +220,15 @@ export function SessionListClient() {
         </Button>
       </div>
 
-      <DataTable columns={columnsWithActions} data={sessions} searchKey="customer" />
+      <DataTable
+        columns={columnsWithActions}
+        data={sessions}
+        searchKey="customer"
+        enableCsvExport
+        csvFilename="sessions.csv"
+        enableShowAll
+        enablePageJump
+      />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-2xl">
