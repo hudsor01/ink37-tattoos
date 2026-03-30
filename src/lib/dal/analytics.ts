@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { eq, gte, lte, and, between, sql, desc, asc, count, sum } from 'drizzle-orm';
-import { startOfWeek, format } from 'date-fns';
+import { startOfDay, endOfDay, startOfWeek, endOfWeek, format, subDays } from 'date-fns';
 import { customer, appointment, tattooSession, payment } from '@/lib/db/schema';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
@@ -224,4 +224,104 @@ export const getRevenueByDateRange = cache(async (startDate: Date, endDate: Date
     revenue: data.revenue,
     count: data.count,
   }));
+});
+
+export const getTodayAppointments = cache(async () => {
+  await requireStaffRole();
+
+  const todayStart = startOfDay(new Date());
+  const todayEnd = endOfDay(new Date());
+
+  return db.query.appointment.findMany({
+    where: and(
+      gte(appointment.scheduledDate, todayStart),
+      lte(appointment.scheduledDate, todayEnd),
+    ),
+    orderBy: [asc(appointment.scheduledDate)],
+    with: {
+      customer: { columns: { firstName: true, lastName: true } },
+    },
+  });
+});
+
+export const getThisWeekAppointments = cache(async () => {
+  await requireStaffRole();
+
+  const now = new Date();
+  const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
+
+  return db.query.appointment.findMany({
+    where: and(
+      gte(appointment.scheduledDate, weekStart),
+      lte(appointment.scheduledDate, weekEnd),
+    ),
+    orderBy: [asc(appointment.scheduledDate)],
+    with: {
+      customer: { columns: { firstName: true, lastName: true } },
+    },
+  });
+});
+
+function calcTrendPercent(current: number, previous: number): number {
+  if (previous === 0) return current > 0 ? 100 : 0;
+  return Math.round(((current - previous) / previous) * 100);
+}
+
+export const getDashboardStatsWithTrend = cache(async (from: Date, to: Date) => {
+  await requireStaffRole();
+
+  const periodLengthMs = to.getTime() - from.getTime();
+  const prevFrom = new Date(from.getTime() - periodLengthMs);
+  const prevTo = new Date(from.getTime() - 1);
+
+  async function getStatsForPeriod(periodStart: Date, periodEnd: Date) {
+    const [revenueResult, customerResult, appointmentResult, sessionResult] = await Promise.all([
+      db.select({ total: sql<number>`coalesce(sum(${tattooSession.totalCost}), 0)::numeric` })
+        .from(tattooSession)
+        .where(and(
+          eq(tattooSession.status, 'COMPLETED'),
+          gte(tattooSession.appointmentDate, periodStart),
+          lte(tattooSession.appointmentDate, periodEnd),
+        )),
+      db.select({ count: count() })
+        .from(customer)
+        .where(and(
+          gte(customer.createdAt, periodStart),
+          lte(customer.createdAt, periodEnd),
+        )),
+      db.select({ count: count() })
+        .from(appointment)
+        .where(and(
+          gte(appointment.scheduledDate, periodStart),
+          lte(appointment.scheduledDate, periodEnd),
+        )),
+      db.select({ count: count() })
+        .from(tattooSession)
+        .where(and(
+          eq(tattooSession.status, 'COMPLETED'),
+          gte(tattooSession.appointmentDate, periodStart),
+          lte(tattooSession.appointmentDate, periodEnd),
+        )),
+    ]);
+
+    return {
+      revenue: Number(revenueResult[0]?.total ?? 0),
+      customers: customerResult[0]?.count ?? 0,
+      appointments: appointmentResult[0]?.count ?? 0,
+      sessions: sessionResult[0]?.count ?? 0,
+    };
+  }
+
+  const [current, previous] = await Promise.all([
+    getStatsForPeriod(from, to),
+    getStatsForPeriod(prevFrom, prevTo),
+  ]);
+
+  return {
+    revenue: { value: current.revenue, trend: calcTrendPercent(current.revenue, previous.revenue) },
+    customers: { value: current.customers, trend: calcTrendPercent(current.customers, previous.customers) },
+    appointments: { value: current.appointments, trend: calcTrendPercent(current.appointments, previous.appointments) },
+    sessions: { value: current.sessions, trend: calcTrendPercent(current.sessions, previous.sessions) },
+  };
 });
