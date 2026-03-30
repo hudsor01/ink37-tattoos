@@ -187,4 +187,4 @@
 | 19. Feature Depth -- Platform | v2.0 | 0/? | Not started | - |
 | 20. Business Workflows | v2.0 | 0/? | Not started | - |
 | 21. Analytics Depth | v2.0 | 0/? | Not started | - |
-| 22. Testing and Tech Debt | v2.0 | 1/4 | In Progress | - |
+| 22. Testing and Tech Debt | v2.0 | 2/4 | In Progress|  |
