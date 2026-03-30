@@ -147,7 +147,7 @@
   2. Booking analytics show a conversion funnel from inquiry to completed appointment, peak hours, and capacity utilization
   3. Customer analytics display lifetime value per client, repeat client percentage, and churn risk indicators
   4. Operational metrics show average session duration by type, no-show rate trends, and scheduling efficiency over time
-**Plans**: TBD
+**Plans**: 2 plans
 **UI hint**: yes
 
 ### Phase 22: Testing and Tech Debt
@@ -160,7 +160,12 @@
   3. E2E tests pass for guest checkout, tattoo session payment, portal consent signing, and admin CRUD flows
   4. RBAC tests confirm that USER role cannot access admin actions, STAFF cannot perform ADMIN-only operations, and unauthenticated requests are rejected at all levels
   5. All asChild prop usage is replaced with base-ui render prop pattern, orphaned contacts DAL is consumed by PAGE-04, and audit log uses Shadcn Select components
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 22-01-PLAN.md -- Fix 21 failing tests + close tech debt items (DEBT-01/02/03/04)
+- [ ] 22-02-PLAN.md -- Server action unit tests for all 15 untested action files (TEST-01)
+- [ ] 22-03-PLAN.md -- API route integration tests + webhook malformed + rate limiter concurrent (TEST-02/05/06)
+- [ ] 22-04-PLAN.md -- RBAC enforcement tests + E2E integration flow tests (TEST-03/04)
 
 ## Progress
 
@@ -187,4 +192,4 @@
 | 19. Feature Depth -- Platform | v2.0 | 0/? | Not started | - |
 | 20. Business Workflows | v2.0 | 0/? | Not started | - |
 | 21. Analytics Depth | v2.0 | 2/2 | Complete    | 2026-03-30 |
-| 22. Testing and Tech Debt | v2.0 | 0/? | Not started | - |
+| 22. Testing and Tech Debt | v2.0 | 0/4 | Not started | - |
