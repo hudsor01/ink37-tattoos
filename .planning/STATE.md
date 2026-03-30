@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Admin Panel
-status: Roadmap Complete
-stopped_at: Roadmap created, ready for phase planning
-last_updated: "2026-03-27T21:00:00.000Z"
+status: executing
+stopped_at: Completed 21-01-PLAN.md
+last_updated: "2026-03-30T14:17:30Z"
 progress:
   total_phases: 10
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  completed_phases: 8
+  total_plans: 31
+  completed_plans: 30
 ---
 
 # Project State
@@ -19,17 +19,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** The tattoo artist manages their entire business from one app while clients get a polished experience for discovering, booking, paying, and tracking their tattoo journey.
-**Current focus:** v2.0 Admin Panel -- rebuild admin dashboard from CRUD scaffold to production-grade
+**Current focus:** Phase 21 -- analytics-depth
 
 ## Current Position
 
-Phase: 13 (Security Hardening) -- not yet started
-Plan: --
-Status: Roadmap complete, awaiting phase planning
-Last activity: 2026-03-27 -- v2.0 roadmap created (10 phases, 75 requirements)
+Phase: 21 (analytics-depth) -- EXECUTING
+Plan: 2 of 2
+Status: Executing Phase 21
+Last activity: 2026-03-30 -- Completed plan 21-01 (analytics depth DAL functions)
 
 ```
-v2.0 Progress: [..........] 0/10 phases
+v2.0 Progress: [========..] 8/10 phases (21-01 complete)
 ```
 
 ## Previous Milestone
@@ -68,6 +68,11 @@ v2.0 roadmap decisions:
 - Testing last -- validates features built in all prior phases
 - Tech debt bundled with testing -- cleanup alongside verification
 
+Phase 21-01 decisions:
+- SQL GREATEST+MAX for churn risk detection across multiple activity tables
+- Extracted getAvailableHours helper shared by capacity and scheduling efficiency
+- Inline fill colors in booking funnel (presentation concern, not chart import)
+
 ### Pending Todos
 
 None yet.
@@ -78,6 +83,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-27
-Stopped at: v2.0 roadmap created, ready for `/gsd:plan-phase 13`
-Resume with: `/gsd:plan-phase 13` to begin Security Hardening
+Last session: 2026-03-30T14:17:30Z
+Stopped at: Completed 21-01-PLAN.md
+Resume with: Continue with 21-02-PLAN.md (analytics UI wiring)
