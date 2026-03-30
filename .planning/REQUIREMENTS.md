@@ -79,11 +79,11 @@ Requirements for admin panel rebuild. Each maps to roadmap phases. Derived from 
 
 ### Business Workflows
 
-- [x] **BIZ-01**: Deposit workflow -- configurable deposit requirements by appointment type, automatic balance calculation, balance due reminders
-- [ ] **BIZ-02**: Consent management -- digital consent form capture with version tracking, expiration, admin view/download of signed forms
-- [x] **BIZ-03**: Aftercare workflow -- aftercare template management, automatic aftercare email after session completion
-- [x] **BIZ-04**: Appointment reminders -- configurable reminder emails before appointments (24h, 48h), no-show follow-up
-- [ ] **BIZ-05**: Invoice generation -- generate and download invoice PDFs for completed payments, email invoice to customer
+- [ ] **BIZ-01**: Deposit workflow -- configurable deposit requirements by appointment type, automatic balance calculation, balance due reminders
+- [x] **BIZ-02**: Consent management -- digital consent form capture with version tracking, expiration, admin view/download of signed forms
+- [ ] **BIZ-03**: Aftercare workflow -- aftercare template management, automatic aftercare email after session completion
+- [ ] **BIZ-04**: Appointment reminders -- configurable reminder emails before appointments (24h, 48h), no-show follow-up
+- [x] **BIZ-05**: Invoice generation -- generate and download invoice PDFs for completed payments, email invoice to customer
 - [ ] **BIZ-06**: Customer portal onboarding -- automatic Customer record creation when portal user registers (currently only via Cal.com or admin)
 
 ### Analytics Depth
@@ -200,11 +200,11 @@ Deferred beyond v2.0.
 | FEAT-11 | Phase 19 | Complete |
 | FEAT-12 | Phase 19 | Complete |
 | FEAT-13 | Phase 19 | Pending |
-| BIZ-01 | Phase 20 | Complete |
-| BIZ-02 | Phase 20 | Pending |
-| BIZ-03 | Phase 20 | Complete |
-| BIZ-04 | Phase 20 | Complete |
-| BIZ-05 | Phase 20 | Pending |
+| BIZ-01 | Phase 20 | Pending |
+| BIZ-02 | Phase 20 | Complete |
+| BIZ-03 | Phase 20 | Pending |
+| BIZ-04 | Phase 20 | Pending |
+| BIZ-05 | Phase 20 | Complete |
 | BIZ-06 | Phase 20 | Pending |
 | ANLYT-01 | Phase 21 | Pending |
 | ANLYT-02 | Phase 21 | Pending |
