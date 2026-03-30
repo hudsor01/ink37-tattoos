@@ -3,14 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Admin Panel
 status: executing
-stopped_at: Completed 22-02-PLAN.md
-last_updated: "2026-03-30T15:38:48.087Z"
-last_activity: 2026-03-30
+stopped_at: Completed 22-04-PLAN.md
+last_updated: "2026-03-30T15:48:01.000Z"
 progress:
   total_phases: 10
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 35
-  completed_plans: 33
+  completed_plans: 35
 ---
 
 # Project State
@@ -20,17 +19,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** The tattoo artist manages their entire business from one app while clients get a polished experience for discovering, booking, paying, and tracking their tattoo journey.
-**Current focus:** Phase 22 — testing-and-tech-debt
+**Current focus:** Phase 22 COMPLETE -- testing-and-tech-debt (FINAL PHASE)
 
 ## Current Position
 
-Phase: 22 (testing-and-tech-debt) — EXECUTING
-Plan: 2 of 4
-Status: Ready to execute
-Last activity: 2026-03-30
+Phase: 22 (testing-and-tech-debt) -- COMPLETE
+Plan: 4 of 4 -- COMPLETE
+Status: All plans executed, phase complete
+Last activity: 2026-03-30 -- 22-04 RBAC & E2E tests complete
 
 ```
-v2.0 Progress: [..........] 0/10 phases (14-01 complete)
+v2.0 Progress: [##########] 10/10 phases (COMPLETE)
 ```
 
 ## Previous Milestone
@@ -59,15 +58,7 @@ Archived to: .planning/milestones/
 
 See PROJECT.md Key Decisions table for full history.
 
-Phase 14-01 decisions:
-
-- Offset-based pagination (not cursor) -- fits admin dashboard page-number navigation
-- safeAction as callback wrapper -- simpler integration with existing varying-signature actions
-- Weighted tsvector (A/B/C/D) for relevance-ranked full-text search
-- SQL GROUP BY replaces JS Map/loop aggregation in analytics
-
 v2.0 roadmap decisions:
-
 - Security and data layer come first (phases 13-14) -- foundation for everything
 - UI foundations before new pages -- establish patterns once, apply everywhere
 - Missing pages split into Core (13-dependent) and Operations (14+16 dependent)
@@ -76,20 +67,11 @@ v2.0 roadmap decisions:
 - Analytics depth after reports page and analytics page are enhanced
 - Testing last -- validates features built in all prior phases
 - Tech debt bundled with testing -- cleanup alongside verification
-- [Phase 14-data-layer-fixes]: requireRole stays outside safeAction for redirect propagation; public actions use 'anonymous' userId for audit logging
-- [Phase 14]: Used tattooArtist table for artist profile (not user table) -- already has bio, specialties, portfolio fields
-- [Phase 14]: ILIKE fallback for gift card search (small dataset, no tsvector needed)
-- [Phase 15-04]: Keep RHF in all forms, use form.setError() for server errors instead of rewriting to useActionState
-- [Phase 15-04]: Keep datetime-local for appointment/session datetime fields; only date-only fields get DatePicker
-- [Phase 15-05]: Wrapped charts in <figure role=img> with sr-only figcaption for screen reader data summaries
-- [Phase 15-05]: No dead imports found in form components -- prior plans already cleaned them
-- [Phase 17]: Dialog used for rejection form (allows textarea), notification triggers wrapped in try/catch to isolate side effects
-- [Phase 21]: PeakHoursHeatmap uses CSS grid instead of Recharts (no native heatmap); ChurnRiskTable uses HTML table (small dataset); tab state from URL searchParams for deep-linking
-- [Phase 22]: safeAction error tests use toBeDefined() not exact message matching (safeAction wraps unrecognized errors generically)
+- [Phase 22-04]: Source-level assertion pattern for RBAC verification; route RBAC matrix as living documentation
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
@@ -97,6 +79,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T15:38:48.085Z
-Stopped at: Completed 22-02-PLAN.md
-Resume with: Continue with remaining Phase 20 plans or transition
+Last session: 2026-03-30T15:48:01.000Z
+Stopped at: Completed 22-04-PLAN.md
+Resume with: v2.0 milestone complete -- all 10 phases, 35 plans executed
