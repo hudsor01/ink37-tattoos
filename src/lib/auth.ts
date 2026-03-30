@@ -35,9 +35,22 @@ function createAuth() {
                 .where(eq(schema.customer.email, user.email))
                 .limit(1);
               if (existing[0] && !existing[0].userId) {
-                await db.update(schema.customer)
-                  .set({ userId: user.id })
-                  .where(eq(schema.customer.id, existing[0].id));
+                try {
+                  await db.update(schema.customer)
+                    .set({ userId: user.id })
+                    .where(eq(schema.customer.id, existing[0].id));
+                } catch (linkError: unknown) {
+                  // Handle unique constraint violation on customer.userId
+                  const message = linkError instanceof Error ? linkError.message : String(linkError);
+                  if (message.includes('unique constraint') || message.includes('duplicate key')) {
+                    console.error('[Auth Hook] Customer userId conflict -- admin resolution needed:', {
+                      email: user.email,
+                      customerId: existing[0].id,
+                    });
+                  } else {
+                    throw linkError;
+                  }
+                }
               } else if (!existing[0]) {
                 // D-02: No match -- create new Customer record
                 const [firstName, ...rest] = (user.name || 'Client').split(' ');

@@ -16,6 +16,7 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().min(1),
   CAL_WEBHOOK_SECRET: z.string().min(1).optional(),
   RESEND_WEBHOOK_SECRET: z.string().optional(),
+  CRON_SECRET: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
