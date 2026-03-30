@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Admin Panel
 status: executing
-stopped_at: "Completed 20-01-PLAN.md"
-last_updated: "2026-03-30T07:01:15.000Z"
-last_activity: 2026-03-30 -- Phase 20 plan 01 completed
+stopped_at: Phase 20 context gathered
+last_updated: "2026-03-30T06:54:12.496Z"
+last_activity: 2026-03-30 -- Phase 20 execution started
 progress:
   total_phases: 10
   completed_phases: 7
   total_plans: 29
-  completed_plans: 27
+  completed_plans: 26
 ---
 
 # Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** The tattoo artist manages their entire business from one app while clients get a polished experience for discovering, booking, paying, and tracking their tattoo journey.
-**Current focus:** Phase 20 -- business-workflows
+**Current focus:** Phase 20 — business-workflows
 
 ## Current Position
 
-Phase: 20 (business-workflows) -- EXECUTING
-Plan: 2 of 3
+Phase: 20 (business-workflows) — EXECUTING
+Plan: 1 of 3
 Status: Executing Phase 20
-Last activity: 2026-03-30 -- Phase 20 plan 01 completed
+Last activity: 2026-03-30 -- Phase 20 execution started
 
 ```
 v2.0 Progress: [..........] 0/10 phases (14-01 complete)
@@ -84,9 +84,6 @@ v2.0 roadmap decisions:
 - [Phase 15-05]: Wrapped charts in <figure role=img> with sr-only figcaption for screen reader data summaries
 - [Phase 15-05]: No dead imports found in form components -- prior plans already cleaned them
 - [Phase 17]: Dialog used for rejection form (allows textarea), notification triggers wrapped in try/catch to isolate side effects
-- [Phase 20-01]: Parameterized auth guard on getActiveConsentForm (requireStaff option) to serve both admin and portal
-- [Phase 20-01]: Local escapeHtml in templates.ts for XSS safety in email templates
-- [Phase 20-01]: Resend SDK uses contentType (not content_type) for attachment MIME type
 
 ### Pending Todos
 
@@ -98,6 +95,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T07:01:15.000Z
-Stopped at: Completed 20-01-PLAN.md
-Resume with: Continue Phase 20 remaining plans (20-02, 20-03)
+Last session: 2026-03-30T05:59:27.381Z
+Stopped at: Phase 20 context gathered
+Resume with: Continue Phase 15 remaining plans (15-06) or transition to Phase 16
