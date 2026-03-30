@@ -58,12 +58,14 @@ interface AppointmentFormProps {
   };
   customerId?: string;
   onSuccess?: () => void;
+  onConflict?: (formData: FormData, appointmentId?: string) => void;
 }
 
 export function AppointmentForm({
   appointment,
   customerId,
   onSuccess,
+  onConflict,
 }: AppointmentFormProps) {
   const queryClient = useQueryClient();
   const isEdit = !!appointment;
@@ -98,22 +100,27 @@ export function AppointmentForm({
       formData.append(key, String(value));
     });
 
-    const action = isEdit && appointment
-      ? updateAppointmentAction(appointment.id, formData)
-      : createAppointmentAction(formData);
+    try {
+      const result = isEdit && appointment
+        ? await updateAppointmentAction(appointment.id, formData)
+        : await createAppointmentAction(formData);
 
-    toast.promise(
-      action.then(async (result) => {
-        await queryClient.invalidateQueries({ queryKey: ['appointments'] });
-        onSuccess?.();
-        return result;
-      }),
-      {
-        loading: isEdit ? 'Updating appointment...' : 'Creating appointment...',
-        success: isEdit ? 'Appointment updated successfully' : 'Appointment created successfully',
-        error: "Changes couldn't be saved. Please try again.",
+      // Handle conflict response
+      if (result && 'success' in result && !result.success && result.error === 'SCHEDULING_CONFLICT') {
+        if (onConflict) {
+          onConflict(formData, isEdit ? appointment?.id : undefined);
+        } else {
+          toast.error('A scheduling conflict was detected. Another appointment exists at this time.');
+        }
+        return;
       }
-    );
+
+      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      onSuccess?.();
+      toast.success(isEdit ? 'Appointment updated successfully' : 'Appointment created successfully');
+    } catch {
+      toast.error("Changes couldn't be saved. Please try again.");
+    }
   }
 
   return (
