@@ -2,15 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Admin Panel
-status: executing
-stopped_at: Phase 18 context gathered
-last_updated: "2026-03-30T03:10:26.807Z"
-last_activity: 2026-03-29
+status: In Progress
+stopped_at: "Completed 18-01-PLAN.md"
+last_updated: "2026-03-30T04:16:00.000Z"
 progress:
   total_phases: 10
-  completed_phases: 5
-  total_plans: 19
-  completed_plans: 19
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 1
 ---
 
 # Project State
@@ -20,17 +19,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** The tattoo artist manages their entire business from one app while clients get a polished experience for discovering, booking, paying, and tracking their tattoo journey.
-**Current focus:** Phase 17 — missing-pages-operations
+**Current focus:** v2.0 Admin Panel -- rebuild admin dashboard from CRUD scaffold to production-grade
 
 ## Current Position
 
-Phase: 18
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-03-29
+Phase: 18 (Feature Depth Records)
+Plan: 01 complete
+Status: In progress
+Last activity: 2026-03-30 -- 18-01 Customer Records Depth completed
 
 ```
-v2.0 Progress: [..........] 0/10 phases (14-01 complete)
+v2.0 Progress: [..........] 0/10 phases (18-01 plan complete)
 ```
 
 ## Previous Milestone
@@ -59,15 +58,12 @@ Archived to: .planning/milestones/
 
 See PROJECT.md Key Decisions table for full history.
 
-Phase 14-01 decisions:
-
-- Offset-based pagination (not cursor) -- fits admin dashboard page-number navigation
-- safeAction as callback wrapper -- simpler integration with existing varying-signature actions
-- Weighted tsvector (A/B/C/D) for relevance-ranked full-text search
-- SQL GROUP BY replaces JS Map/loop aggregation in analytics
+18-01 decisions:
+- DataTable internal rowSelection state used via enableRowSelection prop
+- Timeline entries capped at 20 total (10 appointments + 10 contacts merged)
+- Contact matching for timeline uses customer email rather than FK
 
 v2.0 roadmap decisions:
-
 - Security and data layer come first (phases 13-14) -- foundation for everything
 - UI foundations before new pages -- establish patterns once, apply everywhere
 - Missing pages split into Core (13-dependent) and Operations (14+16 dependent)
@@ -76,14 +72,6 @@ v2.0 roadmap decisions:
 - Analytics depth after reports page and analytics page are enhanced
 - Testing last -- validates features built in all prior phases
 - Tech debt bundled with testing -- cleanup alongside verification
-- [Phase 14-data-layer-fixes]: requireRole stays outside safeAction for redirect propagation; public actions use 'anonymous' userId for audit logging
-- [Phase 14]: Used tattooArtist table for artist profile (not user table) -- already has bio, specialties, portfolio fields
-- [Phase 14]: ILIKE fallback for gift card search (small dataset, no tsvector needed)
-- [Phase 15-04]: Keep RHF in all forms, use form.setError() for server errors instead of rewriting to useActionState
-- [Phase 15-04]: Keep datetime-local for appointment/session datetime fields; only date-only fields get DatePicker
-- [Phase 15-05]: Wrapped charts in <figure role=img> with sr-only figcaption for screen reader data summaries
-- [Phase 15-05]: No dead imports found in form components -- prior plans already cleaned them
-- [Phase 17]: Dialog used for rejection form (allows textarea), notification triggers wrapped in try/catch to isolate side effects
 
 ### Pending Todos
 
@@ -95,6 +83,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T03:10:26.804Z
-Stopped at: Phase 18 context gathered
-Resume with: Continue Phase 15 remaining plans (15-06) or transition to Phase 16
+Last session: 2026-03-30
+Stopped at: Completed 18-01-PLAN.md (Customer Records Depth)
+Resume with: Next plan in phase 18 or parallel phase execution
