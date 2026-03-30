@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Admin Panel
 status: executing
-stopped_at: Phase 22 Plan 1 complete
-last_updated: "2026-03-30T15:23:30Z"
-last_activity: 2026-03-30 -- Phase 22-01 complete
+stopped_at: Phase 22 context gathered
+last_updated: "2026-03-30T15:18:50.390Z"
+last_activity: 2026-03-30 -- Phase 22 execution started
 progress:
   total_phases: 10
   completed_phases: 9
   total_plans: 35
-  completed_plans: 32
+  completed_plans: 31
 ---
 
 # Project State
@@ -20,17 +20,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** The tattoo artist manages their entire business from one app while clients get a polished experience for discovering, booking, paying, and tracking their tattoo journey.
-**Current focus:** Phase 22 -- testing-and-tech-debt
+**Current focus:** Phase 22 — testing-and-tech-debt
 
 ## Current Position
 
-Phase: 22 (testing-and-tech-debt) -- EXECUTING
-Plan: 2 of 4
+Phase: 22 (testing-and-tech-debt) — EXECUTING
+Plan: 1 of 4
 Status: Executing Phase 22
-Last activity: 2026-03-30 -- Phase 22-01 complete (test baseline + tech debt)
+Last activity: 2026-03-30 -- Phase 22 execution started
 
 ```
-v2.0 Progress: [..........] 0/10 phases
+v2.0 Progress: [..........] 0/10 phases (14-01 complete)
 ```
 
 ## Previous Milestone
@@ -59,7 +59,15 @@ Archived to: .planning/milestones/
 
 See PROJECT.md Key Decisions table for full history.
 
+Phase 14-01 decisions:
+
+- Offset-based pagination (not cursor) -- fits admin dashboard page-number navigation
+- safeAction as callback wrapper -- simpler integration with existing varying-signature actions
+- Weighted tsvector (A/B/C/D) for relevance-ranked full-text search
+- SQL GROUP BY replaces JS Map/loop aggregation in analytics
+
 v2.0 roadmap decisions:
+
 - Security and data layer come first (phases 13-14) -- foundation for everything
 - UI foundations before new pages -- establish patterns once, apply everywhere
 - Missing pages split into Core (13-dependent) and Operations (14+16 dependent)
@@ -68,11 +76,15 @@ v2.0 roadmap decisions:
 - Analytics depth after reports page and analytics page are enhanced
 - Testing last -- validates features built in all prior phases
 - Tech debt bundled with testing -- cleanup alongside verification
-
-Phase 22-01 decisions:
-- All 354 tests already pass -- no test fixes needed (plan expected 21 failures)
-- DEBT-03 audit log selects not resolved by Phase 19 as research claimed -- fixed inline
-- Shadcn Checkbox (base-ui) used for session form boolean fields
+- [Phase 14-data-layer-fixes]: requireRole stays outside safeAction for redirect propagation; public actions use 'anonymous' userId for audit logging
+- [Phase 14]: Used tattooArtist table for artist profile (not user table) -- already has bio, specialties, portfolio fields
+- [Phase 14]: ILIKE fallback for gift card search (small dataset, no tsvector needed)
+- [Phase 15-04]: Keep RHF in all forms, use form.setError() for server errors instead of rewriting to useActionState
+- [Phase 15-04]: Keep datetime-local for appointment/session datetime fields; only date-only fields get DatePicker
+- [Phase 15-05]: Wrapped charts in <figure role=img> with sr-only figcaption for screen reader data summaries
+- [Phase 15-05]: No dead imports found in form components -- prior plans already cleaned them
+- [Phase 17]: Dialog used for rejection form (allows textarea), notification triggers wrapped in try/catch to isolate side effects
+- [Phase 21]: PeakHoursHeatmap uses CSS grid instead of Recharts (no native heatmap); ChurnRiskTable uses HTML table (small dataset); tab state from URL searchParams for deep-linking
 
 ### Pending Todos
 
@@ -84,6 +96,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T15:23:30Z
-Stopped at: Phase 22 Plan 1 complete
-Resume with: Continue with Phase 22 Plans 2-4
+Last session: 2026-03-30T14:45:19.658Z
+Stopped at: Phase 22 context gathered
+Resume with: Continue with remaining Phase 20 plans or transition
