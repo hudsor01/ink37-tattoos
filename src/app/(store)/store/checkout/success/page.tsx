@@ -2,9 +2,7 @@ import { connection } from 'next/server';
 import Link from 'next/link';
 import { CheckCircle, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { db } from '@/lib/db';
-import { eq } from 'drizzle-orm';
-import * as schema from '@/lib/db/schema';
+import { getOrderByCheckoutSessionId } from '@/lib/dal/orders';
 import { ClearCartOnMount } from './clear-cart';
 import type { Metadata } from 'next';
 
@@ -32,24 +30,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
   let orderType: 'physical' | 'digital' | 'gift_card' | 'mixed' = 'physical';
 
   if (session_id) {
-    const result = await db.query.order.findFirst({
-      where: eq(schema.order.stripeCheckoutSessionId, session_id),
-      columns: {
-        id: true,
-      },
-      with: {
-        items: {
-          columns: {
-            id: true,
-            productName: true,
-          },
-          with: {
-            product: { columns: { productType: true } },
-            downloadTokens: { columns: { token: true } },
-          },
-        },
-      },
-    });
+    const result = await getOrderByCheckoutSessionId(session_id);
 
     if (result) {
       order = result;

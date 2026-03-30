@@ -7,7 +7,7 @@ export default async function MediaPage() {
   await connection();
   const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 60 * 1000 } } });
   await queryClient.prefetchQuery({
-    queryKey: ['media'],
+    queryKey: ['media', { tag: undefined, approvalStatus: undefined, page: 1, search: undefined }],
     queryFn: () => getMediaItems(),
   });
 

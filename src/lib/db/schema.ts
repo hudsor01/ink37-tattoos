@@ -201,6 +201,8 @@ export const tattooSession = pgTable('tattoo_session', {
   consentSigned: boolean('consentSigned').notNull().default(false),
   consentSignedAt: timestamp('consentSignedAt'),
   consentSignedBy: text('consentSignedBy'),
+  consentFormVersion: integer('consentFormVersion'),
+  consentExpiresAt: timestamp('consentExpiresAt'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow().$onUpdate(() => new Date()),
 }, (table) => [
@@ -282,6 +284,16 @@ export const settings = pgTable('settings', {
   index('settings_category_idx').on(table.category),
   index('settings_key_idx').on(table.key),
 ]);
+
+export const consentForm = pgTable('consent_form', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  version: integer('version').notNull(),
+  title: text('title').notNull().default('Tattoo Consent Form'),
+  content: text('content').notNull(),
+  isActive: boolean('isActive').notNull().default(true),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow().$onUpdate(() => new Date()),
+});
 
 // ============================================================================
 // PAYMENT MODELS
@@ -478,6 +490,8 @@ export const auditLogRelations = relations(auditLog, ({ one }) => ({
 }));
 
 export const settingsRelations = relations(settings, () => ({}));
+
+export const consentFormRelations = relations(consentForm, () => ({}));
 
 // Payment relations
 export const paymentRelations = relations(payment, ({ one }) => ({

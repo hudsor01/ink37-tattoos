@@ -42,8 +42,8 @@ export function GiftCardForm() {
     startTransition(async () => {
       try {
         const result = await purchaseGiftCardAction(data);
-        if (result.success && result.checkoutUrl) {
-          window.location.href = result.checkoutUrl;
+        if (result.success && result.data.checkoutUrl) {
+          window.location.href = result.data.checkoutUrl;
         } else {
           setError("Couldn't start checkout. Please try again.");
         }

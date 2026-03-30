@@ -3,46 +3,49 @@
 import { UpdateSettingsSchema } from '@/lib/security/validation';
 import { upsertSetting } from '@/lib/dal/settings';
 import { logAudit } from '@/lib/dal/audit';
-import { getCurrentSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth';
+import { safeAction } from './safe-action';
+import type { ActionResult } from './types';
 import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
-export async function upsertSettingAction(formData: FormData) {
-  const session = await getCurrentSession();
-  if (!session?.user) throw new Error('Unauthorized');
+export async function upsertSettingAction(formData: FormData): Promise<ActionResult<{ key: string }>> {
+  const session = await requireRole('admin');
 
-  const raw = Object.fromEntries(formData);
-  // Parse JSON value if provided as string
-  let value: unknown = raw.value;
-  if (typeof value === 'string') {
-    try {
-      value = JSON.parse(value);
-    } catch {
-      // Keep as string if not valid JSON
+  return safeAction(async () => {
+    const raw = Object.fromEntries(formData);
+    // Parse JSON value if provided as string
+    let value: unknown = raw.value;
+    if (typeof value === 'string') {
+      try {
+        value = JSON.parse(value);
+      } catch {
+        // Keep as string if not valid JSON
+      }
     }
-  }
 
-  const validated = UpdateSettingsSchema.parse({
-    ...raw,
-    value,
+    const validated = UpdateSettingsSchema.parse({
+      ...raw,
+      value,
+    });
+
+    const result = await upsertSetting(validated);
+
+    const hdrs = await headers();
+    after(() =>
+      logAudit({
+        userId: session.user.id,
+        action: 'UPSERT',
+        resource: 'settings',
+        resourceId: validated.key,
+        ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+        userAgent: hdrs.get('user-agent') ?? 'unknown',
+        metadata: { changes: validated },
+      })
+    );
+
+    revalidatePath('/dashboard/settings');
+    return { key: result.key };
   });
-
-  const result = await upsertSetting(validated);
-
-  const hdrs = await headers();
-  after(() =>
-    logAudit({
-      userId: session.user.id,
-      action: 'UPSERT',
-      resource: 'settings',
-      resourceId: validated.key,
-      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
-      userAgent: hdrs.get('user-agent') ?? 'unknown',
-      metadata: { changes: validated },
-    })
-  );
-
-  revalidatePath('/dashboard/settings');
-  return result;
 }

@@ -6,6 +6,7 @@ import * as schema from '@/lib/db/schema';
 import { getCurrentSession } from '@/lib/auth';
 import { ConsentSignSchema, UpdatePortalProfileSchema } from '@/lib/security/validation';
 import { revalidatePath } from 'next/cache';
+import { getActiveConsentForm } from '@/lib/dal/consent';
 
 /**
  * Sign consent for a tattoo session.
@@ -57,12 +58,17 @@ export async function signConsentAction(formData: FormData) {
     return { success: false, error: 'Consent has already been signed for this session.' };
   }
 
-  // Write the consent signature
+  // Get the active consent form version for version tracking
+  const activeForm = await getActiveConsentForm({ requireStaff: false });
+
+  // Write the consent signature with version tracking and 1-year expiration
   await db.update(schema.tattooSession)
     .set({
       consentSigned: true,
       consentSignedAt: new Date(),
       consentSignedBy: validated.signedName,
+      consentFormVersion: activeForm?.version ?? null,
+      consentExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
     })
     .where(eq(schema.tattooSession.id, validated.sessionId));
 

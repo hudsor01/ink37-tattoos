@@ -11,11 +11,14 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string().optional(),
   ADMIN_EMAIL: z.string().email().optional(),
   VERCEL_BLOB_READ_WRITE_TOKEN: z.string().optional(),
-  BLOB_PRIVATE_READ_WRITE_TOKEN: z.string().optional(),
+  BLOB_PRIVATE_READ_WRITE_TOKEN: z.string().min(1),
+  UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
   STRIPE_SECRET_KEY: z.string().min(1),
   STRIPE_WEBHOOK_SECRET: z.string().min(1),
   CAL_WEBHOOK_SECRET: z.string().min(1).optional(),
   RESEND_WEBHOOK_SECRET: z.string().optional(),
+  CRON_SECRET: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

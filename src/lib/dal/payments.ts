@@ -6,6 +6,8 @@ import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { eq, and, sql, desc } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
+import type { PaginationParams, PaginatedResult } from './types';
+import { DEFAULT_PAGE_SIZE } from './types';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
 
@@ -64,49 +66,60 @@ export async function createPaymentRecord(data: {
     amount: data.amount,
     stripeCheckoutSessionId: data.stripeCheckoutSessionId,
   }).returning();
+  if (!result) throw new Error('Failed to create payment record: no result returned');
   return result;
 }
 
 /**
- * Get payments with optional filters. Requires staff role.
+ * Get payments with pagination. Requires staff role.
+ * Note: Payments don't have a searchVector column -- search param is a no-op.
  */
-export const getPayments = cache(
-  async (filters?: {
-    status?: string;
-    type?: string;
-    customerId?: string;
-    limit?: number;
-    offset?: number;
-  }) => {
-    await requireStaffRole();
+export const getPayments = cache(async (
+  params: PaginationParams = { page: 1, pageSize: DEFAULT_PAGE_SIZE }
+): Promise<PaginatedResult<{
+  id: string;
+  amount: number;
+  status: string;
+  type: string;
+  stripeCheckoutSessionId: string | null;
+  stripePaymentIntentId: string | null;
+  receiptUrl: string | null;
+  completedAt: Date | null;
+  createdAt: Date;
+  tattooSessionId: string;
+  customerId: string;
+}>> => {
+  await requireStaffRole();
 
-    const conditions = [];
-    if (filters?.status) {
-      conditions.push(eq(schema.payment.status, filters.status as 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'REFUNDED'));
-    }
-    if (filters?.type) {
-      conditions.push(eq(schema.payment.type, filters.type as 'DEPOSIT' | 'SESSION_BALANCE' | 'REFUND'));
-    }
-    if (filters?.customerId) {
-      conditions.push(eq(schema.payment.customerId, filters.customerId));
-    }
+  const results = await db.select({
+    id: schema.payment.id,
+    amount: schema.payment.amount,
+    status: schema.payment.status,
+    type: schema.payment.type,
+    stripeCheckoutSessionId: schema.payment.stripeCheckoutSessionId,
+    stripePaymentIntentId: schema.payment.stripePaymentIntentId,
+    receiptUrl: schema.payment.receiptUrl,
+    completedAt: schema.payment.completedAt,
+    createdAt: schema.payment.createdAt,
+    tattooSessionId: schema.payment.tattooSessionId,
+    customerId: schema.payment.customerId,
+    total: sql<number>`cast(count(*) over() as integer)`,
+  })
+    .from(schema.payment)
+    .orderBy(desc(schema.payment.createdAt))
+    .limit(params.pageSize)
+    .offset((params.page - 1) * params.pageSize);
 
-    return db.query.payment.findMany({
-      where: conditions.length > 0 ? and(...conditions) : undefined,
-      orderBy: [desc(schema.payment.createdAt)],
-      limit: filters?.limit ?? 50,
-      offset: filters?.offset ?? 0,
-      with: {
-        customer: {
-          columns: { firstName: true, lastName: true, email: true },
-        },
-        tattooSession: {
-          columns: { designDescription: true, totalCost: true },
-        },
-      },
-    });
-  }
-);
+  const total = results[0]?.total ?? 0;
+
+  return {
+    data: results.map(({ total: _, ...row }) => row),
+    total,
+    page: params.page,
+    pageSize: params.pageSize,
+    totalPages: Math.ceil(total / params.pageSize),
+  };
+});
 
 /**
  * Get all payments for a given tattoo session. Requires staff role.
@@ -121,6 +134,23 @@ export const getPaymentsBySession = cache(
         customer: {
           columns: { firstName: true, lastName: true, email: true },
         },
+      },
+    });
+  }
+);
+
+/**
+ * Get a single payment with full customer and session details (for receipts).
+ * Requires staff role.
+ */
+export const getPaymentWithDetails = cache(
+  async (paymentId: string) => {
+    await requireStaffRole();
+    return db.query.payment.findFirst({
+      where: eq(schema.payment.id, paymentId),
+      with: {
+        customer: true,
+        tattooSession: true,
       },
     });
   }

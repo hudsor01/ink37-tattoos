@@ -33,7 +33,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { SearchInput } from '@/components/dashboard/search-input';
-import { ArrowUpDown, ChevronLeft, ChevronRight, SlidersHorizontal, X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { exportToCsv } from '@/lib/utils/csv-export';
+import { ArrowUpDown, ChevronLeft, ChevronRight, Download, SlidersHorizontal, X } from 'lucide-react';
 
 interface FacetFilter {
   columnId: string;
@@ -50,6 +52,11 @@ interface DataTableProps<TData, TValue> {
   onRowSelectionChange?: (selectedRows: TData[]) => void;
   globalSearch?: boolean;
   facetFilters?: FacetFilter[];
+  enableCsvExport?: boolean;
+  csvFilename?: string;
+  csvTransform?: (data: TData[]) => Record<string, unknown>[];
+  enableShowAll?: boolean;
+  enablePageJump?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -62,12 +69,19 @@ export function DataTable<TData, TValue>({
   onRowSelectionChange,
   globalSearch,
   facetFilters,
+  enableCsvExport,
+  csvFilename = 'export.csv',
+  csvTransform,
+  enableShowAll,
+  enablePageJump,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [globalFilter, setGlobalFilter] = useState('');
+  const [showAll, setShowAll] = useState(false);
+  const [pageJumpValue, setPageJumpValue] = useState('');
 
   const table = useReactTable({
     data,
@@ -138,7 +152,7 @@ export function DataTable<TData, TValue>({
               return (
                 <DropdownMenu key={filter.columnId}>
                   <DropdownMenuTrigger
-                    render={<Button variant="outline" size="sm" />}
+                    render={<Button variant="outline" size="sm" aria-label={`Filter by ${filter.title}`} />}
                   >
                     {filter.title}
                     {selectedValues.size > 0 && (
@@ -187,29 +201,64 @@ export function DataTable<TData, TValue>({
             })}
           </div>
         )}
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={<Button variant="outline" size="sm" className="ml-auto" />}
-          >
-            <SlidersHorizontal className="mr-2 h-4 w-4" />
-            View
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table.getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => (
-                <DropdownMenuCheckboxItem
-                  key={column.id}
-                  checked={column.getIsVisible()}
-                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                >
-                  {typeof column.columnDef.header === 'string'
-                    ? column.columnDef.header
-                    : column.id}
-                </DropdownMenuCheckboxItem>
-              ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-2 ml-auto">
+          {enableCsvExport && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const filteredRows = table.getFilteredRowModel().rows.map(r => r.original);
+                if (csvTransform) {
+                  exportToCsv(csvFilename, csvTransform(filteredRows));
+                } else {
+                  const visibleColumns = table.getVisibleFlatColumns()
+                    .filter(col => col.id !== 'select' && col.id !== 'actions');
+                  const rows = filteredRows.map(row => {
+                    const record: Record<string, unknown> = {};
+                    for (const col of visibleColumns) {
+                      const key = col.columnDef.header && typeof col.columnDef.header === 'string'
+                        ? col.columnDef.header
+                        : col.id;
+                      const accessorKey = (col.columnDef as { accessorKey?: string }).accessorKey;
+                      record[key] = accessorKey
+                        ? (row as Record<string, unknown>)[accessorKey]
+                        : '';
+                    }
+                    return record;
+                  });
+                  exportToCsv(csvFilename, rows);
+                }
+              }}
+              aria-label="Export to CSV"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Export CSV
+            </Button>
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={<Button variant="outline" size="sm" aria-label="Toggle column visibility" />}
+            >
+              <SlidersHorizontal className="mr-2 h-4 w-4" />
+              View
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table.getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    checked={column.getIsVisible()}
+                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                  >
+                    {typeof column.columnDef.header === 'string'
+                      ? column.columnDef.header
+                      : column.id}
+                  </DropdownMenuCheckboxItem>
+                ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       <div className="rounded-md border">
@@ -225,12 +274,13 @@ export function DataTable<TData, TValue>({
                         size="sm"
                         className="-ml-3 h-8"
                         onClick={() => header.column.toggleSorting()}
+                        aria-label={`Sort by ${typeof header.column.columnDef.header === 'string' ? header.column.columnDef.header : header.column.id}`}
                       >
                         {flexRender(
                           header.column.columnDef.header,
                           header.getContext()
                         )}
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                        <ArrowUpDown className="ml-2 h-4 w-4" aria-hidden="true" />
                       </Button>
                     ) : (
                       flexRender(
@@ -275,34 +325,82 @@ export function DataTable<TData, TValue>({
       </div>
 
       <div className="flex items-center justify-between px-2">
-        <p className="text-sm text-muted-foreground">
-          {enableRowSelection && (
-            <span>{table.getFilteredSelectedRowModel().rows.length} of{' '}</span>
+        <div className="flex items-center gap-3">
+          <p className="text-sm text-muted-foreground">
+            {enableRowSelection && (
+              <span>{table.getFilteredSelectedRowModel().rows.length} of{' '}</span>
+            )}
+            {table.getFilteredRowModel().rows.length} row(s) total
+          </p>
+          {enableShowAll && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                if (showAll) {
+                  table.setPageSize(pageSize);
+                  setShowAll(false);
+                } else {
+                  table.setPageSize(data.length);
+                  setShowAll(true);
+                }
+              }}
+            >
+              {showAll
+                ? 'Paginate'
+                : `Show All${data.length > 500 ? ` (${data.length} rows)` : ''}`}
+            </Button>
           )}
-          {table.getFilteredRowModel().rows.length} row(s) total
-        </p>
+        </div>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
+            aria-label="Previous page"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
             Previous
           </Button>
           <span className="text-sm text-muted-foreground">
             Page {table.getState().pagination.pageIndex + 1} of{' '}
             {table.getPageCount()}
           </span>
+          {enablePageJump && table.getPageCount() > 1 && (
+            <div className="flex items-center gap-1">
+              <label htmlFor="page-jump" className="text-sm text-muted-foreground">
+                Go to:
+              </label>
+              <Input
+                id="page-jump"
+                type="number"
+                min={1}
+                max={table.getPageCount()}
+                value={pageJumpValue}
+                onChange={(e) => setPageJumpValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const page = Number(pageJumpValue);
+                    if (page >= 1 && page <= table.getPageCount()) {
+                      table.setPageIndex(page - 1);
+                      setPageJumpValue('');
+                    }
+                  }
+                }}
+                className="w-16 h-8"
+              />
+            </div>
+          )}
           <Button
             variant="outline"
             size="sm"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
+            aria-label="Next page"
           >
             Next
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
       </div>

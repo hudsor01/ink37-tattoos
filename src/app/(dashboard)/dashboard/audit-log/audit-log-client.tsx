@@ -3,6 +3,13 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { AuditLogEntry } from '@/components/dashboard/audit-log-entry';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface AuditLogEntry_T {
   id: string;
@@ -22,7 +29,7 @@ interface AuditLogClientProps {
 }
 
 const RESOURCE_OPTIONS = [
-  { value: '', label: 'All Resources' },
+  { value: 'all', label: 'All Resources' },
   { value: 'customer', label: 'Customer' },
   { value: 'appointment', label: 'Appointment' },
   { value: 'session', label: 'Session' },
@@ -31,54 +38,62 @@ const RESOURCE_OPTIONS = [
 ];
 
 const ACTION_OPTIONS = [
-  { value: '', label: 'All Actions' },
+  { value: 'all', label: 'All Actions' },
   { value: 'CREATE', label: 'Create' },
   { value: 'UPDATE', label: 'Update' },
   { value: 'DELETE', label: 'Delete' },
 ];
 
 export function AuditLogClient({ initialLogs }: AuditLogClientProps) {
-  const [resourceFilter, setResourceFilter] = useState('');
-  const [actionFilter, setActionFilter] = useState('');
+  const [resourceFilter, setResourceFilter] = useState('all');
+  const [actionFilter, setActionFilter] = useState('all');
 
   const filteredLogs = initialLogs.filter((log) => {
-    if (resourceFilter && log.resource !== resourceFilter) return false;
-    if (actionFilter && log.action !== actionFilter) return false;
+    if (resourceFilter !== 'all' && log.resource !== resourceFilter) return false;
+    if (actionFilter !== 'all' && log.action !== actionFilter) return false;
     return true;
   });
 
   return (
     <>
       <div className="flex items-center gap-3">
-        <select
+        <Select
           value={resourceFilter}
-          onChange={(e) => setResourceFilter(e.target.value)}
-          className="rounded-md border bg-background px-3 py-2 text-sm"
+          onValueChange={(val) => val && setResourceFilter(val)}
         >
-          {RESOURCE_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        <select
+          <SelectTrigger className="w-[160px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {RESOURCE_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
           value={actionFilter}
-          onChange={(e) => setActionFilter(e.target.value)}
-          className="rounded-md border bg-background px-3 py-2 text-sm"
+          onValueChange={(val) => val && setActionFilter(val)}
         >
-          {ACTION_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        {(resourceFilter || actionFilter) && (
+          <SelectTrigger className="w-[140px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {ACTION_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {(resourceFilter !== 'all' || actionFilter !== 'all') && (
           <Button
             variant="ghost"
             size="sm"
             onClick={() => {
-              setResourceFilter('');
-              setActionFilter('');
+              setResourceFilter('all');
+              setActionFilter('all');
             }}
           >
             Clear Filters

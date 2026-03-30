@@ -11,8 +11,9 @@ The tattoo artist manages their entire business from one app while clients get a
 ## Current State
 
 **Shipped:** v1.0 MVP (2026-03-27)
+**v2.0 Progress:** Phase 13 complete (2026-03-28) — Security Hardening
 **Codebase:** 27,731 LOC TypeScript across 448 files
-**Tests:** 354 tests (unit, integration, schema validation, MSW boundary)
+**Tests:** 366 tests (unit, integration, schema validation, MSW boundary)
 
 ### What's Live
 
@@ -46,6 +47,7 @@ The tattoo artist manages their entire business from one app while clients get a
 - Online store (merchandise, prints, gift cards, order management) — v1.0
 - Drizzle ORM migration from Prisma (19 tables, zero CVEs) — v1.0
 - Security headers, CSRF, rate limiting, Zod validation — v1.0
+- Security hardening: layout auth, persistent rate limiting, XSS sanitization, webhook safety — v2.0 Phase 13
 - HydrationBoundary SSR, DataTable with global+faceted filters — v1.0
 - React 19 features (Context-as-provider, useFormStatus, resource preloading) — v1.0
 
@@ -63,22 +65,23 @@ The tattoo artist manages their entire business from one app while clients get a
 - Inventory management — insufficient physical products to justify
 - POS/in-person payments — not needed for web platform
 
-## Current Milestone: v2.0 Admin Panel
+## Current Milestone: v3.0 Production Launch
 
-**Goal:** Rebuild the admin dashboard from a functional CRUD scaffold into a production-grade solo tattoo studio management platform — fixing all security gaps, data layer inconsistencies, UI quality issues, missing features, and testing coverage identified in the v2.0 audit.
+**Goal:** Make the consolidated Ink37 Tattoos platform fully production-ready — merge v2.0 work to main, set up CI/CD, add monitoring/observability, copy missing assets, configure n8n workflows, and harden for launch.
 
-**Key context:** This is a **solo artist** studio. No multi-staff features. "Staff management" becomes "Artist Profile" (the owner's bio, specialties, portfolio settings). RBAC stays for admin access control but simplified for single-operator use.
+**Key context:** v1.0 MVP shipped 2026-03-27, v2.0 Admin Panel shipped 2026-03-30 (10 phases, 35 plans, 471 tests). All v2.0 code lives on phase branches (223 commits) — NOT merged to main yet. This milestone closes the gap between "code complete" and "deployed to production."
 
 **Target areas:**
-- Security hardening (layout auth, rate limiting, input sanitization)
-- Data layer fixes (pagination, N+1 queries, consistent error handling, missing DAL functions)
-- Missing pages (artist profile, calendar view, financial reports, gift card management, contacts management)
-- UI quality (loading/error/empty states, responsive design, accessibility, form validation)
-- Feature depth on existing pages (bulk actions, export, search, inline edit, confirmation dialogs)
-- Business workflows (deposit tracking, consent management, aftercare, appointment reminders)
-- Analytics depth (custom date ranges, export, more KPIs, booking trends)
-- Testing coverage (server actions, API routes, E2E flows)
-- Tech debt resolution (TD-01 through TD-04)
+- Git merge strategy (v2.0 branches → main)
+- CI/CD pipeline (GitHub Actions: test, build, deploy)
+- Error monitoring (Sentry integration)
+- Observability (health check endpoint, structured logging)
+- Missing public assets (gallery videos, search verification files)
+- PWA manifest + service worker
+- Database migration consolidation (Drizzle)
+- n8n workflow configuration (scheduled email jobs)
+- Security hardening (CSP nonce, admin route rate limiting)
+- Production documentation (DEPLOYMENT.md, env var audit)
 
 ## Tech Stack
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import Link from 'next/link';
 import { DataTable, type ColumnDef } from '@/components/dashboard/data-table';
 import { StatusBadge } from '@/components/dashboard/status-badge';
 import { Button } from '@/components/ui/button';
@@ -52,6 +53,18 @@ const columns: ColumnDef<SessionWithRelations, unknown>[] = [
       const c = row.original.customer;
       return `${c.firstName} ${c.lastName}`;
     },
+  },
+  {
+    accessorKey: 'designDescription',
+    header: 'Design',
+    cell: ({ row }) => (
+      <Link
+        href={`/dashboard/sessions/${row.original.id}`}
+        className="text-primary hover:underline max-w-xs truncate block"
+      >
+        {row.original.designDescription}
+      </Link>
+    ),
   },
   {
     accessorKey: 'appointmentDate',
@@ -120,7 +133,6 @@ const columns: ColumnDef<SessionWithRelations, unknown>[] = [
 
 export function SessionListClient() {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [detailSession, setDetailSession] = useState<SessionWithRelations | null>(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -150,9 +162,10 @@ export function SessionListClient() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setDetailSession(row.original)}
+            render={<Link href={`/dashboard/sessions/${row.original.id}`} />}
           >
             <Eye className="h-4 w-4" />
+            <span className="sr-only">View Details</span>
           </Button>
           <Button
             variant="ghost"
@@ -207,7 +220,15 @@ export function SessionListClient() {
         </Button>
       </div>
 
-      <DataTable columns={columnsWithActions} data={sessions} searchKey="customer" />
+      <DataTable
+        columns={columnsWithActions}
+        data={sessions}
+        searchKey="customer"
+        enableCsvExport
+        csvFilename="sessions.csv"
+        enableShowAll
+        enablePageJump
+      />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-2xl">
@@ -226,83 +247,6 @@ export function SessionListClient() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!detailSession} onOpenChange={() => setDetailSession(null)}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Session Details</DialogTitle>
-          </DialogHeader>
-          {detailSession && (
-            <div className="space-y-3 text-sm">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <span className="text-muted-foreground">Customer:</span>{' '}
-                  {detailSession.customer.firstName} {detailSession.customer.lastName}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Artist:</span>{' '}
-                  {detailSession.artist.name}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Date:</span>{' '}
-                  {new Date(detailSession.appointmentDate).toLocaleDateString()}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Duration:</span>{' '}
-                  {detailSession.duration} min
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Style:</span>{' '}
-                  {detailSession.style}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Size:</span>{' '}
-                  {detailSession.size}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Placement:</span>{' '}
-                  {detailSession.placement}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Status:</span>{' '}
-                  <StatusBadge status={detailSession.status} />
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Total Cost:</span>{' '}
-                  {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
-                    Number(detailSession.totalCost)
-                  )}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Paid:</span>{' '}
-                  {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
-                    Number(detailSession.paidAmount)
-                  )}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Consent:</span>{' '}
-                  {detailSession.consentSigned ? 'Signed' : 'Not signed'}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Aftercare:</span>{' '}
-                  {detailSession.aftercareProvided ? 'Provided' : 'Not provided'}
-                </div>
-              </div>
-              {detailSession.designDescription && (
-                <div>
-                  <span className="text-muted-foreground">Design:</span>{' '}
-                  {detailSession.designDescription}
-                </div>
-              )}
-              {detailSession.notes && (
-                <div>
-                  <span className="text-muted-foreground">Notes:</span>{' '}
-                  {detailSession.notes}
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
