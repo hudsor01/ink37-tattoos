@@ -53,6 +53,28 @@ export const getSessionById = cache(async (id: string) => {
   });
 });
 
+/**
+ * Get session with full details including payments.
+ * Uses variable name tattooSessionData to avoid collision with auth session (Research pitfall 6).
+ */
+export const getSessionWithDetails = cache(async (id: string) => {
+  await requireStaffRole();
+  const tattooSessionData = await db.query.tattooSession.findFirst({
+    where: eq(schema.tattooSession.id, id),
+    with: {
+      customer: true,
+      artist: true,
+      appointment: true,
+      payments: {
+        with: {
+          customer: true,
+        },
+      },
+    },
+  });
+  return tattooSessionData;
+});
+
 export async function createSession(data: CreateSessionData) {
   await requireStaffRole();
   const [result] = await db.insert(schema.tattooSession).values({

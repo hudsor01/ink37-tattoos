@@ -1,12 +1,13 @@
 'use server';
 
 import { CreateSessionSchema, type CreateSessionData } from '@/lib/security/validation';
-import { createSession, updateSession, deleteSession } from '@/lib/dal/sessions';
+import { createSession, updateSession, deleteSession, getSessionById } from '@/lib/dal/sessions';
 import { logAudit } from '@/lib/dal/audit';
 import { getCurrentSession } from '@/lib/auth';
 import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
+import { del } from '@vercel/blob';
 
 export async function createSessionAction(formData: FormData) {
   const session = await getCurrentSession();
@@ -91,4 +92,135 @@ export async function deleteSessionAction(id: string) {
   );
 
   revalidatePath('/dashboard/sessions');
+}
+
+const ALLOWED_INLINE_FIELDS = [
+  'designDescription',
+  'placement',
+  'size',
+  'style',
+  'notes',
+  'duration',
+  'hourlyRate',
+  'estimatedHours',
+] as const;
+
+type InlineField = (typeof ALLOWED_INLINE_FIELDS)[number];
+
+const NUMBER_FIELDS: InlineField[] = ['duration', 'hourlyRate', 'estimatedHours'];
+
+export async function updateSessionFieldAction(
+  id: string,
+  field: string,
+  value: string
+) {
+  const session = await getCurrentSession();
+  if (!session?.user) throw new Error('Unauthorized');
+
+  if (!ALLOWED_INLINE_FIELDS.includes(field as InlineField)) {
+    return { success: false, error: `Field "${field}" is not editable` } as const;
+  }
+
+  const coercedValue = NUMBER_FIELDS.includes(field as InlineField)
+    ? Number(value)
+    : value;
+
+  if (NUMBER_FIELDS.includes(field as InlineField) && isNaN(coercedValue as number)) {
+    return { success: false, error: `Invalid number for field "${field}"` } as const;
+  }
+
+  const result = await updateSession(id, {
+    [field]: coercedValue,
+  } as Partial<CreateSessionData>);
+
+  const hdrs = await headers();
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'INLINE_EDIT',
+      resource: 'session',
+      resourceId: id,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+      metadata: { field, newValue: value },
+    })
+  );
+
+  revalidatePath(`/dashboard/sessions/${id}`);
+  return { success: true, data: result } as const;
+}
+
+export async function addSessionImageAction(id: string, imageUrl: string) {
+  const session = await getCurrentSession();
+  if (!session?.user) throw new Error('Unauthorized');
+
+  const existing = await getSessionById(id);
+  if (!existing) {
+    return { success: false, error: 'Session not found' } as const;
+  }
+
+  const updatedImages = [...(existing.referenceImages ?? []), imageUrl];
+  const result = await updateSession(id, {
+    referenceImages: updatedImages,
+  } as Partial<CreateSessionData>);
+
+  const hdrs = await headers();
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'ADD_IMAGE',
+      resource: 'session',
+      resourceId: id,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+      metadata: { imageUrl },
+    })
+  );
+
+  revalidatePath(`/dashboard/sessions/${id}`);
+  return { success: true, data: result } as const;
+}
+
+export async function removeSessionImageAction(id: string, imageUrl: string) {
+  const session = await getCurrentSession();
+  if (!session?.user) throw new Error('Unauthorized');
+
+  const existing = await getSessionById(id);
+  if (!existing) {
+    return { success: false, error: 'Session not found' } as const;
+  }
+
+  const updatedImages = (existing.referenceImages ?? []).filter(
+    (img) => img !== imageUrl
+  );
+  await updateSession(id, {
+    referenceImages: updatedImages,
+  } as Partial<CreateSessionData>);
+
+  // Delete blob from Vercel Blob storage to prevent orphanage
+  try {
+    await del(imageUrl);
+  } catch (err) {
+    // Log but don't fail -- DB record is already updated
+    console.error(
+      `[Session] Failed to delete blob for session ${id}:`,
+      err instanceof Error ? err.message : err
+    );
+  }
+
+  const hdrs = await headers();
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'REMOVE_IMAGE',
+      resource: 'session',
+      resourceId: id,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+      metadata: { imageUrl },
+    })
+  );
+
+  revalidatePath(`/dashboard/sessions/${id}`);
+  return { success: true } as const;
 }
