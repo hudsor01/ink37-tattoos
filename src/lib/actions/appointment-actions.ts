@@ -3,105 +3,107 @@
 import { CreateAppointmentSchema, UpdateAppointmentSchema } from '@/lib/security/validation';
 import { createAppointment, updateAppointment, deleteAppointment, checkSchedulingConflict } from '@/lib/dal/appointments';
 import { logAudit } from '@/lib/dal/audit';
-import { requireRole } from '@/lib/auth';
-import { safeAction } from './safe-action';
-import type { ActionResult } from './types';
+import { getCurrentSession } from '@/lib/auth';
 import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
-export async function createAppointmentAction(formData: FormData): Promise<ActionResult<{ id: string }>> {
-  const session = await requireRole('admin');
+export async function createAppointmentAction(
+  formData: FormData,
+  options?: { forceOverride?: boolean }
+) {
+  const session = await getCurrentSession();
+  if (!session?.user) throw new Error('Unauthorized');
 
-  return safeAction(async () => {
-    const raw = Object.fromEntries(formData);
-    const validated = CreateAppointmentSchema.parse(raw);
+  const raw = Object.fromEntries(formData);
+  const validated = CreateAppointmentSchema.parse(raw);
 
-    // Check for scheduling conflicts before creating
-    const hasConflict = await checkSchedulingConflict(
-      new Date(validated.scheduledDate),
-      validated.duration ? validated.duration / 60 : 2 // convert minutes to hours, default 2h
-    );
+  // Check for scheduling conflicts unless override is requested
+  if (!options?.forceOverride && validated.scheduledDate) {
+    const proposedDate = new Date(validated.scheduledDate);
+    const durationHours = validated.duration ? validated.duration / 60 : 2;
+    const hasConflict = await checkSchedulingConflict(proposedDate, durationHours);
     if (hasConflict) {
-      throw new Error('Scheduling conflict: another appointment exists at this time');
+      return { success: false, error: 'SCHEDULING_CONFLICT' } as const;
     }
+  }
 
-    const result = await createAppointment(validated);
+  const result = await createAppointment(validated);
 
-    const hdrs = await headers();
-    after(() =>
-      logAudit({
-        userId: session.user.id,
-        action: 'CREATE',
-        resource: 'appointment',
-        resourceId: result.id,
-        ip: hdrs.get('x-forwarded-for') ?? 'unknown',
-        userAgent: hdrs.get('user-agent') ?? 'unknown',
-        metadata: { changes: validated },
-      })
-    );
+  const hdrs = await headers();
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'CREATE',
+      resource: 'appointment',
+      resourceId: result.id,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+      metadata: { changes: validated },
+    })
+  );
 
-    revalidatePath('/dashboard/appointments');
-    return { id: result.id };
-  });
+  revalidatePath('/dashboard/appointments');
+  return { success: true, data: result } as const;
 }
 
-export async function updateAppointmentAction(id: string, formData: FormData): Promise<ActionResult<{ id: string }>> {
-  const session = await requireRole('admin');
+export async function updateAppointmentAction(
+  id: string,
+  formData: FormData,
+  options?: { forceOverride?: boolean }
+) {
+  const session = await getCurrentSession();
+  if (!session?.user) throw new Error('Unauthorized');
 
-  return safeAction(async () => {
-    const raw = Object.fromEntries(formData);
-    const validated = UpdateAppointmentSchema.parse(raw);
+  const raw = Object.fromEntries(formData);
+  const validated = UpdateAppointmentSchema.parse(raw);
 
-    // Check for scheduling conflicts if date is being changed
-    if (validated.scheduledDate) {
-      const hasConflict = await checkSchedulingConflict(
-        new Date(validated.scheduledDate),
-        validated.duration ? validated.duration / 60 : 2 // convert minutes to hours, default 2h
-      );
-      if (hasConflict) {
-        throw new Error('Scheduling conflict: another appointment exists at this time');
-      }
+  // Check for scheduling conflicts on date changes unless override is requested
+  if (!options?.forceOverride && validated.scheduledDate) {
+    const proposedDate = new Date(validated.scheduledDate);
+    const durationHours = validated.duration ? validated.duration / 60 : 2;
+    const hasConflict = await checkSchedulingConflict(proposedDate, durationHours);
+    if (hasConflict) {
+      return { success: false, error: 'SCHEDULING_CONFLICT' } as const;
     }
+  }
 
-    const result = await updateAppointment(id, validated);
+  const result = await updateAppointment(id, validated);
 
-    const hdrs = await headers();
-    after(() =>
-      logAudit({
-        userId: session.user.id,
-        action: 'UPDATE',
-        resource: 'appointment',
-        resourceId: id,
-        ip: hdrs.get('x-forwarded-for') ?? 'unknown',
-        userAgent: hdrs.get('user-agent') ?? 'unknown',
-        metadata: { changes: validated },
-      })
-    );
+  const hdrs = await headers();
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'UPDATE',
+      resource: 'appointment',
+      resourceId: id,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+      metadata: { changes: validated },
+    })
+  );
 
-    revalidatePath('/dashboard/appointments');
-    return { id: result.id };
-  });
+  revalidatePath('/dashboard/appointments');
+  return { success: true, data: result } as const;
 }
 
-export async function deleteAppointmentAction(id: string): Promise<ActionResult<void>> {
-  const session = await requireRole('admin');
+export async function deleteAppointmentAction(id: string) {
+  const session = await getCurrentSession();
+  if (!session?.user) throw new Error('Unauthorized');
 
-  return safeAction(async () => {
-    await deleteAppointment(id);
+  await deleteAppointment(id);
 
-    const hdrs = await headers();
-    after(() =>
-      logAudit({
-        userId: session.user.id,
-        action: 'DELETE',
-        resource: 'appointment',
-        resourceId: id,
-        ip: hdrs.get('x-forwarded-for') ?? 'unknown',
-        userAgent: hdrs.get('user-agent') ?? 'unknown',
-      })
-    );
+  const hdrs = await headers();
+  after(() =>
+    logAudit({
+      userId: session.user.id,
+      action: 'DELETE',
+      resource: 'appointment',
+      resourceId: id,
+      ip: hdrs.get('x-forwarded-for') ?? 'unknown',
+      userAgent: hdrs.get('user-agent') ?? 'unknown',
+    })
+  );
 
-    revalidatePath('/dashboard/appointments');
-  });
+  revalidatePath('/dashboard/appointments');
 }
