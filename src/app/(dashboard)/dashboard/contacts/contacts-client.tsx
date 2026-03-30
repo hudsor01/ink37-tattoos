@@ -296,6 +296,10 @@ export function ContactsClient({
           columns={columns}
           data={initialData.data}
           pageSize={20}
+          enableCsvExport
+          csvFilename="contacts.csv"
+          enableShowAll
+          enablePageJump
         />
       </div>
 

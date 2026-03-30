@@ -72,6 +72,10 @@ export default async function OrdersPage() {
           searchPlaceholder="Search by email..."
           pageSize={15}
           mobileFields={orderMobileFields}
+          enableCsvExport
+          csvFilename="orders.csv"
+          enableShowAll
+          enablePageJump
         />
       ) : (
         <EmptyState

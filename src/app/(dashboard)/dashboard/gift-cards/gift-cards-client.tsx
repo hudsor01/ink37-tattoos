@@ -270,6 +270,10 @@ export function GiftCardsClient({ initialData }: GiftCardsClientProps) {
         globalSearch
         searchPlaceholder="Search gift cards..."
         pageSize={20}
+        enableCsvExport
+        csvFilename="gift-cards.csv"
+        enableShowAll
+        enablePageJump
       />
 
       <IssueDialog

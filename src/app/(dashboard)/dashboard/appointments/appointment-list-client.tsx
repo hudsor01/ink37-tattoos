@@ -422,6 +422,10 @@ export function AppointmentListClient() {
         searchKey="firstName"
         searchPlaceholder="Search by customer name..."
         mobileFields={mobileFields}
+        enableCsvExport
+        csvFilename="appointments.csv"
+        enableShowAll
+        enablePageJump
         mobileActions={(row) => (
           <DropdownMenu>
             <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>

@@ -30,6 +30,11 @@ interface ResponsiveDataTableProps<TData, TValue> {
   facetFilters?: FacetFilter[];
   mobileFields: MobileField<TData>[];
   mobileActions?: (row: TData) => ReactNode;
+  enableCsvExport?: boolean;
+  csvFilename?: string;
+  csvTransform?: (data: TData[]) => Record<string, unknown>[];
+  enableShowAll?: boolean;
+  enablePageJump?: boolean;
 }
 
 export function ResponsiveDataTable<TData, TValue>({
@@ -44,6 +49,11 @@ export function ResponsiveDataTable<TData, TValue>({
   facetFilters,
   mobileFields,
   mobileActions,
+  enableCsvExport,
+  csvFilename,
+  csvTransform,
+  enableShowAll,
+  enablePageJump,
 }: ResponsiveDataTableProps<TData, TValue>) {
   const isMobile = useIsMobile();
   const [searchValue, setSearchValue] = useState('');
@@ -85,6 +95,11 @@ export function ResponsiveDataTable<TData, TValue>({
         onRowSelectionChange={onRowSelectionChange}
         globalSearch={globalSearch}
         facetFilters={facetFilters}
+        enableCsvExport={enableCsvExport}
+        csvFilename={csvFilename}
+        csvTransform={csvTransform}
+        enableShowAll={enableShowAll}
+        enablePageJump={enablePageJump}
       />
     );
   }

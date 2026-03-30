@@ -48,6 +48,10 @@ export default async function ProductsPage() {
           searchPlaceholder="Search products..."
           pageSize={15}
           mobileFields={productMobileFields}
+          enableCsvExport
+          csvFilename="products.csv"
+          enableShowAll
+          enablePageJump
         />
       ) : (
         <EmptyState

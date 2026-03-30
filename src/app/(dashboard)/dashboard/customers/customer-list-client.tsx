@@ -324,6 +324,10 @@ export function CustomerListClient() {
         data={filteredCustomers}
         enableRowSelection
         onRowSelectionChange={setSelectedRows}
+        enableCsvExport
+        csvFilename="customers.csv"
+        enableShowAll
+        enablePageJump
       />
 
       {/* Bulk Action Toolbar */}
