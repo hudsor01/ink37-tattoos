@@ -8,6 +8,10 @@ import {
   orderConfirmationTemplate,
   giftCardDeliveryTemplate,
   giftCardPurchaseConfirmationTemplate,
+  aftercareTemplate,
+  balanceDueReminderTemplate,
+  noShowFollowUpTemplate,
+  invoiceEmailTemplate,
 } from './templates';
 
 const getResend = () => new Resend(env().RESEND_API_KEY ?? '');
@@ -162,6 +166,121 @@ export async function sendGiftCardPurchaseConfirmationEmail(data: {
     to: data.to,
     subject: 'Gift Card Purchase Confirmation - Ink 37 Tattoos',
     html: giftCardPurchaseConfirmationTemplate(data),
+  });
+
+  return { sent: !!result.data?.id };
+}
+
+export async function sendAftercareEmail(data: {
+  to: string;
+  customerName: string;
+  sessionDate: string;
+  placement: string;
+  template?: string;
+}): Promise<{ sent: boolean }> {
+  if (!env().RESEND_API_KEY) {
+    console.warn(
+      'RESEND_API_KEY not configured -- skipping aftercare email'
+    );
+    return { sent: false };
+  }
+
+  const result = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to: data.to,
+    subject: 'Aftercare Instructions - Ink 37 Tattoos',
+    html: aftercareTemplate(data),
+    headers: {
+      'X-Entity-Ref-ID': `aftercare-${Date.now()}`,
+    },
+  });
+
+  return { sent: !!result.data?.id };
+}
+
+export async function sendBalanceDueReminder(data: {
+  to: string;
+  customerName: string;
+  designDescription: string;
+  totalCost: number;
+  paidAmount: number;
+  remainingBalance: number;
+}): Promise<{ sent: boolean }> {
+  if (!env().RESEND_API_KEY) {
+    console.warn(
+      'RESEND_API_KEY not configured -- skipping balance due reminder email'
+    );
+    return { sent: false };
+  }
+
+  const result = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to: data.to,
+    subject: 'Balance Due Reminder - Ink 37 Tattoos',
+    html: balanceDueReminderTemplate(data),
+    headers: {
+      'X-Entity-Ref-ID': `balance-due-${Date.now()}`,
+    },
+  });
+
+  return { sent: !!result.data?.id };
+}
+
+export async function sendNoShowFollowUp(data: {
+  to: string;
+  customerName: string;
+  appointmentDate: string;
+  appointmentType: string;
+}): Promise<{ sent: boolean }> {
+  if (!env().RESEND_API_KEY) {
+    console.warn(
+      'RESEND_API_KEY not configured -- skipping no-show follow-up email'
+    );
+    return { sent: false };
+  }
+
+  const result = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to: data.to,
+    subject: 'We missed you - Ink 37 Tattoos',
+    html: noShowFollowUpTemplate(data),
+    headers: {
+      'X-Entity-Ref-ID': `no-show-${Date.now()}`,
+    },
+  });
+
+  return { sent: !!result.data?.id };
+}
+
+export async function sendInvoiceEmail(data: {
+  to: string;
+  customerName: string;
+  invoiceNumber: string;
+  totalDue: number;
+  pdfBuffer: Buffer;
+}): Promise<{ sent: boolean }> {
+  if (!env().RESEND_API_KEY) {
+    console.warn(
+      'RESEND_API_KEY not configured -- skipping invoice email'
+    );
+    return { sent: false };
+  }
+
+  const result = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to: data.to,
+    subject: `Invoice ${data.invoiceNumber} - Ink 37 Tattoos`,
+    html: invoiceEmailTemplate(data),
+    attachments: [
+      {
+        filename: `invoice-${data.invoiceNumber}.pdf`,
+        content: data.pdfBuffer,
+        contentType: 'application/pdf',
+      },
+    ],
+    headers: {
+      'X-Entity-Ref-ID': `invoice-${data.invoiceNumber}`,
+    },
   });
 
   return { sent: !!result.data?.id };
