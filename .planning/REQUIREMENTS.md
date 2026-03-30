@@ -95,7 +95,7 @@ Requirements for admin panel rebuild. Each maps to roadmap phases. Derived from 
 
 ### Testing Coverage
 
-- [ ] **TEST-01**: All server actions have unit tests with mocked auth and DAL (media, session, product, order, gift-card, settings actions)
+- [x] **TEST-01**: All server actions have unit tests with mocked auth and DAL (media, session, product, order, gift-card, settings actions)
 - [ ] **TEST-02**: All API routes have integration tests covering auth enforcement, input validation, and error responses
 - [ ] **TEST-03**: E2E test scenarios for critical flows: guest checkout, tattoo session payment, portal consent signing, admin CRUD
 - [ ] **TEST-04**: RBAC tests verify role enforcement at route, action, and DAL levels (staff vs admin vs user rejection)
@@ -210,7 +210,7 @@ Deferred beyond v2.0.
 | ANLYT-02 | Phase 21 | Complete |
 | ANLYT-03 | Phase 21 | Complete |
 | ANLYT-04 | Phase 21 | Complete |
-| TEST-01 | Phase 22 | Pending |
+| TEST-01 | Phase 22 | Complete |
 | TEST-02 | Phase 22 | Pending |
 | TEST-03 | Phase 22 | Pending |
 | TEST-04 | Phase 22 | Pending |
