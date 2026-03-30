@@ -30,8 +30,8 @@
 - [ ] **Phase 13: Security Hardening** - Auth enforcement, rate limiting, input sanitization, webhook safety
 - [ ] **Phase 14: Data Layer Fixes** - Pagination, consistent errors, DAL gaps, audit logging, webhook revalidation
 - [ ] **Phase 15: UI Foundations** - Loading/error/empty states, responsive tables, accessibility, form UX patterns
-- [x] **Phase 16: Missing Pages -- Core** - Artist profile, calendar view, contacts management, gift card management (completed 2026-03-29)
-- [x] **Phase 17: Missing Pages -- Operations** - Financial reports, notification center, design approval management (completed 2026-03-29)
+- [ ] **Phase 16: Missing Pages -- Core** - Artist profile, calendar view, contacts management, gift card management
+- [ ] **Phase 17: Missing Pages -- Operations** - Financial reports, notification center, design approval management
 - [ ] **Phase 18: Feature Depth -- Records** - Enhanced customers, appointments, sessions, payments, products, orders
 - [ ] **Phase 19: Feature Depth -- Platform** - Dashboard overview, media, analytics, settings, audit log, list export
 - [ ] **Phase 20: Business Workflows** - Deposits, consent, aftercare, reminders, invoices, portal onboarding
@@ -86,10 +86,7 @@
   2. Artist can view appointments in day/week/month calendar views with color-coded status and click any appointment to see its details
   3. Artist can list, filter, and search contact form submissions, update their status, and add admin notes
   4. Artist can view all issued gift cards with balances, issue new gift cards, and deactivate compromised cards
-**Plans**: 2 plans
-Plans:
-- [x] 16-01-PLAN.md -- Artist profile page + calendar view
-- [x] 16-02-PLAN.md -- Gift card management + contacts enhancement
+**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 17: Missing Pages -- Operations
@@ -100,11 +97,7 @@ Plans:
   1. Artist can view revenue by period with payment method breakdown, tax summaries, and export data to CSV
   2. Artist receives in-app notifications for new bookings, payments received, contact form submissions, and low stock alerts
   3. Artist can review a queue of designs pending approval, approve or reject each with notes, and approved designs appear in the public gallery
-**Plans**: 3 plans
-Plans:
-- [x] 17-01-PLAN.md -- Notification system infrastructure (schema, DAL, API, bell icon, notifications page)
-- [x] 17-02-PLAN.md -- Financial reports page (revenue charts, payment breakdown, tax summary, CSV export)
-- [x] 17-03-PLAN.md -- Design approval management + notification webhook triggers
+**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 18: Feature Depth -- Records
@@ -117,12 +110,7 @@ Plans:
   3. Artist can click into a session detail view showing full info with linked payment records and image gallery, and can edit any field inline
   4. Artist can generate a PDF receipt for any payment and manage product image galleries with visibility toggles for the public store
   5. Artist can track order fulfillment through status steps, add shipping tracking numbers, and process returns
-**Plans**: 4 plans
-Plans:
-- [ ] 18-01-PLAN.md -- Customer bulk actions, CSV import, and customer detail inline editing
-- [ ] 18-02-PLAN.md -- Appointment conflict UI and session detail page with inline editing
-- [ ] 18-03-PLAN.md -- Product image galleries and order fulfillment timeline (schema changes)
-- [ ] 18-04-PLAN.md -- Payment PDF receipt generation via Stirling PDF
+**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 19: Feature Depth -- Platform
@@ -193,9 +181,9 @@ Plans:
 | 13. Security Hardening | v2.0 | 0/? | Not started | - |
 | 14. Data Layer Fixes | v2.0 | 0/? | Not started | - |
 | 15. UI Foundations | v2.0 | 0/? | Not started | - |
-| 16. Missing Pages -- Core | v2.0 | 2/2 | Complete    | 2026-03-29 |
-| 17. Missing Pages -- Operations | v2.0 | 3/3 | Complete    | 2026-03-29 |
-| 18. Feature Depth -- Records | v2.0 | 0/4 | Not started | - |
+| 16. Missing Pages -- Core | v2.0 | 0/? | Not started | - |
+| 17. Missing Pages -- Operations | v2.0 | 0/? | Not started | - |
+| 18. Feature Depth -- Records | v2.0 | 1/? | In progress | - |
 | 19. Feature Depth -- Platform | v2.0 | 0/? | Not started | - |
 | 20. Business Workflows | v2.0 | 0/? | Not started | - |
 | 21. Analytics Depth | v2.0 | 0/? | Not started | - |
