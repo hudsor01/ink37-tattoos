@@ -141,6 +141,49 @@ Deferred beyond v2.0.
 | Video consultations | Cal.com handles meeting links |
 | Multi-location support | Single studio operation |
 
+## v3.0 Requirements
+
+Requirements for production launch. Derived from comprehensive project audit (2026-03-30). 20 requirements across 6 categories.
+
+### Git & Merge
+
+- [ ] **GIT-01**: All v2.0 phase branch commits are merged to main via clean PR
+- [ ] **GIT-02**: All worktree-agent-* branches are deleted after merge
+- [ ] **GIT-03**: Phase branches are cleaned up (delete after merge to main)
+
+### CI/CD
+
+- [ ] **CICD-01**: GitHub Actions workflow runs `bun run test` on all PRs to main
+- [ ] **CICD-02**: GitHub Actions workflow runs `bun run build` on all PRs to main
+- [ ] **CICD-03**: Vercel auto-deploys on merge to main (Vercel GitHub integration)
+
+### Monitoring & Observability
+
+- [ ] **MON-01**: Sentry SDK integrated for error tracking in production
+- [ ] **MON-02**: Health check endpoint at /api/health returns 200 + DB connectivity status
+- [ ] **MON-03**: Structured logging with Pino replaces console.error/log
+- [ ] **MON-04**: Vercel Analytics or Web Vitals tracking enabled
+
+### Missing Assets
+
+- [ ] **ASSET-01**: 7 gallery video files (.mov) copied from source repo to public/videos/
+- [ ] **ASSET-02**: Search engine verification files (Bing, Google) copied from source repo
+- [ ] **ASSET-03**: PWA manifest.json + site.webmanifest + service worker from source repo
+
+### Database & Infrastructure
+
+- [ ] **DB-01**: Drizzle migrations consolidated -- single clean migration from baseline to v3.0 schema
+- [ ] **DB-02**: Production database seeded with initial data (artist profile, default settings, consent form)
+- [ ] **INFRA-01**: n8n workflows configured at n8n.thehudsonfam.com (balance-due daily + no-show hourly cron)
+- [ ] **INFRA-02**: CSP tightened -- replace unsafe-inline/unsafe-eval with nonce-based CSP where possible
+- [ ] **INFRA-03**: Rate limiting added to admin API routes (/api/admin/*, /api/upload/*)
+- [ ] **INFRA-04**: Production environment variables documented and audited in Vercel dashboard
+
+### Documentation
+
+- [ ] **DOC-01**: DEPLOYMENT.md -- production deployment checklist, env var setup, DNS cutover, rollback
+- [ ] **DOC-02**: README.md updated with project overview, setup instructions, architecture
+
 ## Traceability
 
 | Requirement | Phase | Status |
