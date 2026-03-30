@@ -3,7 +3,7 @@ import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { eq, and, sql, desc } from 'drizzle-orm';
+import { eq, and, sql, desc, inArray } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 import type { PaginationParams, PaginatedResult } from './types';
 import { DEFAULT_PAGE_SIZE } from './types';
@@ -19,13 +19,21 @@ async function requireStaffRole() {
   return session;
 }
 
+export type MediaApprovalStatus = 'approved' | 'pending' | 'all';
+
 export const getMediaItems = cache(async (
-  params: PaginationParams = { page: 1, pageSize: DEFAULT_PAGE_SIZE }
+  params: PaginationParams & {
+    tag?: string;
+    approvalStatus?: MediaApprovalStatus;
+  } = { page: 1, pageSize: DEFAULT_PAGE_SIZE }
 ): Promise<PaginatedResult<{
   id: string;
   name: string;
   fileUrl: string;
+  thumbnailUrl: string | null;
   designType: string | null;
+  tags: string[] | null;
+  isApproved: boolean;
   isPublic: boolean;
   createdAt: Date;
 }>> => {
@@ -38,11 +46,28 @@ export const getMediaItems = cache(async (
     );
   }
 
+  // Tag filter using SQL array containment
+  if (params.tag) {
+    conditions.push(
+      sql`${schema.tattooDesign.tags} @> ARRAY[${params.tag}]::text[]`
+    );
+  }
+
+  // Approval status filter
+  if (params.approvalStatus === 'approved') {
+    conditions.push(eq(schema.tattooDesign.isApproved, true));
+  } else if (params.approvalStatus === 'pending') {
+    conditions.push(eq(schema.tattooDesign.isApproved, false));
+  }
+
   const results = await db.select({
     id: schema.tattooDesign.id,
     name: schema.tattooDesign.name,
     fileUrl: schema.tattooDesign.fileUrl,
+    thumbnailUrl: schema.tattooDesign.thumbnailUrl,
     designType: schema.tattooDesign.designType,
+    tags: schema.tattooDesign.tags,
+    isApproved: schema.tattooDesign.isApproved,
     isPublic: schema.tattooDesign.isPublic,
     createdAt: schema.tattooDesign.createdAt,
     total: sql<number>`cast(count(*) over() as integer)`,
@@ -130,6 +155,26 @@ export async function togglePublicVisibility(id: string, isPublic: boolean) {
   await requireStaffRole();
   const [result] = await db.update(schema.tattooDesign)
     .set({ isPublic })
+    .where(eq(schema.tattooDesign.id, id))
+    .returning();
+  if (!result) throw new Error('Media item not found');
+  return result;
+}
+
+export async function bulkUpdateTags(ids: string[], tags: string[]) {
+  await requireStaffRole();
+  if (ids.length === 0) return [];
+  const results = await db.update(schema.tattooDesign)
+    .set({ tags })
+    .where(inArray(schema.tattooDesign.id, ids))
+    .returning();
+  return results;
+}
+
+export async function toggleMediaApproval(id: string, isApproved: boolean) {
+  await requireStaffRole();
+  const [result] = await db.update(schema.tattooDesign)
+    .set({ isApproved })
     .where(eq(schema.tattooDesign.id, id))
     .returning();
   if (!result) throw new Error('Media item not found');
