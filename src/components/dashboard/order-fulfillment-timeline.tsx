@@ -13,7 +13,6 @@ interface OrderFulfillmentTimelineProps {
 
 const TIMELINE_STEPS = [
   { status: 'PAID', label: 'Paid', icon: Check },
-  { status: 'PROCESSING', label: 'Processing', icon: Package },
   { status: 'SHIPPED', label: 'Shipped', icon: Truck },
   { status: 'DELIVERED', label: 'Delivered', icon: PackageCheck },
 ] as const;
@@ -21,9 +20,8 @@ const TIMELINE_STEPS = [
 // Map statuses to their progression index (0-based)
 const STATUS_INDEX: Record<string, number> = {
   PAID: 0,
-  PROCESSING: 1,
-  SHIPPED: 2,
-  DELIVERED: 3,
+  SHIPPED: 1,
+  DELIVERED: 2,
 };
 
 export function OrderFulfillmentTimeline({
