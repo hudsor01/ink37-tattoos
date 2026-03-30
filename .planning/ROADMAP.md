@@ -123,9 +123,9 @@
   3. Analytics page supports custom date ranges, CSV/PDF export, period-over-period comparison, and additional KPIs (CLV, no-show rate, avg session duration)
   4. Settings are organized into logical tabs (Studio, Email, Payment, Hours, Terms) with unsaved changes warnings and operating hours management
   5. Any list page in the dashboard can export data to CSV, switch between paginated and "show all" views, and jump to a specific page
-**Plans:** 1/3 plans executed
+**Plans:** 3 plans
 Plans:
-- [x] 19-01-PLAN.md -- DataTable universal features (CSV export, show-all, page-jump) + dashboard overview
+- [ ] 19-01-PLAN.md -- DataTable universal features (CSV export, show-all, page-jump) + dashboard overview
 - [ ] 19-02-PLAN.md -- Media management (tags, bulk upload, approval) + analytics enhancements (date range, export, KPIs)
 - [ ] 19-03-PLAN.md -- Settings 5-tab restructure + audit log advanced filtering and diffs
 **UI hint**: yes
@@ -188,7 +188,7 @@ Plans:
 | 16. Missing Pages -- Core | v2.0 | 0/? | Not started | - |
 | 17. Missing Pages -- Operations | v2.0 | 0/? | Not started | - |
 | 18. Feature Depth -- Records | v2.0 | 1/? | Complete    | 2026-03-30 |
-| 19. Feature Depth -- Platform | v2.0 | 1/3 | In Progress|  |
+| 19. Feature Depth -- Platform | v2.0 | 1/3 | In Progress | - |
 | 20. Business Workflows | v2.0 | 0/? | Not started | - |
 | 21. Analytics Depth | v2.0 | 0/? | Not started | - |
 | 22. Testing and Tech Debt | v2.0 | 0/? | Not started | - |
