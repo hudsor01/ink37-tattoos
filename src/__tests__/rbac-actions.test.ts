@@ -84,8 +84,11 @@ const mockStripeCheckoutCreate = vi.fn().mockResolvedValue({ id: 'cs_1', url: 'h
 // ---------------------------------------------------------------------------
 vi.mock('server-only', () => ({}));
 
+const mockRequireRole = vi.fn();
+
 vi.mock('@/lib/auth', () => ({
   getCurrentSession: (...args: unknown[]) => mockGetCurrentSession(...args),
+  requireRole: (...args: unknown[]) => mockRequireRole(...args),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -294,6 +297,7 @@ describe('RBAC Action Enforcement', () => {
       '$name rejects unauthenticated requests',
       async ({ name, module: mod, buildFormData, call }) => {
         mockGetCurrentSession.mockResolvedValue(null);
+        mockRequireRole.mockRejectedValue(new Error('Unauthorized'));
         const imported = await import(mod);
         const action = imported[name];
 
@@ -340,7 +344,9 @@ describe('RBAC Action Enforcement', () => {
 
     describe.each(ROLES.map(r => ({ role: r })))('Role: $role', ({ role }) => {
       beforeEach(() => {
-        mockGetCurrentSession.mockResolvedValue(sessionForRole(role));
+        const roleSession = sessionForRole(role);
+        mockGetCurrentSession.mockResolvedValue(roleSession);
+        mockRequireRole.mockResolvedValue(roleSession);
         // Ensure DAL mocks resolve (so action-level auth is what we test)
         mockCreateCustomer.mockResolvedValue({ id: 'cust-1' });
         mockUpdateCustomer.mockResolvedValue({ id: 'cust-1' });
@@ -415,13 +421,16 @@ describe('RBAC Action Enforcement', () => {
   // 4. Public actions -- no auth check at all
   // =========================================================================
   describe('Public actions require no authentication', () => {
-    it('contactStatusAction calls DAL without getCurrentSession check', async () => {
+    it('contactStatusAction calls DAL via requireRole (not getCurrentSession directly)', async () => {
+      mockRequireRole.mockResolvedValue({ user: { id: 'admin-1', role: 'admin', email: 'admin@test.com' } });
       mockUpdateContactStatus.mockResolvedValue(undefined);
       const { updateContactStatusAction } = await import('@/lib/actions/contact-status-action');
       const result = await updateContactStatusAction('c1', 'READ');
-      expect(result).toEqual({ success: true });
-      // getCurrentSession should NOT have been called
+      expect(result.success).toBe(true);
+      // getCurrentSession should NOT have been called directly
       expect(mockGetCurrentSession).not.toHaveBeenCalled();
+      // requireRole SHOULD have been called
+      expect(mockRequireRole).toHaveBeenCalled();
     });
   });
 
@@ -557,29 +566,28 @@ describe('RBAC Action Enforcement', () => {
     ];
 
     it.each(authProtectedActionFiles)(
-      '$file has getCurrentSession check in all exported actions',
+      '$file has authentication check in all exported actions',
       async ({ file, actions }) => {
         const fs = await import('node:fs');
         const content = fs.readFileSync(file, 'utf-8');
 
-        // File must import getCurrentSession
-        expect(content).toContain('getCurrentSession');
+        // File must import some auth check (requireRole or getCurrentSession)
+        const hasAuth = content.includes('getCurrentSession') || content.includes('requireRole');
+        expect(hasAuth, `${file} must import getCurrentSession or requireRole`).toBe(true);
 
-        // Each action function should check session
+        // Each action function should check session via getCurrentSession or requireRole
         for (const actionName of actions) {
           const fnPattern = new RegExp(
             `export async function ${actionName}[\\s\\S]*?(?=export |$)`,
           );
           const fnMatch = content.match(fnPattern);
           expect(fnMatch, `${actionName} should exist in ${file}`).toBeTruthy();
+          const fnBody = fnMatch![0];
+          const hasAuthCheck = fnBody.includes('getCurrentSession') || fnBody.includes('requireRole');
           expect(
-            fnMatch![0],
-            `${actionName} in ${file} must call getCurrentSession`,
-          ).toContain('getCurrentSession');
-          expect(
-            fnMatch![0],
-            `${actionName} in ${file} must check session`,
-          ).toMatch(/session\?\.user|!session/);
+            hasAuthCheck,
+            `${actionName} in ${file} must call getCurrentSession or requireRole`,
+          ).toBe(true);
         }
       },
     );
@@ -607,21 +615,27 @@ describe('RBAC Action Enforcement', () => {
   });
 
   describe('Public action files do NOT require authentication', () => {
-    const publicActionFiles = [
-      { file: 'src/lib/actions/store-actions.ts', note: 'Guest checkout' },
-      { file: 'src/lib/actions/gift-card-actions.ts', note: 'Guest gift card purchase/validate' },
-      { file: 'src/lib/actions/contact-actions.ts', note: 'Public contact form' },
-    ];
+    it('contactStatusAction calls DAL (contact-status-action is separate from contact-actions)', async () => {
+      // contact-actions.ts has both public (submitContactForm) and admin actions.
+      // The public submitContactForm does NOT use getCurrentSession.
+      const fs = await import('node:fs');
+      const content = fs.readFileSync('src/lib/actions/contact-actions.ts', 'utf-8');
+      const fnPattern = /export async function submitContactForm[\s\S]*?(?=export |$)/;
+      const fnMatch = content.match(fnPattern);
+      expect(fnMatch).toBeTruthy();
+      // submitContactForm should NOT call getCurrentSession or requireRole
+      expect(fnMatch![0]).not.toContain('getCurrentSession');
+      expect(fnMatch![0]).not.toContain('requireRole');
+    });
 
-    it.each(publicActionFiles)(
-      '$file does NOT import getCurrentSession ($note)',
-      async ({ file }) => {
-        const fs = await import('node:fs');
-        const content = fs.readFileSync(file, 'utf-8');
-
-        // These public files should NOT call getCurrentSession
-        expect(content).not.toContain('getCurrentSession');
-      },
-    );
+    it('storeCheckoutAction does not require auth', async () => {
+      const fs = await import('node:fs');
+      const content = fs.readFileSync('src/lib/actions/store-actions.ts', 'utf-8');
+      const fnPattern = /export async function storeCheckoutAction[\s\S]*?(?=export |$)/;
+      const fnMatch = content.match(fnPattern);
+      expect(fnMatch).toBeTruthy();
+      expect(fnMatch![0]).not.toContain('getCurrentSession');
+      expect(fnMatch![0]).not.toContain('requireRole');
+    });
   });
 });

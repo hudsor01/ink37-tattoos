@@ -95,6 +95,15 @@ vi.mock('@/lib/db/schema', () => ({
   customer: { userId: 'userId', id: 'id', stripeCustomerId: 'stripeCustomerId' },
 }));
 
+vi.mock('@/lib/security/rate-limiter', () => ({
+  rateLimiters: {
+    portalBilling: { limit: vi.fn().mockResolvedValue({ success: true, reset: Date.now() + 60000 }) },
+  },
+  getRequestIp: vi.fn().mockReturnValue('127.0.0.1'),
+  rateLimitResponse: vi.fn().mockReturnValue(Response.json({ error: 'Too many requests' }, { status: 429 })),
+  rateLimit: vi.fn().mockReturnValue(true),
+}));
+
 vi.mock('drizzle-orm', () => ({
   eq: vi.fn((...args: unknown[]) => args),
   and: vi.fn((...args: unknown[]) => args),
@@ -156,20 +165,43 @@ describe('RBAC Route Enforcement', () => {
       },
     ];
 
-    describe.each(adminRoutes)('$name', ({ module: mod, dalMock }) => {
+    describe.each(adminRoutes)('$name', ({ name, module: mod, dalMock }) => {
       it('returns data when DAL succeeds (staff+ role)', async () => {
+        mockGetCurrentSession.mockResolvedValue({
+          user: { id: 'admin-1', role: 'admin', email: 'admin@test.com' },
+        });
         dalMock.mockResolvedValue([{ id: '1' }]);
         const { GET } = await import(mod);
-        const response = await GET();
-        const data = await response.json();
-        expect(response.status).toBe(200);
-        expect(data).toEqual([{ id: '1' }]);
+        // Media route requires NextRequest with nextUrl
+        if (name === '/api/admin/media') {
+          const url = new URL('http://localhost/api/admin/media');
+          const req = new Request(url);
+          Object.defineProperty(req, 'nextUrl', { value: url });
+          const response = await GET(req as never);
+          const data = await response.json();
+          expect(response.status).toBe(200);
+          expect(data).toEqual([{ id: '1' }]);
+        } else {
+          const response = await GET();
+          const data = await response.json();
+          expect(response.status).toBe(200);
+          expect(data).toEqual([{ id: '1' }]);
+        }
       });
 
-      it('returns 401 when DAL throws (insufficient role or unauthenticated)', async () => {
+      it('returns 401 when unauthenticated', async () => {
+        mockGetCurrentSession.mockResolvedValue(null);
         dalMock.mockRejectedValue(new Error('Insufficient permissions'));
         const { GET } = await import(mod);
-        const response = await GET();
+        let response;
+        if (name === '/api/admin/media') {
+          const url = new URL('http://localhost/api/admin/media');
+          const req = new Request(url);
+          Object.defineProperty(req, 'nextUrl', { value: url });
+          response = await GET(req as never);
+        } else {
+          response = await GET();
+        }
         const data = await response.json();
         expect(response.status).toBe(401);
         expect(data.error).toBe('Unauthorized');
@@ -180,7 +212,7 @@ describe('RBAC Route Enforcement', () => {
   // =========================================================================
   // 2. Admin routes rely on DAL for RBAC -- source verification
   // =========================================================================
-  describe('Admin route files delegate auth to DAL (no direct session check)', () => {
+  describe('Admin route files enforce auth and delegate to DAL', () => {
     const adminRouteFiles = [
       'src/app/api/admin/customers/route.ts',
       'src/app/api/admin/media/route.ts',
@@ -189,19 +221,22 @@ describe('RBAC Route Enforcement', () => {
     ];
 
     it.each(adminRouteFiles.map(f => ({ file: f })))(
-      '$file delegates to DAL without direct getCurrentSession',
+      '$file uses getCurrentSession and delegates to DAL',
       async ({ file }) => {
         const fs = await import('node:fs');
         const content = fs.readFileSync(file, 'utf-8');
 
-        // Admin routes delegate to DAL -- they do NOT directly call getCurrentSession
-        expect(content).not.toContain('getCurrentSession');
+        // Admin routes check auth via getCurrentSession
+        expect(content).toContain('getCurrentSession');
 
         // They import from DAL
         expect(content).toContain('@/lib/dal/');
 
-        // They have try/catch that returns 401 on error
+        // They return 401 for unauthenticated
         expect(content).toContain('401');
+
+        // They check ADMIN_ROLES
+        expect(content).toContain('ADMIN_ROLES');
       },
     );
   });
@@ -214,7 +249,8 @@ describe('RBAC Route Enforcement', () => {
       it('returns 401 when not authenticated', async () => {
         mockGetCurrentSession.mockResolvedValue(null);
         const { POST } = await import('@/app/api/portal/billing/route');
-        const response = await POST();
+        const request = new Request('http://localhost/api/portal/billing', { method: 'POST' });
+        const response = await POST(request);
         const data = await response.json();
         expect(response.status).toBe(401);
         expect(data.error).toBe('Unauthorized');
@@ -241,7 +277,8 @@ describe('RBAC Route Enforcement', () => {
         mockCustomerFindFirst.mockResolvedValue(null);
 
         const { POST } = await import('@/app/api/portal/billing/route');
-        const response = await POST();
+        const request = new Request('http://localhost/api/portal/billing', { method: 'POST' });
+        const response = await POST(request);
         const data = await response.json();
         expect(response.status).toBe(404);
         expect(data.error).toContain('No customer record');
@@ -252,7 +289,8 @@ describe('RBAC Route Enforcement', () => {
         mockCustomerFindFirst.mockResolvedValue({ id: 'cust-1', stripeCustomerId: null });
 
         const { POST } = await import('@/app/api/portal/billing/route');
-        const response = await POST();
+        const request = new Request('http://localhost/api/portal/billing', { method: 'POST' });
+        const response = await POST(request);
         const data = await response.json();
         expect(response.status).toBe(404);
         expect(data.error).toContain('No Stripe customer');
@@ -377,8 +415,9 @@ describe('RBAC Route Enforcement', () => {
         const content = fs.readFileSync(routePath, 'utf-8');
 
         if (level === 'staff+') {
-          // Should delegate to DAL (no direct getCurrentSession)
-          expect(content).not.toContain('getCurrentSession');
+          // Admin routes now use getCurrentSession + ADMIN_ROLES check AND delegate to DAL
+          expect(content).toContain('getCurrentSession');
+          expect(content).toContain('ADMIN_ROLES');
           expect(content).toContain('@/lib/dal/');
         } else if (level === 'any-authenticated') {
           expect(content).toContain('getCurrentSession');

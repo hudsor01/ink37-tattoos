@@ -49,18 +49,18 @@ describe('Upload API Route (direct)', () => {
     expect(data.error).toBe('Unauthorized');
   });
 
-  it('returns 401 for user role (non-staff)', async () => {
+  it('returns 403 for user role (non-admin)', async () => {
     mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'user' } });
 
     const { POST } = await import('@/app/api/upload/route');
     const response = await POST(makeFormDataRequest());
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(403);
     const data = await response.json();
-    expect(data.error).toBe('Unauthorized');
+    expect(data.error).toBe('Forbidden');
   });
 
   it('returns 400 when no file provided', async () => {
-    mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'staff' } });
+    mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'admin' } });
 
     const { POST } = await import('@/app/api/upload/route');
     const response = await POST(makeFormDataRequest());
@@ -81,7 +81,7 @@ describe('Upload API Route (direct)', () => {
   });
 
   it('returns 400 for file exceeding size limit', async () => {
-    mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'staff' } });
+    mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'admin' } });
     // Create a file > 10MB by providing size property
     const largeContent = new Uint8Array(11 * 1024 * 1024);
     const file = new File([largeContent], 'large.jpg', { type: 'image/jpeg' });
@@ -94,7 +94,7 @@ describe('Upload API Route (direct)', () => {
   });
 
   it('returns 200 with blob URL on successful upload', async () => {
-    mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'staff' } });
+    mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'admin' } });
     const file = new File(['imagedata'], 'photo.jpg', { type: 'image/jpeg' });
     mockPut.mockResolvedValue({
       url: 'https://blob.example.com/portfolio/photo-abc.jpg',
@@ -130,7 +130,7 @@ describe('Upload API Route (direct)', () => {
   });
 
   it('returns 500 when blob upload fails', async () => {
-    mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'staff' } });
+    mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'admin' } });
     const file = new File(['imagedata'], 'photo.jpg', { type: 'image/jpeg' });
     mockPut.mockRejectedValue(new Error('Blob service unavailable'));
 
@@ -140,11 +140,11 @@ describe('Upload API Route (direct)', () => {
     errorSpy.mockRestore();
     expect(response.status).toBe(500);
     const data = await response.json();
-    expect(data.error).toBe('Upload failed');
+    expect(data.error).toBe('Internal server error');
   });
 
   it('accepts video/mp4 file type', async () => {
-    mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'manager' } });
+    mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'admin' } });
     const file = new File(['videodata'], 'clip.mp4', { type: 'video/mp4' });
     mockPut.mockResolvedValue({ url: 'https://blob.example.com/x.mp4', pathname: 'x.mp4' });
 

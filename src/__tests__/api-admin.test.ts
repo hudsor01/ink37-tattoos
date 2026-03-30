@@ -43,12 +43,18 @@ vi.mock('@/lib/dal/sessions', () => ({
   getSessions: (...args: unknown[]) => mockGetSessions(...args),
 }));
 
+const adminSession = {
+  user: { id: 'test-user', role: 'admin', email: 'admin@test.com' },
+  session: { id: 'test-session' },
+};
+
 describe('Admin Customers API Route', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('returns 401 when DAL rejects unauthenticated request', async () => {
+    mockGetCurrentSession.mockResolvedValue(null);
     mockGetCustomers.mockRejectedValue(new Error('Unauthorized'));
 
     const { GET } = await import('@/app/api/admin/customers/route');
@@ -59,14 +65,17 @@ describe('Admin Customers API Route', () => {
   });
 
   it('returns 401 when DAL rejects insufficient role', async () => {
+    mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'user' } });
     mockGetCustomers.mockRejectedValue(new Error('Insufficient permissions: requires staff role or above'));
 
     const { GET } = await import('@/app/api/admin/customers/route');
     const response = await GET();
-    expect(response.status).toBe(401);
+    // Route checks role and returns 403 for non-admin users
+    expect(response.status).toBe(403);
   });
 
   it('returns 200 with customer data on success', async () => {
+    mockGetCurrentSession.mockResolvedValue(adminSession);
     const mockCustomerData = [
       { id: '1', firstName: 'John', lastName: 'Doe', email: 'john@test.com', phone: '555-0100', createdAt: new Date() },
       { id: '2', firstName: 'Jane', lastName: 'Smith', email: 'jane@test.com', phone: '555-0101', createdAt: new Date() },
@@ -82,6 +91,7 @@ describe('Admin Customers API Route', () => {
   });
 
   it('returns 200 with empty array when no customers', async () => {
+    mockGetCurrentSession.mockResolvedValue(adminSession);
     mockGetCustomers.mockResolvedValue([]);
 
     const { GET } = await import('@/app/api/admin/customers/route');
@@ -98,31 +108,39 @@ describe('Admin Media API Route', () => {
   });
 
   it('returns 401 when DAL rejects unauthenticated request', async () => {
+    mockGetCurrentSession.mockResolvedValue(null);
     mockGetMediaItems.mockRejectedValue(new Error('Unauthorized'));
 
     const { GET } = await import('@/app/api/admin/media/route');
-    const response = await GET();
+    const request = new Request('http://localhost/api/admin/media');
+    const response = await GET(request as never);
     expect(response.status).toBe(401);
     const data = await response.json();
     expect(data.error).toBe('Unauthorized');
   });
 
-  it('returns 401 when DAL rejects insufficient role', async () => {
+  it('returns 403 when user has insufficient role', async () => {
+    mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'user' } });
     mockGetMediaItems.mockRejectedValue(new Error('Insufficient permissions'));
 
     const { GET } = await import('@/app/api/admin/media/route');
-    const response = await GET();
-    expect(response.status).toBe(401);
+    const request = new Request('http://localhost/api/admin/media');
+    const response = await GET(request as never);
+    expect(response.status).toBe(403);
   });
 
   it('returns 200 with media items on success', async () => {
+    mockGetCurrentSession.mockResolvedValue(adminSession);
     const mockMediaData = [
       { id: '1', type: 'image', url: 'https://blob.example.com/img1.jpg', artist: { name: 'Artist' } },
     ];
     mockGetMediaItems.mockResolvedValue(mockMediaData);
 
     const { GET } = await import('@/app/api/admin/media/route');
-    const response = await GET();
+    const url = new URL('http://localhost/api/admin/media');
+    const request = new Request(url);
+    Object.defineProperty(request, 'nextUrl', { value: url });
+    const response = await GET(request as never);
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data).toEqual(mockMediaData);
@@ -134,8 +152,8 @@ describe('Admin Appointments API Route', () => {
     vi.clearAllMocks();
   });
 
-  it('returns 401 when DAL rejects unauthenticated request', async () => {
-    mockGetAppointments.mockRejectedValue(new Error('Unauthorized'));
+  it('returns 401 when unauthenticated', async () => {
+    mockGetCurrentSession.mockResolvedValue(null);
 
     const { GET } = await import('@/app/api/admin/appointments/route');
     const response = await GET();
@@ -144,15 +162,16 @@ describe('Admin Appointments API Route', () => {
     expect(data.error).toBe('Unauthorized');
   });
 
-  it('returns 401 when DAL rejects insufficient role', async () => {
-    mockGetAppointments.mockRejectedValue(new Error('Insufficient permissions'));
+  it('returns 403 when user has insufficient role', async () => {
+    mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'user' } });
 
     const { GET } = await import('@/app/api/admin/appointments/route');
     const response = await GET();
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(403);
   });
 
   it('returns 200 with appointments on success', async () => {
+    mockGetCurrentSession.mockResolvedValue(adminSession);
     const mockAppointmentData = [
       {
         id: 'apt-1',
@@ -176,8 +195,8 @@ describe('Admin Sessions API Route', () => {
     vi.clearAllMocks();
   });
 
-  it('returns 401 when DAL rejects unauthenticated request', async () => {
-    mockGetSessions.mockRejectedValue(new Error('Unauthorized'));
+  it('returns 401 when unauthenticated', async () => {
+    mockGetCurrentSession.mockResolvedValue(null);
 
     const { GET } = await import('@/app/api/admin/sessions/route');
     const response = await GET();
@@ -186,15 +205,16 @@ describe('Admin Sessions API Route', () => {
     expect(data.error).toBe('Unauthorized');
   });
 
-  it('returns 401 when DAL rejects insufficient role', async () => {
-    mockGetSessions.mockRejectedValue(new Error('Insufficient permissions'));
+  it('returns 403 when user has insufficient role', async () => {
+    mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'user' } });
 
     const { GET } = await import('@/app/api/admin/sessions/route');
     const response = await GET();
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(403);
   });
 
   it('returns 200 with sessions on success', async () => {
+    mockGetCurrentSession.mockResolvedValue(adminSession);
     const mockSessionData = [
       { id: 'sess-1', status: 'SCHEDULED', designDescription: 'Rose tattoo' },
     ];
@@ -208,6 +228,7 @@ describe('Admin Sessions API Route', () => {
   });
 
   it('returns 200 with empty array when no sessions', async () => {
+    mockGetCurrentSession.mockResolvedValue(adminSession);
     mockGetSessions.mockResolvedValue([]);
 
     const { GET } = await import('@/app/api/admin/sessions/route');
