@@ -32,7 +32,7 @@
 - [ ] **Phase 15: UI Foundations** - Loading/error/empty states, responsive tables, accessibility, form UX patterns
 - [ ] **Phase 16: Missing Pages -- Core** - Artist profile, calendar view, contacts management, gift card management
 - [ ] **Phase 17: Missing Pages -- Operations** - Financial reports, notification center, design approval management
-- [x] **Phase 18: Feature Depth -- Records** - Enhanced customers, appointments, sessions, payments, products, orders (completed 2026-03-30)
+- [ ] **Phase 18: Feature Depth -- Records** - Enhanced customers, appointments, sessions, payments, products, orders
 - [ ] **Phase 19: Feature Depth -- Platform** - Dashboard overview, media, analytics, settings, audit log, list export
 - [ ] **Phase 20: Business Workflows** - Deposits, consent, aftercare, reminders, invoices, portal onboarding
 - [ ] **Phase 21: Analytics Depth** - Revenue, booking, customer, and operational analytics
@@ -123,11 +123,7 @@
   3. Analytics page supports custom date ranges, CSV/PDF export, period-over-period comparison, and additional KPIs (CLV, no-show rate, avg session duration)
   4. Settings are organized into logical tabs (Studio, Email, Payment, Hours, Terms) with unsaved changes warnings and operating hours management
   5. Any list page in the dashboard can export data to CSV, switch between paginated and "show all" views, and jump to a specific page
-**Plans:** 3 plans
-Plans:
-- [ ] 19-01-PLAN.md -- DataTable universal features (CSV export, show-all, page-jump) + dashboard overview
-- [ ] 19-02-PLAN.md -- Media management (tags, bulk upload, approval) + analytics enhancements (date range, export, KPIs)
-- [ ] 19-03-PLAN.md -- Settings 5-tab restructure + audit log advanced filtering and diffs
+**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 20: Business Workflows
@@ -187,8 +183,8 @@ Plans:
 | 15. UI Foundations | v2.0 | 0/? | Not started | - |
 | 16. Missing Pages -- Core | v2.0 | 0/? | Not started | - |
 | 17. Missing Pages -- Operations | v2.0 | 0/? | Not started | - |
-| 18. Feature Depth -- Records | v2.0 | 1/? | Complete    | 2026-03-30 |
-| 19. Feature Depth -- Platform | v2.0 | 1/3 | In Progress | - |
+| 18. Feature Depth -- Records | v2.0 | 0/? | Not started | - |
+| 19. Feature Depth -- Platform | v2.0 | 1/? | In progress | - |
 | 20. Business Workflows | v2.0 | 0/? | Not started | - |
 | 21. Analytics Depth | v2.0 | 0/? | Not started | - |
 | 22. Testing and Tech Debt | v2.0 | 0/? | Not started | - |
