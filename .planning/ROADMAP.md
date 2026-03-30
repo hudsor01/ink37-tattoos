@@ -117,7 +117,12 @@ Plans:
   3. Artist can click into a session detail view showing full info with linked payment records and image gallery, and can edit any field inline
   4. Artist can generate a PDF receipt for any payment and manage product image galleries with visibility toggles for the public store
   5. Artist can track order fulfillment through status steps, add shipping tracking numbers, and process returns
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 18-01-PLAN.md -- Customer bulk actions, CSV import, and customer detail inline editing
+- [ ] 18-02-PLAN.md -- Appointment conflict UI and session detail page with inline editing
+- [ ] 18-03-PLAN.md -- Product image galleries and order fulfillment timeline (schema changes)
+- [ ] 18-04-PLAN.md -- Payment PDF receipt generation via Stirling PDF
 **UI hint**: yes
 
 ### Phase 19: Feature Depth -- Platform
@@ -190,7 +195,7 @@ Plans:
 | 15. UI Foundations | v2.0 | 0/? | Not started | - |
 | 16. Missing Pages -- Core | v2.0 | 2/2 | Complete    | 2026-03-29 |
 | 17. Missing Pages -- Operations | v2.0 | 3/3 | Complete    | 2026-03-29 |
-| 18. Feature Depth -- Records | v2.0 | 0/? | Not started | - |
+| 18. Feature Depth -- Records | v2.0 | 0/4 | Not started | - |
 | 19. Feature Depth -- Platform | v2.0 | 0/? | Not started | - |
 | 20. Business Workflows | v2.0 | 0/? | Not started | - |
 | 21. Analytics Depth | v2.0 | 0/? | Not started | - |
