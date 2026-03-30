@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { type ColumnDef } from '@/components/dashboard/data-table';
-import { ResponsiveDataTable, type MobileField } from '@/components/dashboard/responsive-data-table';
+import Link from 'next/link';
+import { DataTable, type ColumnDef } from '@/components/dashboard/data-table';
 import { StatusBadge } from '@/components/dashboard/status-badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,8 +17,7 @@ import { SessionForm } from '@/components/dashboard/session-form';
 import { deleteSessionAction } from '@/lib/actions/session-actions';
 import { sessionsQueryOptions } from '@/lib/query-options';
 import { formatDuration, intervalToDuration } from 'date-fns';
-import { Plus, Check, X, Trash2, Eye, Paintbrush } from 'lucide-react';
-import { EmptyState } from '@/components/dashboard/empty-state';
+import { Plus, Check, X, Trash2, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface SessionWithRelations {
@@ -54,6 +53,18 @@ const columns: ColumnDef<SessionWithRelations, unknown>[] = [
       const c = row.original.customer;
       return `${c.firstName} ${c.lastName}`;
     },
+  },
+  {
+    accessorKey: 'designDescription',
+    header: 'Design',
+    cell: ({ row }) => (
+      <Link
+        href={`/dashboard/sessions/${row.original.id}`}
+        className="text-primary hover:underline max-w-xs truncate block"
+      >
+        {row.original.designDescription}
+      </Link>
+    ),
   },
   {
     accessorKey: 'appointmentDate',
@@ -122,7 +133,6 @@ const columns: ColumnDef<SessionWithRelations, unknown>[] = [
 
 export function SessionListClient() {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [detailSession, setDetailSession] = useState<SessionWithRelations | null>(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -152,9 +162,10 @@ export function SessionListClient() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setDetailSession(row.original)}
+            render={<Link href={`/dashboard/sessions/${row.original.id}`} />}
           >
             <Eye className="h-4 w-4" />
+            <span className="sr-only">View Details</span>
           </Button>
           <Button
             variant="ghost"
@@ -168,27 +179,17 @@ export function SessionListClient() {
     },
   ];
 
-  const mobileFields: MobileField<SessionWithRelations>[] = [
-    { label: 'Customer', accessor: (s) => `${s.customer.firstName} ${s.customer.lastName}` },
-    { label: 'Date', accessor: (s) => new Date(s.appointmentDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) },
-    { label: 'Style', accessor: (s) => s.style },
-    { label: 'Status', accessor: (s) => <StatusBadge status={s.status} /> },
-  ];
-
   if (!sessions || sessions.length === 0) {
     return (
-      <>
-        <EmptyState
-          icon={Paintbrush}
-          title="No sessions recorded"
-          description="Log a tattoo session after completing an appointment."
-          action={
-            <Button onClick={() => setDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Log Session
-            </Button>
-          }
-        />
+      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12">
+        <h3 className="text-lg font-semibold">No sessions recorded</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Log a tattoo session after completing an appointment.
+        </p>
+        <Button className="mt-4" onClick={() => setDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Log Session
+        </Button>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
@@ -205,7 +206,7 @@ export function SessionListClient() {
             />
           </DialogContent>
         </Dialog>
-      </>
+      </div>
     );
   }
 
@@ -219,22 +220,7 @@ export function SessionListClient() {
         </Button>
       </div>
 
-      <ResponsiveDataTable
-        columns={columnsWithActions}
-        data={sessions}
-        searchKey="customer"
-        mobileFields={mobileFields}
-        mobileActions={(row) => (
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="sm" onClick={() => setDetailSession(row)}>
-              <Eye className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => handleDelete(row.id)}>
-              <Trash2 className="h-4 w-4 text-destructive" />
-            </Button>
-          </div>
-        )}
-      />
+      <DataTable columns={columnsWithActions} data={sessions} searchKey="customer" />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-2xl">
@@ -253,83 +239,6 @@ export function SessionListClient() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!detailSession} onOpenChange={() => setDetailSession(null)}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Session Details</DialogTitle>
-          </DialogHeader>
-          {detailSession && (
-            <div className="space-y-3 text-sm">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <span className="text-muted-foreground">Customer:</span>{' '}
-                  {detailSession.customer.firstName} {detailSession.customer.lastName}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Artist:</span>{' '}
-                  {detailSession.artist.name}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Date:</span>{' '}
-                  {new Date(detailSession.appointmentDate).toLocaleDateString()}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Duration:</span>{' '}
-                  {detailSession.duration} min
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Style:</span>{' '}
-                  {detailSession.style}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Size:</span>{' '}
-                  {detailSession.size}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Placement:</span>{' '}
-                  {detailSession.placement}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Status:</span>{' '}
-                  <StatusBadge status={detailSession.status} />
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Total Cost:</span>{' '}
-                  {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
-                    Number(detailSession.totalCost)
-                  )}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Paid:</span>{' '}
-                  {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
-                    Number(detailSession.paidAmount)
-                  )}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Consent:</span>{' '}
-                  {detailSession.consentSigned ? 'Signed' : 'Not signed'}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Aftercare:</span>{' '}
-                  {detailSession.aftercareProvided ? 'Provided' : 'Not provided'}
-                </div>
-              </div>
-              {detailSession.designDescription && (
-                <div>
-                  <span className="text-muted-foreground">Design:</span>{' '}
-                  {detailSession.designDescription}
-                </div>
-              )}
-              {detailSession.notes && (
-                <div>
-                  <span className="text-muted-foreground">Notes:</span>{' '}
-                  {detailSession.notes}
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </>
   );
 }

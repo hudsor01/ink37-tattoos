@@ -30,7 +30,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
 
 const APPOINTMENT_TYPES = [
   { value: 'CONSULTATION', label: 'Consultation' },
@@ -59,12 +58,14 @@ interface AppointmentFormProps {
   };
   customerId?: string;
   onSuccess?: () => void;
+  onConflict?: (formData: FormData, appointmentId?: string) => void;
 }
 
 export function AppointmentForm({
   appointment,
   customerId,
   onSuccess,
+  onConflict,
 }: AppointmentFormProps) {
   const queryClient = useQueryClient();
   const isEdit = !!appointment;
@@ -92,8 +93,6 @@ export function AppointmentForm({
     },
   });
 
-  useUnsavedChanges(form.formState.isDirty);
-
   async function onSubmit(data: CreateAppointmentData) {
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
@@ -101,33 +100,27 @@ export function AppointmentForm({
       formData.append(key, String(value));
     });
 
-    const action = isEdit && appointment
-      ? updateAppointmentAction(appointment.id, formData)
-      : createAppointmentAction(formData);
+    try {
+      const result = isEdit && appointment
+        ? await updateAppointmentAction(appointment.id, formData)
+        : await createAppointmentAction(formData);
 
-    toast.promise(
-      action.then(async (result) => {
-        if (!result.success) {
-          if (result.fieldErrors) {
-            Object.entries(result.fieldErrors).forEach(([field, messages]) => {
-              form.setError(field as keyof CreateAppointmentData, {
-                type: 'server',
-                message: messages[0],
-              });
-            });
-          }
-          throw new Error(result.error || 'Something went wrong');
+      // Handle conflict response
+      if (result && 'success' in result && !result.success && result.error === 'SCHEDULING_CONFLICT') {
+        if (onConflict) {
+          onConflict(formData, isEdit ? appointment?.id : undefined);
+        } else {
+          toast.error('A scheduling conflict was detected. Another appointment exists at this time.');
         }
-        await queryClient.invalidateQueries({ queryKey: ['appointments'] });
-        onSuccess?.();
-        return result;
-      }),
-      {
-        loading: isEdit ? 'Updating appointment...' : 'Creating appointment...',
-        success: isEdit ? 'Appointment updated successfully' : 'Appointment created successfully',
-        error: (err) => err.message || "Changes couldn't be saved. Please try again.",
+        return;
       }
-    );
+
+      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      onSuccess?.();
+      toast.success(isEdit ? 'Appointment updated successfully' : 'Appointment created successfully');
+    } catch {
+      toast.error("Changes couldn't be saved. Please try again.");
+    }
   }
 
   return (
@@ -147,7 +140,7 @@ export function AppointmentForm({
           )}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="firstName"
@@ -176,7 +169,7 @@ export function AppointmentForm({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="email"
@@ -209,7 +202,7 @@ export function AppointmentForm({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="scheduledDate"
@@ -287,7 +280,7 @@ export function AppointmentForm({
           )}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <FormField
             control={form.control}
             name="tattooType"
