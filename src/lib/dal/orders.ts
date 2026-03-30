@@ -36,13 +36,14 @@ export const getOrders = cache(async (
   total: number;
   createdAt: Date;
   shippingName: string | null;
+  items: Array<{ id: string }>;
 }>> => {
   await requireStaffRole();
 
   const conditions = [];
   if (params.search) {
     conditions.push(
-      sql`${schema.order.searchVector} @@ plainto_tsquery('english', ${params.search})`
+      sql`(${schema.order.email} ilike ${'%' + params.search + '%'} or ${schema.order.shippingName} ilike ${'%' + params.search + '%'})`
     );
   }
 
@@ -56,6 +57,7 @@ export const getOrders = cache(async (
     total: schema.order.total,
     createdAt: schema.order.createdAt,
     shippingName: schema.order.shippingName,
+    itemCount: sql<number>`cast((select count(*) from ${schema.orderItem} where ${schema.orderItem.orderId} = ${schema.order.id}) as integer)`,
     totalCount: sql<number>`cast(count(*) over() as integer)`,
   })
     .from(schema.order)
@@ -67,7 +69,10 @@ export const getOrders = cache(async (
   const total = results[0]?.totalCount ?? 0;
 
   return {
-    data: results.map(({ totalCount: _, ...row }) => row),
+    data: results.map(({ totalCount: _, itemCount, ...row }) => ({
+      ...row,
+      items: Array.from({ length: itemCount }, (__, i) => ({ id: String(i) })),
+    })),
     total,
     page: params.page,
     pageSize: params.pageSize,

@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { stripe } from '@/lib/stripe';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { eq, and, sql, desc } from 'drizzle-orm';
+import { eq, and, sql, desc, count } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 import type { PaginationParams, PaginatedResult } from './types';
 import { DEFAULT_PAGE_SIZE } from './types';
@@ -81,39 +81,40 @@ export const getPayments = cache(async (
   amount: number;
   status: string;
   type: string;
-  stripeCheckoutSessionId: string | null;
-  stripePaymentIntentId: string | null;
   receiptUrl: string | null;
   completedAt: Date | null;
   createdAt: Date;
-  tattooSessionId: string;
-  customerId: string;
+  customer: { firstName: string; lastName: string; email: string | null };
+  tattooSession: { designDescription: string; totalCost: number };
 }>> => {
   await requireStaffRole();
 
-  const results = await db.select({
-    id: schema.payment.id,
-    amount: schema.payment.amount,
-    status: schema.payment.status,
-    type: schema.payment.type,
-    stripeCheckoutSessionId: schema.payment.stripeCheckoutSessionId,
-    stripePaymentIntentId: schema.payment.stripePaymentIntentId,
-    receiptUrl: schema.payment.receiptUrl,
-    completedAt: schema.payment.completedAt,
-    createdAt: schema.payment.createdAt,
-    tattooSessionId: schema.payment.tattooSessionId,
-    customerId: schema.payment.customerId,
-    total: sql<number>`cast(count(*) over() as integer)`,
-  })
-    .from(schema.payment)
-    .orderBy(desc(schema.payment.createdAt))
-    .limit(params.pageSize)
-    .offset((params.page - 1) * params.pageSize);
+  const [data, [countResult]] = await Promise.all([
+    db.query.payment.findMany({
+      columns: {
+        id: true,
+        amount: true,
+        status: true,
+        type: true,
+        receiptUrl: true,
+        completedAt: true,
+        createdAt: true,
+      },
+      with: {
+        customer: { columns: { firstName: true, lastName: true, email: true } },
+        tattooSession: { columns: { designDescription: true, totalCost: true } },
+      },
+      orderBy: [desc(schema.payment.createdAt)],
+      limit: params.pageSize,
+      offset: (params.page - 1) * params.pageSize,
+    }),
+    db.select({ count: count() }).from(schema.payment),
+  ]);
 
-  const total = results[0]?.total ?? 0;
+  const total = countResult?.count ?? 0;
 
   return {
-    data: results.map(({ total: _, ...row }) => row),
+    data,
     total,
     page: params.page,
     pageSize: params.pageSize,

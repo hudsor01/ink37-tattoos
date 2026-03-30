@@ -15,7 +15,8 @@ import Link from 'next/link';
 
 export default async function ProductsPage() {
   await connection();
-  const products = await getProducts();
+  const productsResult = await getProducts();
+  const products = productsResult.data;
 
   return (
     <div className="space-y-6">

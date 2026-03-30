@@ -40,7 +40,7 @@ export const getSessions = cache(async (
   const conditions = [];
   if (params.search) {
     conditions.push(
-      sql`${schema.tattooSession.searchVector} @@ plainto_tsquery('english', ${params.search})`
+      sql`(${schema.tattooSession.designDescription} ilike ${'%' + params.search + '%'} or ${schema.tattooSession.placement} ilike ${'%' + params.search + '%'} or ${schema.tattooSession.style} ilike ${'%' + params.search + '%'})`
     );
   }
 
@@ -158,3 +158,28 @@ export async function deleteSession(id: string) {
   if (!result) throw new Error('Session not found');
   return result;
 }
+
+/**
+ * Get sessions with customer data for the payment request dialog.
+ * Returns all active sessions (not cancelled) with deposit amounts.
+ */
+export const getSessionsForPaymentDialog = cache(async () => {
+  await requireStaffRole();
+  return db.query.tattooSession.findMany({
+    where: sql`${schema.tattooSession.status} != 'CANCELLED'`,
+    columns: {
+      id: true,
+      designDescription: true,
+      totalCost: true,
+      paidAmount: true,
+      depositAmount: true,
+    },
+    with: {
+      customer: {
+        columns: { firstName: true, lastName: true, email: true },
+      },
+    },
+    orderBy: [desc(schema.tattooSession.appointmentDate)],
+    limit: 100,
+  });
+});

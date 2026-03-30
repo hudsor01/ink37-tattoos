@@ -45,20 +45,7 @@ export default async function AuditLogPage({ searchParams }: AuditLogPageProps) 
         </p>
       </div>
       <AuditLogClient
-        logs={JSON.parse(JSON.stringify(logsResult.data))}
-        total={logsResult.total}
-        page={logsResult.page}
-        pageSize={logsResult.pageSize}
-        totalPages={logsResult.totalPages}
-        auditUsers={JSON.parse(JSON.stringify(auditUsers))}
-        filters={{
-          action: params.action || '',
-          resource: params.resource || '',
-          userId: params.userId || '',
-          search: params.search || '',
-          dateFrom: params.dateFrom || '',
-          dateTo: params.dateTo || '',
-        }}
+        initialLogs={JSON.parse(JSON.stringify(logsResult.data))}
       />
     </div>
   );

@@ -21,10 +21,12 @@ const currencyFormatter = new Intl.NumberFormat('en-US', {
 
 export default async function OrdersPage() {
   await connection();
-  const [orders, stats] = await Promise.all([
+  const [ordersResult, stats] = await Promise.all([
     getOrders(),
     getOrderStats(),
   ]);
+
+  const orders = ordersResult.data;
 
   return (
     <div className="space-y-6">

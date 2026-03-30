@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { CreateCustomerSchema, UpdateCustomerSchema } from '@/lib/security/validation';
 import { createCustomer, updateCustomer, deleteCustomer, checkDuplicateEmails } from '@/lib/dal/customers';
 import { logAudit } from '@/lib/dal/audit';
-import { requireRole } from '@/lib/auth';
+import { requireRole, getCurrentSession } from '@/lib/auth';
 import { safeAction } from './safe-action';
 import type { ActionResult } from './types';
 import { after } from 'next/server';
@@ -13,7 +13,6 @@ import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
 import * as schema from '@/lib/db/schema';
 import { inArray } from 'drizzle-orm';
-import type { ActionResult } from '@/lib/actions/types';
 
 export async function createCustomerAction(formData: FormData): Promise<ActionResult<{ id: string }>> {
   const session = await requireRole('admin');

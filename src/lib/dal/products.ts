@@ -51,16 +51,18 @@ export const getProducts = cache(async (
   description: string | null;
   price: number;
   productType: string;
+  imageUrl: string | null;
   isActive: boolean;
   createdAt: Date;
   stripePriceId: string | null;
+  _count: { orderItems: number };
 }>> => {
   await requireStaffRole();
 
   const conditions = [];
   if (params.search) {
     conditions.push(
-      sql`${schema.product.searchVector} @@ plainto_tsquery('english', ${params.search})`
+      sql`(${schema.product.name} ilike ${'%' + params.search + '%'} or ${schema.product.description} ilike ${'%' + params.search + '%'})`
     );
   }
 
@@ -70,9 +72,11 @@ export const getProducts = cache(async (
     description: schema.product.description,
     price: schema.product.price,
     productType: schema.product.productType,
+    imageUrl: schema.product.imageUrl,
     isActive: schema.product.isActive,
     createdAt: schema.product.createdAt,
     stripePriceId: schema.product.stripePriceId,
+    orderItemCount: sql<number>`cast((select count(*) from ${schema.orderItem} where ${schema.orderItem.productId} = ${schema.product.id}) as integer)`,
     total: sql<number>`cast(count(*) over() as integer)`,
   })
     .from(schema.product)
@@ -84,7 +88,10 @@ export const getProducts = cache(async (
   const total = results[0]?.total ?? 0;
 
   return {
-    data: results.map(({ total: _, ...row }) => row),
+    data: results.map(({ total: _, orderItemCount, ...row }) => ({
+      ...row,
+      _count: { orderItems: orderItemCount },
+    })),
     total,
     page: params.page,
     pageSize: params.pageSize,

@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { eq, gte, lte, and, between, sql, desc, asc, count, sum } from 'drizzle-orm';
-import { startOfWeek, format, eachDayOfInterval } from 'date-fns';
+import { startOfWeek, startOfDay, endOfDay, startOfWeek as _sow, endOfWeek, subDays, format, eachDayOfInterval } from 'date-fns';
 import { customer, appointment, tattooSession, payment, contact, settings } from '@/lib/db/schema';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
@@ -547,4 +547,275 @@ export const getAnalyticsDepthData = cache(async (from: Date, to: Date): Promise
            bookingFunnel, peakHours, capacityUtilization,
            customerCLV, repeatClientRate, churnRisk,
            durationByType, noShowTrends, schedulingEfficiency };
+});
+
+// ============================================================================
+// TYPES: Analytics data shapes consumed by pages
+// ============================================================================
+
+export interface AnalyticsKPIs {
+  clv: number;
+  noShowRate: number;
+  avgSessionDuration: number;
+}
+
+export interface AnalyticsData {
+  revenueData: { month: string; revenue: number; count: number }[];
+  clientData: { month: string; count: number }[];
+  appointmentTypes: { type: string; count: number }[];
+  bookingTrends: { week: string; bookings: number; cancellations: number }[];
+  kpis: AnalyticsKPIs;
+}
+
+export interface ComparisonData {
+  previous: {
+    clv: number;
+    noShowRate: number;
+    avgSessionDuration: number;
+  };
+  trends: {
+    clvTrend: number;
+    noShowRateTrend: number;
+    avgSessionDurationTrend: number;
+  };
+}
+
+// ============================================================================
+// FUNCTIONS: Dashboard page (getTodayAppointments, getThisWeekAppointments, etc.)
+// ============================================================================
+
+export const getTodayAppointments = cache(async () => {
+  await requireStaffRole();
+
+  const now = new Date();
+  const dayStart = startOfDay(now);
+  const dayEnd = endOfDay(now);
+
+  return db.query.appointment.findMany({
+    where: and(
+      gte(appointment.scheduledDate, dayStart),
+      lte(appointment.scheduledDate, dayEnd),
+    ),
+    orderBy: [asc(appointment.scheduledDate)],
+    with: {
+      customer: { columns: { firstName: true, lastName: true } },
+    },
+  });
+});
+
+export const getThisWeekAppointments = cache(async () => {
+  await requireStaffRole();
+
+  const now = new Date();
+  const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
+
+  return db.query.appointment.findMany({
+    where: and(
+      gte(appointment.scheduledDate, weekStart),
+      lte(appointment.scheduledDate, weekEnd),
+    ),
+    orderBy: [asc(appointment.scheduledDate)],
+    with: {
+      customer: { columns: { firstName: true, lastName: true } },
+    },
+  });
+});
+
+export const getDashboardStatsWithTrend = cache(async (from: Date, to: Date) => {
+  await requireStaffRole();
+
+  const periodMs = to.getTime() - from.getTime();
+  const prevFrom = new Date(from.getTime() - periodMs);
+  const prevTo = new Date(from.getTime());
+
+  // Current period stats
+  const [currentRevenue, currentCustomers, currentAppointments, currentSessions] = await Promise.all([
+    db.select({ total: sql<number>`coalesce(sum(${tattooSession.totalCost}), 0)::numeric` })
+      .from(tattooSession)
+      .where(and(eq(tattooSession.status, 'COMPLETED'), gte(tattooSession.appointmentDate, from), lte(tattooSession.appointmentDate, to))),
+    db.select({ count: count() }).from(customer)
+      .where(and(gte(customer.createdAt, from), lte(customer.createdAt, to))),
+    db.select({ count: count() }).from(appointment)
+      .where(and(gte(appointment.scheduledDate, from), lte(appointment.scheduledDate, to))),
+    db.select({ count: count() }).from(tattooSession)
+      .where(and(eq(tattooSession.status, 'COMPLETED'), gte(tattooSession.appointmentDate, from), lte(tattooSession.appointmentDate, to))),
+  ]);
+
+  // Previous period stats for trend calculation
+  const [prevRevenue, prevCustomers, prevAppointments, prevSessions] = await Promise.all([
+    db.select({ total: sql<number>`coalesce(sum(${tattooSession.totalCost}), 0)::numeric` })
+      .from(tattooSession)
+      .where(and(eq(tattooSession.status, 'COMPLETED'), gte(tattooSession.appointmentDate, prevFrom), lte(tattooSession.appointmentDate, prevTo))),
+    db.select({ count: count() }).from(customer)
+      .where(and(gte(customer.createdAt, prevFrom), lte(customer.createdAt, prevTo))),
+    db.select({ count: count() }).from(appointment)
+      .where(and(gte(appointment.scheduledDate, prevFrom), lte(appointment.scheduledDate, prevTo))),
+    db.select({ count: count() }).from(tattooSession)
+      .where(and(eq(tattooSession.status, 'COMPLETED'), gte(tattooSession.appointmentDate, prevFrom), lte(tattooSession.appointmentDate, prevTo))),
+  ]);
+
+  function calcTrend(current: number, previous: number): number {
+    if (previous === 0) return current > 0 ? 100 : 0;
+    return Math.round(((current - previous) / previous) * 100);
+  }
+
+  const revCurrent = Number(currentRevenue[0]?.total ?? 0);
+  const revPrev = Number(prevRevenue[0]?.total ?? 0);
+  const custCurrent = currentCustomers[0]?.count ?? 0;
+  const custPrev = prevCustomers[0]?.count ?? 0;
+  const aptCurrent = currentAppointments[0]?.count ?? 0;
+  const aptPrev = prevAppointments[0]?.count ?? 0;
+  const sesCurrent = currentSessions[0]?.count ?? 0;
+  const sesPrev = prevSessions[0]?.count ?? 0;
+
+  return {
+    revenue: { value: revCurrent, trend: calcTrend(revCurrent, revPrev) },
+    customers: { value: custCurrent, trend: calcTrend(custCurrent, custPrev) },
+    appointments: { value: aptCurrent, trend: calcTrend(aptCurrent, aptPrev) },
+    sessions: { value: sesCurrent, trend: calcTrend(sesCurrent, sesPrev) },
+  };
+});
+
+export const getRevenueByDateRange = cache(async (from: Date, to: Date) => {
+  await requireStaffRole();
+
+  const sessions = await db.select({
+    appointmentDate: tattooSession.appointmentDate,
+    totalCost: tattooSession.totalCost,
+  })
+    .from(tattooSession)
+    .where(
+      and(
+        eq(tattooSession.status, 'COMPLETED'),
+        gte(tattooSession.appointmentDate, from),
+        lte(tattooSession.appointmentDate, to),
+      )
+    )
+    .orderBy(asc(tattooSession.appointmentDate));
+
+  const monthlyData = new Map<string, { revenue: number; count: number }>();
+
+  for (const s of sessions) {
+    const monthKey = `${s.appointmentDate.getFullYear()}-${String(s.appointmentDate.getMonth() + 1).padStart(2, '0')}`;
+    const existing = monthlyData.get(monthKey) ?? { revenue: 0, count: 0 };
+    existing.revenue += Number(s.totalCost);
+    existing.count += 1;
+    monthlyData.set(monthKey, existing);
+  }
+
+  return Array.from(monthlyData.entries()).map(([month, data]) => ({
+    month,
+    revenue: data.revenue,
+    count: data.count,
+  }));
+});
+
+// ============================================================================
+// FUNCTIONS: Reports page (getPaymentMethodBreakdown)
+// ============================================================================
+
+export const getPaymentMethodBreakdown = cache(async () => {
+  await requireStaffRole();
+
+  const rows = await db.select({
+    type: payment.type,
+    total: sql<number>`coalesce(sum(${payment.amount}), 0)::numeric`,
+    count: sql<number>`cast(count(*) as integer)`,
+  })
+    .from(payment)
+    .where(eq(payment.status, 'COMPLETED'))
+    .groupBy(payment.type);
+
+  return rows.map(r => ({
+    type: r.type,
+    total: Number(r.total),
+    count: Number(r.count),
+  }));
+});
+
+// ============================================================================
+// FUNCTIONS: Analytics page (getAnalyticsDataByDateRange, getComparisonPeriodData)
+// ============================================================================
+
+async function computeKPIs(from: Date, to: Date): Promise<AnalyticsKPIs> {
+  // CLV: avg revenue per unique customer in period
+  const [clvResult] = await db.select({
+    avg: sql<number>`coalesce(avg(customer_total), 0)::numeric`,
+  }).from(
+    sql`(select sum(${tattooSession.totalCost}) as customer_total from ${tattooSession} where ${tattooSession.status} = 'COMPLETED' and ${tattooSession.appointmentDate} >= ${from} and ${tattooSession.appointmentDate} <= ${to} group by ${tattooSession.customerId}) as customer_totals`
+  );
+
+  // No-show rate
+  const [noShowResult] = await db.select({
+    total: sql<number>`cast(count(*) as integer)`,
+    noShows: sql<number>`cast(sum(case when ${appointment.status} = 'NO_SHOW' then 1 else 0 end) as integer)`,
+  })
+    .from(appointment)
+    .where(and(
+      gte(appointment.scheduledDate, from),
+      lte(appointment.scheduledDate, to),
+    ));
+
+  const totalApts = Number(noShowResult?.total ?? 0);
+  const noShows = Number(noShowResult?.noShows ?? 0);
+  const noShowRate = totalApts === 0 ? 0 : (noShows / totalApts) * 100;
+
+  // Avg session duration
+  const [durationResult] = await db.select({
+    avg: sql<number>`coalesce(avg(${tattooSession.estimatedHours}), 0)::numeric`,
+  })
+    .from(tattooSession)
+    .where(and(
+      eq(tattooSession.status, 'COMPLETED'),
+      gte(tattooSession.appointmentDate, from),
+      lte(tattooSession.appointmentDate, to),
+    ));
+
+  return {
+    clv: Number(clvResult?.avg ?? 0),
+    noShowRate,
+    avgSessionDuration: Number(durationResult?.avg ?? 0),
+  };
+}
+
+export const getAnalyticsDataByDateRange = cache(async (from: Date, to: Date): Promise<AnalyticsData> => {
+  await requireStaffRole();
+
+  const [revenueData, clientData, appointmentTypes, bookingTrends, kpis] = await Promise.all([
+    getRevenueByDateRange(from, to),
+    getClientAcquisitionData(12),
+    getAppointmentTypeBreakdown(),
+    getBookingTrends(6),
+    computeKPIs(from, to),
+  ]);
+
+  return { revenueData, clientData, appointmentTypes, bookingTrends, kpis };
+});
+
+export const getComparisonPeriodData = cache(async (from: Date, to: Date): Promise<ComparisonData> => {
+  await requireStaffRole();
+
+  const periodMs = to.getTime() - from.getTime();
+  const prevFrom = new Date(from.getTime() - periodMs);
+  const prevTo = new Date(from.getTime());
+
+  const [currentKPIs, previousKPIs] = await Promise.all([
+    computeKPIs(from, to),
+    computeKPIs(prevFrom, prevTo),
+  ]);
+
+  function calcTrend(current: number, previous: number): number {
+    if (previous === 0) return current > 0 ? 100 : 0;
+    return Math.round(((current - previous) / previous) * 100);
+  }
+
+  return {
+    previous: previousKPIs,
+    trends: {
+      clvTrend: calcTrend(currentKPIs.clv, previousKPIs.clv),
+      noShowRateTrend: calcTrend(currentKPIs.noShowRate, previousKPIs.noShowRate),
+      avgSessionDurationTrend: calcTrend(currentKPIs.avgSessionDuration, previousKPIs.avgSessionDuration),
+    },
+  };
 });
