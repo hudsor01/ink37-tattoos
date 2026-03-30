@@ -7,6 +7,19 @@
 import { vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
+// @upstash/ratelimit + @upstash/redis -- not available in CI without env vars.
+// Must be mocked before any module imports rate-limiter.ts.
+// ---------------------------------------------------------------------------
+vi.mock('@upstash/ratelimit', () => ({
+  Ratelimit: vi.fn().mockImplementation(() => ({
+    limit: vi.fn().mockResolvedValue({ success: true, remaining: 10, reset: Date.now() + 60000 }),
+  })),
+}));
+vi.mock('@upstash/redis', () => ({
+  Redis: { fromEnv: vi.fn() },
+}));
+
+// ---------------------------------------------------------------------------
 // next/cache -- revalidatePath/revalidateTag require Next.js request context
 // (static generation store) which doesn't exist in vitest.
 // ---------------------------------------------------------------------------
