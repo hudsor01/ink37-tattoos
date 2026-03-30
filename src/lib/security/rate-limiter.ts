@@ -131,6 +131,36 @@ export const rateLimiters = {
 } as const;
 
 // ---------------------------------------------------------------------------
+// Lightweight synchronous rate limiter (server actions, middleware)
+// ---------------------------------------------------------------------------
+
+// Global in-memory store shared across all rateLimit() calls
+const __rateLimitStore = new Map<string, { count: number; reset: number }>();
+(globalThis as unknown as { __rateLimitStore: typeof __rateLimitStore }).__rateLimitStore = __rateLimitStore;
+
+/**
+ * Synchronous fixed-window rate limiter.
+ * Returns true if the request is allowed, false if rate-limited.
+ * Used by server actions that need a simple boolean check.
+ */
+export function rateLimit(identifier: string, limit: number, windowMs: number): boolean {
+  const now = Date.now();
+  const entry = __rateLimitStore.get(identifier);
+
+  if (!entry || now >= entry.reset) {
+    __rateLimitStore.set(identifier, { count: 1, reset: now + windowMs });
+    return true;
+  }
+
+  if (entry.count >= limit) {
+    return false;
+  }
+
+  entry.count++;
+  return true;
+}
+
+// ---------------------------------------------------------------------------
 // IP extraction helpers
 // ---------------------------------------------------------------------------
 

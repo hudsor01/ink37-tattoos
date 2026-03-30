@@ -72,8 +72,11 @@ const mockValidateGiftCard = vi.fn();
 // ---------------------------------------------------------------------------
 vi.mock('server-only', () => ({}));
 
+const mockRequireRole = vi.fn();
+
 vi.mock('@/lib/auth', () => ({
   getCurrentSession: (...args: unknown[]) => mockGetCurrentSession(...args),
+  requireRole: (...args: unknown[]) => mockRequireRole(...args),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -179,6 +182,17 @@ vi.mock('@/lib/env', () => ({
   }),
 }));
 
+vi.mock('@/lib/security/rate-limiter', () => ({
+  rateLimiters: {
+    webhook: { limit: vi.fn().mockResolvedValue({ success: true, reset: Date.now() + 60000 }) },
+    contact: { limit: vi.fn().mockResolvedValue({ success: true, reset: Date.now() + 60000 }) },
+  },
+  getRequestIp: vi.fn().mockReturnValue('127.0.0.1'),
+  getHeaderIp: vi.fn().mockReturnValue('127.0.0.1'),
+  rateLimitResponse: vi.fn().mockReturnValue(Response.json({ error: 'Too many requests' }, { status: 429 })),
+  rateLimit: vi.fn().mockReturnValue(true),
+}));
+
 vi.mock('@/lib/security/validation', () => ({
   CreateCustomerSchema: { parse: (d: unknown) => d },
   UpdateCustomerSchema: { parse: (d: unknown) => d },
@@ -230,7 +244,12 @@ vi.mock('@/lib/db', () => {
       insert: vi.fn(() => ({
         values: (...args: unknown[]) => {
           mockDbInsertValues(...args);
-          return { returning: (...rArgs: unknown[]) => mockDbInsertValuesReturning(...rArgs) };
+          return {
+            onConflictDoNothing: vi.fn().mockReturnValue({
+              returning: (...rArgs: unknown[]) => mockDbInsertValuesReturning(...rArgs),
+            }),
+            returning: (...rArgs: unknown[]) => mockDbInsertValuesReturning(...rArgs),
+          };
         },
       })),
       transaction: (...args: unknown[]) => mockDbTransaction(...args),
@@ -281,6 +300,9 @@ describe('E2E Integration Flows', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
+    // Default: set both getCurrentSession and requireRole to admin
+    mockGetCurrentSession.mockResolvedValue(adminSession);
+    mockRequireRole.mockResolvedValue(adminSession);
   });
 
   // =========================================================================
@@ -327,7 +349,9 @@ describe('E2E Integration Flows', () => {
       const result = await storeCheckoutAction({ items: cartItems });
 
       expect(result.success).toBe(true);
-      expect(result.checkoutUrl).toContain('checkout.stripe.com');
+      if (result.success) {
+        expect(result.data.checkoutUrl).toContain('checkout.stripe.com');
+      }
 
       // Verify Stripe session was created with line items
       expect(mockStripeCheckoutCreate).toHaveBeenCalledTimes(1);
@@ -396,7 +420,13 @@ describe('E2E Integration Flows', () => {
 
       mockStripeWebhooksConstructEvent.mockReturnValue(checkoutEvent);
       mockStripeEventFindFirst.mockResolvedValue(null); // Not already processed
-      mockDbInsertValuesReturning.mockResolvedValue([]);
+      // Atomic insert returns the row (new event, not duplicate)
+      mockDbInsertValuesReturning.mockResolvedValue([{
+        id: '1',
+        stripeEventId: 'evt_checkout_1',
+        type: 'checkout.session.completed',
+        processedAt: new Date(),
+      }]);
       mockDbUpdateSetWhere.mockResolvedValue(undefined);
       mockGetOrderByCheckoutSessionId.mockResolvedValue({
         id: 'order-1',
@@ -449,7 +479,13 @@ describe('E2E Integration Flows', () => {
 
       mockStripeWebhooksConstructEvent.mockReturnValue(checkoutEvent);
       mockStripeEventFindFirst.mockResolvedValue(null);
-      mockDbInsertValuesReturning.mockResolvedValue([]);
+      // Atomic insert returns the row (new event)
+      mockDbInsertValuesReturning.mockResolvedValue([{
+        id: '1',
+        stripeEventId: 'evt_checkout_email',
+        type: 'checkout.session.completed',
+        processedAt: new Date(),
+      }]);
       mockDbUpdateSetWhere.mockResolvedValue(undefined);
       mockGetOrderByCheckoutSessionId.mockResolvedValue({
         id: 'order-email',
@@ -493,7 +529,6 @@ describe('E2E Integration Flows', () => {
   // =========================================================================
   describe('Flow 2: Tattoo Session Payment', () => {
     it('Step 1: Admin creates a customer', async () => {
-      mockGetCurrentSession.mockResolvedValue(adminSession);
       mockCreateCustomer.mockResolvedValue({
         id: 'cust-new',
         firstName: 'Jane',
@@ -506,9 +541,12 @@ describe('E2E Integration Flows', () => {
       fd.set('firstName', 'Jane');
       fd.set('lastName', 'Smith');
       fd.set('email', 'jane@test.com');
-      const customer = await createCustomerAction(fd);
+      const result = await createCustomerAction(fd);
 
-      expect(customer.id).toBe('cust-new');
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.id).toBe('cust-new');
+      }
       expect(mockCreateCustomer).toHaveBeenCalledTimes(1);
       expect(mockCreateCustomer.mock.calls[0][0]).toMatchObject({
         firstName: 'Jane',
@@ -518,7 +556,6 @@ describe('E2E Integration Flows', () => {
     });
 
     it('Step 2: Admin creates a tattoo session for the customer', async () => {
-      mockGetCurrentSession.mockResolvedValue(adminSession);
       mockCreateSession.mockResolvedValue({
         id: 'sess-new',
         customerId: 'cust-new',
@@ -536,9 +573,12 @@ describe('E2E Integration Flows', () => {
       fd.set('estimatedHours', '8');
       fd.set('totalCost', '500');
       fd.set('depositAmount', '100');
-      const session = await createSessionAction(fd);
+      const result = await createSessionAction(fd);
 
-      expect(session.id).toBe('sess-new');
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.id).toBe('sess-new');
+      }
       expect(mockCreateSession).toHaveBeenCalledTimes(1);
     });
 
@@ -564,7 +604,9 @@ describe('E2E Integration Flows', () => {
       const result = await requestDepositAction(fd);
 
       expect(result.success).toBe(true);
-      expect(result.checkoutUrl).toContain('checkout.stripe.com');
+      if (result.success) {
+        expect(result.data.checkoutUrl).toContain('checkout.stripe.com');
+      }
 
       // Verify Stripe customer was retrieved
       expect(mockGetOrCreateStripeCustomer).toHaveBeenCalledWith(
@@ -609,7 +651,13 @@ describe('E2E Integration Flows', () => {
       mockStripeEventFindFirst.mockResolvedValue(null);
       mockStripePaymentIntentsRetrieve.mockResolvedValue({ id: 'pi_deposit_1', latest_charge: 'ch_1' });
       mockStripeChargesRetrieve.mockResolvedValue({ receipt_url: 'https://receipt.stripe.com/1' });
-      mockDbInsertValuesReturning.mockResolvedValue([]);
+      // Atomic insert returns the row (new event)
+      mockDbInsertValuesReturning.mockResolvedValue([{
+        id: '1',
+        stripeEventId: 'evt_deposit_1',
+        type: 'checkout.session.completed',
+        processedAt: new Date(),
+      }]);
       mockDbUpdateSetWhere.mockResolvedValue(undefined);
 
       // Mock transaction for atomic payment + session update
@@ -747,7 +795,6 @@ describe('E2E Integration Flows', () => {
     const customerId = 'cust-crud';
 
     it('Step 1: Admin creates a customer', async () => {
-      mockGetCurrentSession.mockResolvedValue(adminSession);
       mockCreateCustomer.mockResolvedValue({
         id: customerId,
         firstName: 'CRUD',
@@ -762,7 +809,10 @@ describe('E2E Integration Flows', () => {
       fd.set('email', 'crud@test.com');
 
       const result = await createCustomerAction(fd);
-      expect(result.id).toBe(customerId);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.id).toBe(customerId);
+      }
       expect(mockCreateCustomer).toHaveBeenCalledTimes(1);
 
       // Verify audit log was called
@@ -777,7 +827,6 @@ describe('E2E Integration Flows', () => {
     });
 
     it('Step 2: Admin updates the customer', async () => {
-      mockGetCurrentSession.mockResolvedValue(adminSession);
       mockUpdateCustomer.mockResolvedValue({
         id: customerId,
         firstName: 'CRUD Updated',
@@ -792,7 +841,10 @@ describe('E2E Integration Flows', () => {
       fd.set('email', 'crud-updated@test.com');
 
       const result = await updateCustomerAction(customerId, fd);
-      expect(result.id).toBe(customerId);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.id).toBe(customerId);
+      }
       expect(mockUpdateCustomer).toHaveBeenCalledWith(customerId, expect.objectContaining({
         firstName: 'CRUD Updated',
       }));
@@ -832,6 +884,7 @@ describe('E2E Integration Flows', () => {
       // Reset and run all three steps in sequence
       vi.clearAllMocks();
       mockGetCurrentSession.mockResolvedValue(adminSession);
+      mockRequireRole.mockResolvedValue(adminSession);
 
       // CREATE
       mockCreateCustomer.mockResolvedValue({ id: 'cust-lifecycle' });

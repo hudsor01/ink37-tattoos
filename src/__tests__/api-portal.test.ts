@@ -22,6 +22,15 @@ vi.mock('@/lib/env', () => ({
   }),
 }));
 
+vi.mock('@/lib/security/rate-limiter', () => ({
+  rateLimiters: {
+    portalBilling: { limit: vi.fn().mockResolvedValue({ success: true, reset: Date.now() + 60000 }) },
+  },
+  getRequestIp: vi.fn().mockReturnValue('127.0.0.1'),
+  rateLimitResponse: vi.fn().mockReturnValue(Response.json({ error: 'Too many requests' }, { status: 429 })),
+  rateLimit: vi.fn().mockReturnValue(true),
+}));
+
 vi.mock('next/server', () => ({
   NextResponse: {
     json: (data: unknown, init?: { status?: number }) => ({
@@ -68,7 +77,8 @@ describe('Portal Billing API Route', () => {
     mockGetCurrentSession.mockResolvedValue(null);
 
     const { POST } = await import('@/app/api/portal/billing/route');
-    const response = await POST();
+    const request = new Request('http://localhost/api/portal/billing', { method: 'POST' });
+    const response = await POST(request);
     expect(response.status).toBe(401);
     const data = await response.json();
     expect(data.error).toBe('Unauthorized');
@@ -78,7 +88,8 @@ describe('Portal Billing API Route', () => {
     mockGetCurrentSession.mockResolvedValue({ user: null });
 
     const { POST } = await import('@/app/api/portal/billing/route');
-    const response = await POST();
+    const request = new Request('http://localhost/api/portal/billing', { method: 'POST' });
+    const response = await POST(request);
     expect(response.status).toBe(401);
   });
 
@@ -87,7 +98,8 @@ describe('Portal Billing API Route', () => {
     mockCustomerFindFirst.mockResolvedValue(null);
 
     const { POST } = await import('@/app/api/portal/billing/route');
-    const response = await POST();
+    const request = new Request('http://localhost/api/portal/billing', { method: 'POST' });
+    const response = await POST(request);
     expect(response.status).toBe(404);
     const data = await response.json();
     expect(data.error).toBe('No customer record linked to your account');
@@ -98,7 +110,8 @@ describe('Portal Billing API Route', () => {
     mockCustomerFindFirst.mockResolvedValue({ id: 'cust-1', stripeCustomerId: null });
 
     const { POST } = await import('@/app/api/portal/billing/route');
-    const response = await POST();
+    const request = new Request('http://localhost/api/portal/billing', { method: 'POST' });
+    const response = await POST(request);
     expect(response.status).toBe(404);
     const data = await response.json();
     expect(data.error).toBe('No Stripe customer found. Payment history is not available yet.');
@@ -110,7 +123,8 @@ describe('Portal Billing API Route', () => {
     mockBillingPortalCreate.mockResolvedValue({ url: 'https://billing.stripe.com/session/xxx' });
 
     const { POST } = await import('@/app/api/portal/billing/route');
-    const response = await POST();
+    const request = new Request('http://localhost/api/portal/billing', { method: 'POST' });
+    const response = await POST(request);
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data.url).toBe('https://billing.stripe.com/session/xxx');

@@ -8,10 +8,19 @@ const mockConstructEvent = vi.fn();
 const mockStripeFindFirst = vi.fn();
 const mockInsertValues = vi.fn().mockReturnThis();
 const mockInsertReturning = vi.fn();
+const mockOnConflictDoNothing = vi.fn();
 const mockInsert = vi.fn((_table?: unknown) => ({
   values: (...args: unknown[]) => {
     mockInsertValues(...args);
-    return { returning: (...rArgs: unknown[]) => mockInsertReturning(...rArgs) };
+    return {
+      onConflictDoNothing: (...ocArgs: unknown[]) => {
+        mockOnConflictDoNothing(...ocArgs);
+        return {
+          returning: (...rArgs: unknown[]) => mockInsertReturning(...rArgs),
+        };
+      },
+      returning: (...rArgs: unknown[]) => mockInsertReturning(...rArgs),
+    };
   },
 }));
 
@@ -154,6 +163,15 @@ vi.mock('@/lib/db/schema', () => ({
 
 vi.mock('@/lib/cal/verify', () => ({
   verifyCalSignature: (...args: unknown[]) => mockVerifyCalSignature(...args),
+}));
+
+vi.mock('@/lib/security/rate-limiter', () => ({
+  rateLimiters: {
+    webhook: { limit: vi.fn().mockResolvedValue({ success: true, reset: Date.now() + 60000 }) },
+  },
+  getRequestIp: vi.fn().mockReturnValue('127.0.0.1'),
+  rateLimitResponse: vi.fn().mockReturnValue(Response.json({ error: 'Too many requests' }, { status: 429 })),
+  rateLimit: vi.fn().mockReturnValue(true),
 }));
 
 // ============================================================================

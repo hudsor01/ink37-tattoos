@@ -31,12 +31,16 @@ vi.mock('@/lib/email/resend', () => ({
 
 // Mock the rate limiter (new Upstash-backed API)
 const mockRateLimitResult = vi.fn().mockResolvedValue({ success: true, reset: Date.now() + 60000 });
+const mockRateLimit = vi.fn().mockReturnValue(true);
 
 vi.mock('@/lib/security/rate-limiter', () => ({
   rateLimiters: {
     contact: { limit: (...args: unknown[]) => mockRateLimitResult(...args) },
   },
+  rateLimit: (...args: unknown[]) => mockRateLimit(...args),
   getHeaderIp: vi.fn().mockReturnValue('127.0.0.1'),
+  getRequestIp: vi.fn().mockReturnValue('127.0.0.1'),
+  rateLimitResponse: vi.fn().mockReturnValue(Response.json({ error: 'Too many requests' }, { status: 429 })),
 }));
 
 // Mock next/headers
@@ -124,6 +128,7 @@ describe('submitContactForm Server Action', () => {
 
     // Re-establish default mock return values after clearing
     mockRateLimitResult.mockResolvedValue({ success: true, reset: Date.now() + 60000 });
+    mockRateLimit.mockReturnValue(true);
     mockHeadersGet.mockReturnValue('127.0.0.1');
     mockCreateContact.mockResolvedValue({
       id: 'test-id',
@@ -167,9 +172,8 @@ describe('submitContactForm Server Action', () => {
     const result = await submitContactForm(formData);
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error).toBe('Validation failed');
-      expect(result.fieldErrors).toBeDefined();
-      expect(result.fieldErrors?.email).toBeDefined();
+      expect((result as { errors?: Record<string, string[]> }).errors).toBeDefined();
+      expect((result as { errors?: Record<string, string[]> }).errors?.email).toBeDefined();
     }
   });
 
@@ -186,9 +190,8 @@ describe('submitContactForm Server Action', () => {
     const result = await submitContactForm(formData);
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error).toBe('Validation failed');
-      expect(result.fieldErrors).toBeDefined();
-      expect(result.fieldErrors?.name).toBeDefined();
+      expect((result as { errors?: Record<string, string[]> }).errors).toBeDefined();
+      expect((result as { errors?: Record<string, string[]> }).errors?.name).toBeDefined();
     }
   });
 
@@ -205,13 +208,13 @@ describe('submitContactForm Server Action', () => {
     const result = await submitContactForm(formData);
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error).toBe('Validation failed');
-      expect(result.fieldErrors).toBeDefined();
-      expect(result.fieldErrors?.message).toBeDefined();
+      expect((result as { errors?: Record<string, string[]> }).errors).toBeDefined();
+      expect((result as { errors?: Record<string, string[]> }).errors?.message).toBeDefined();
     }
   });
 
   it('returns rate limit error when rate limited', async () => {
+    mockRateLimit.mockReturnValue(false);
     mockRateLimitResult.mockResolvedValue({ success: false, reset: Date.now() + 60000 });
 
     const { submitContactForm } = await import(
