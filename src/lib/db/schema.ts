@@ -402,6 +402,19 @@ export const product = pgTable('product', {
   index('product_search_idx').using('gin', table.searchVector),
 ]);
 
+export const productImage = pgTable('product_image', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  productId: uuid('productId').notNull().references(() => product.id, { onDelete: 'cascade' }),
+  url: text('url').notNull(),
+  alt: text('alt'),
+  sortOrder: integer('sortOrder').notNull().default(0),
+  isVisible: boolean('isVisible').notNull().default(true),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+}, (table) => [
+  index('product_image_productId_idx').on(table.productId),
+  index('product_image_productId_sortOrder_idx').on(table.productId, table.sortOrder),
+]);
+
 export const order = pgTable('order', {
   id: uuid('id').defaultRandom().primaryKey(),
   email: text('email').notNull(),
@@ -418,6 +431,8 @@ export const order = pgTable('order', {
   shippingState: text('shippingState'),
   shippingPostalCode: text('shippingPostalCode'),
   shippingCountry: text('shippingCountry'),
+  trackingNumber: text('trackingNumber'),
+  trackingCarrier: text('trackingCarrier'),
   giftCardCode: text('giftCardCode'),
   notes: text('notes'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
@@ -579,6 +594,11 @@ export const calEventRelations = relations(calEvent, () => ({}));
 // Store relations
 export const productRelations = relations(product, ({ many }) => ({
   orderItems: many(orderItem),
+  images: many(productImage),
+}));
+
+export const productImageRelations = relations(productImage, ({ one }) => ({
+  product: one(product, { fields: [productImage.productId], references: [product.id] }),
 }));
 
 export const orderRelations = relations(order, ({ many }) => ({
