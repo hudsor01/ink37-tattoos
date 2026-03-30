@@ -136,7 +136,11 @@
   3. After marking a session complete, the system automatically sends an aftercare email using a configurable template
   4. Clients receive automated reminder emails 24h and 48h before appointments, and no-shows trigger a follow-up email
   5. Artist can generate and download invoice PDFs for completed payments and email them directly to customers
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 20-01-PLAN.md -- Schema, consent DAL, email infrastructure, portal onboarding hardening
+- [ ] 20-02-PLAN.md -- n8n cron routes (balance-due, no-show), aftercare trigger, deposit config UI
+- [ ] 20-03-PLAN.md -- Invoice PDF generation + email, admin consent management page
 
 ### Phase 21: Analytics Depth
 **Goal**: Dashboard analytics provide actionable business intelligence -- revenue breakdowns, booking funnels, customer lifetime value, and operational efficiency metrics
@@ -185,6 +189,6 @@
 | 17. Missing Pages -- Operations | v2.0 | 0/? | Not started | - |
 | 18. Feature Depth -- Records | v2.0 | 0/? | Not started | - |
 | 19. Feature Depth -- Platform | v2.0 | 1/? | Complete    | 2026-03-30 |
-| 20. Business Workflows | v2.0 | 0/? | Not started | - |
+| 20. Business Workflows | v2.0 | 0/3 | Not started | - |
 | 21. Analytics Depth | v2.0 | 0/? | Not started | - |
 | 22. Testing and Tech Debt | v2.0 | 0/? | Not started | - |
