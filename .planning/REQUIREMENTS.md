@@ -104,10 +104,10 @@ Requirements for admin panel rebuild. Each maps to roadmap phases. Derived from 
 
 ### Tech Debt
 
-- [ ] **DEBT-01**: Replace all asChild prop usage with base-ui render prop pattern in remaining files (TD-01)
-- [ ] **DEBT-02**: Create contacts admin page or remove orphaned contacts DAL exports (TD-02 -- resolved by PAGE-04)
-- [ ] **DEBT-03**: Audit log filter selects replaced with accessible Shadcn Select components
-- [ ] **DEBT-04**: Session form converted from raw register() to Shadcn Form wrapper pattern (consistent with other forms)
+- [x] **DEBT-01**: Replace all asChild prop usage with base-ui render prop pattern in remaining files (TD-01)
+- [x] **DEBT-02**: Create contacts admin page or remove orphaned contacts DAL exports (TD-02 -- resolved by PAGE-04)
+- [x] **DEBT-03**: Audit log filter selects replaced with accessible Shadcn Select components
+- [x] **DEBT-04**: Session form converted from raw register() to Shadcn Form wrapper pattern (consistent with other forms)
 
 ## Future Requirements
 
@@ -216,10 +216,10 @@ Deferred beyond v2.0.
 | TEST-04 | Phase 22 | Pending |
 | TEST-05 | Phase 22 | Pending |
 | TEST-06 | Phase 22 | Pending |
-| DEBT-01 | Phase 22 | Pending |
-| DEBT-02 | Phase 22 | Pending |
-| DEBT-03 | Phase 22 | Pending |
-| DEBT-04 | Phase 22 | Pending |
+| DEBT-01 | Phase 22 | Complete |
+| DEBT-02 | Phase 22 | Complete |
+| DEBT-03 | Phase 22 | Complete |
+| DEBT-04 | Phase 22 | Complete |
 
 **Coverage:**
 - v2.0 requirements: 75 total
