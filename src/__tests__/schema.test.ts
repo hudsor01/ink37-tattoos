@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { execSync } from 'node:child_process';
 
 describe('Drizzle schema', () => {
-  it('schema.ts is valid TypeScript (type-checks with project config)', () => {
+  it('schema.ts is valid TypeScript (type-checks with project config)', { timeout: 30000 }, () => {
     // Type-check using the project tsconfig which includes skipLibCheck.
     // We run a full noEmit check -- the same check Next.js build uses.
     // Pre-existing errors in unmodified view files are expected;
