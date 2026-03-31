@@ -1,7 +1,14 @@
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { NextResponse } from 'next/server';
 import { getCurrentSession } from '@/lib/auth';
+<<<<<<< HEAD
 import { logger } from '@/lib/logger';
+||||||| fdedb97
+=======
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('api:upload-token');
+>>>>>>> worktree-agent-a2c56885
 
 const ADMIN_ROLES = ['admin', 'super_admin'];
 
@@ -31,13 +38,25 @@ export async function POST(request: Request): Promise<NextResponse> {
         };
       },
       onUploadCompleted: async ({ blob }) => {
+<<<<<<< HEAD
         logger.info({ blobUrl: blob.url }, 'Client upload completed');
+||||||| fdedb97
+        console.log('[Upload] Client upload completed:', blob.url);
+=======
+        log.info({ url: blob.url }, 'Client upload completed');
+>>>>>>> worktree-agent-a2c56885
       },
     });
 
     return NextResponse.json(jsonResponse);
   } catch (err) {
+<<<<<<< HEAD
     logger.error({ err }, 'POST /api/upload/token failed');
+||||||| fdedb97
+    console.error('[API] POST /api/upload/token failed:', err);
+=======
+    log.error({ err }, 'POST /api/upload/token failed');
+>>>>>>> worktree-agent-a2c56885
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

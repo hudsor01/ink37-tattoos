@@ -1,7 +1,14 @@
 import { NextResponse } from 'next/server';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
+<<<<<<< HEAD
 import { logger } from '@/lib/logger';
+||||||| fdedb97
+=======
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('webhook:resend');
+>>>>>>> worktree-agent-a2c56885
 
 interface ResendWebhookEvent {
   type: string;
@@ -85,14 +92,30 @@ export async function POST(request: Request) {
     case 'email.bounced': {
       const bouncedEmail = body.data?.to?.[0];
       if (bouncedEmail) {
+<<<<<<< HEAD
         logger.warn({ email: bouncedEmail, emailId: body.data.email_id }, 'Resend email bounced');
+||||||| fdedb97
+        console.warn(`[Resend] Email bounced: ${bouncedEmail}`, {
+          emailId: body.data.email_id,
+        });
+=======
+        log.warn({ email: bouncedEmail, emailId: body.data.email_id }, 'Email bounced');
+>>>>>>> worktree-agent-a2c56885
       }
       break;
     }
     case 'email.complained': {
       const complainedEmail = body.data?.to?.[0];
       if (complainedEmail) {
+<<<<<<< HEAD
         logger.warn({ email: complainedEmail, emailId: body.data.email_id }, 'Resend spam complaint');
+||||||| fdedb97
+        console.warn(`[Resend] Spam complaint: ${complainedEmail}`, {
+          emailId: body.data.email_id,
+        });
+=======
+        log.warn({ email: complainedEmail, emailId: body.data.email_id }, 'Spam complaint');
+>>>>>>> worktree-agent-a2c56885
       }
       break;
     }

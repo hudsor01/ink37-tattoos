@@ -1,7 +1,14 @@
 import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 import { getCurrentSession } from '@/lib/auth';
+<<<<<<< HEAD
 import { logger } from '@/lib/logger';
+||||||| fdedb97
+=======
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('api:upload');
+>>>>>>> worktree-agent-a2c56885
 
 const ADMIN_ROLES = ['admin', 'super_admin'];
 
@@ -43,7 +50,13 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: blob.url, pathname: blob.pathname });
   } catch (err) {
+<<<<<<< HEAD
     logger.error({ err }, 'POST /api/upload failed');
+||||||| fdedb97
+    console.error('[API] POST /api/upload failed:', err);
+=======
+    log.error({ err }, 'POST /api/upload failed');
+>>>>>>> worktree-agent-a2c56885
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

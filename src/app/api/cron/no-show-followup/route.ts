@@ -5,7 +5,14 @@ import { eq, and, gte, sql } from 'drizzle-orm';
 import { format } from 'date-fns';
 import { sendNoShowFollowUp } from '@/lib/email/resend';
 import { createNotificationForAdmins } from '@/lib/dal/notifications';
+<<<<<<< HEAD
 import { logger } from '@/lib/logger';
+||||||| fdedb97
+=======
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('cron:no-show');
+>>>>>>> worktree-agent-a2c56885
 
 /**
  * POST /api/cron/no-show-followup
@@ -92,14 +99,26 @@ export async function POST(request: Request) {
           });
         } catch (notifErr) {
           // Don't fail the cron job if notification creation fails
+<<<<<<< HEAD
           logger.error({ err: notifErr, appointmentId: appt.id }, 'No-show notification creation failed');
+||||||| fdedb97
+          console.error(`[No-Show] Notification creation failed for appointment ${appt.id}:`, notifErr);
+=======
+          log.error({ err: notifErr, appointmentId: appt.id }, 'Notification creation failed');
+>>>>>>> worktree-agent-a2c56885
         }
       } else {
         errors++;
       }
     } catch (err) {
       errors++;
+<<<<<<< HEAD
       logger.error({ err, appointmentId: appt.id }, 'No-show follow-up failed');
+||||||| fdedb97
+      console.error(`[No-Show] Failed for appointment ${appt.id}:`, err);
+=======
+      log.error({ err, appointmentId: appt.id }, 'No-show follow-up failed');
+>>>>>>> worktree-agent-a2c56885
     }
   }
 
