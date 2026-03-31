@@ -36,9 +36,6 @@ export default withSentryConfig(nextConfig, {
   // Automatically tree-shake Sentry logger statements
   disableLogger: true,
 
-  // Hide source maps from generated client bundles
-  hideSourceMaps: true,
-
   // Disable Sentry webpack plugin when no auth token (local dev)
   authToken: process.env.SENTRY_AUTH_TOKEN,
 });

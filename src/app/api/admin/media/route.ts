@@ -1,18 +1,16 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { getCurrentSession } from '@/lib/auth';
 import { getMediaItems, type MediaApprovalStatus } from '@/lib/dal/media';
-<<<<<<< HEAD
 import { logger } from '@/lib/logger';
-||||||| fdedb97
-=======
-import { createLogger } from '@/lib/logger';
-
-const log = createLogger('api:admin-media');
->>>>>>> worktree-agent-a2c56885
+import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
 
 const ADMIN_ROLES = ['admin', 'super_admin'];
 
 export async function GET(request: NextRequest) {
+  const ip = getRequestIp(request);
+  const { success, reset } = await rateLimiters.admin.limit(ip);
+  if (!success) return rateLimitResponse(reset);
+
   const session = await getCurrentSession();
 
   if (!session?.user) {
@@ -37,13 +35,7 @@ export async function GET(request: NextRequest) {
     const media = await getMediaItems({ page, pageSize, search, tag, approvalStatus });
     return NextResponse.json(media);
   } catch (err) {
-<<<<<<< HEAD
     logger.error({ err }, 'GET /api/admin/media failed');
-||||||| fdedb97
-    console.error('[API] GET /api/admin/media failed:', err);
-=======
-    log.error({ err }, 'GET /api/admin/media failed');
->>>>>>> worktree-agent-a2c56885
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
