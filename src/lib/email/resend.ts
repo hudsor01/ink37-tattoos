@@ -1,6 +1,7 @@
 import 'server-only';
 import { Resend } from 'resend';
 import { env } from '@/lib/env';
+import { logger } from '@/lib/logger';
 import {
   contactAdminTemplate,
   contactConfirmationTemplate,
@@ -25,16 +26,12 @@ export async function sendContactNotification(data: {
 }) {
   const adminEmail = env().ADMIN_EMAIL;
   if (!adminEmail) {
-    console.warn(
-      'ADMIN_EMAIL not configured -- skipping admin notification'
-    );
+    logger.warn('ADMIN_EMAIL not configured -- skipping admin notification');
     return { adminSent: false, customerSent: false };
   }
 
   if (!env().RESEND_API_KEY) {
-    console.warn(
-      'RESEND_API_KEY not configured -- skipping email notifications'
-    );
+    logger.warn('RESEND_API_KEY not configured -- skipping email notifications');
     return { adminSent: false, customerSent: false };
   }
 
@@ -56,7 +53,7 @@ export async function sendContactNotification(data: {
   ]);
 
   if (error) {
-    console.error('[Email] Batch send failed:', error);
+    logger.error({ err: error }, 'Email batch send failed');
     return { adminSent: false, customerSent: false };
   }
 
@@ -74,9 +71,7 @@ export async function sendPaymentRequestEmail(data: {
   paymentUrl: string;
 }): Promise<{ sent: boolean }> {
   if (!env().RESEND_API_KEY) {
-    console.warn(
-      'RESEND_API_KEY not configured -- skipping payment request email'
-    );
+    logger.warn('RESEND_API_KEY not configured -- skipping payment request email');
     return { sent: false };
   }
 
@@ -105,9 +100,7 @@ export async function sendOrderConfirmationEmail(data: {
   downloadLinks?: Array<{ name: string; url: string }>;
 }): Promise<{ sent: boolean }> {
   if (!env().RESEND_API_KEY) {
-    console.warn(
-      'RESEND_API_KEY not configured -- skipping order confirmation email'
-    );
+    logger.warn('RESEND_API_KEY not configured -- skipping order confirmation email');
     return { sent: false };
   }
 
@@ -133,9 +126,7 @@ export async function sendGiftCardEmail(data: {
   personalMessage?: string;
 }): Promise<{ sent: boolean }> {
   if (!env().RESEND_API_KEY) {
-    console.warn(
-      'RESEND_API_KEY not configured -- skipping gift card email'
-    );
+    logger.warn('RESEND_API_KEY not configured -- skipping gift card email');
     return { sent: false };
   }
 
@@ -155,9 +146,7 @@ export async function sendGiftCardPurchaseConfirmationEmail(data: {
   recipientName: string;
 }): Promise<{ sent: boolean }> {
   if (!env().RESEND_API_KEY) {
-    console.warn(
-      'RESEND_API_KEY not configured -- skipping gift card purchase confirmation email'
-    );
+    logger.warn('RESEND_API_KEY not configured -- skipping gift card purchase confirmation email');
     return { sent: false };
   }
 
@@ -179,9 +168,7 @@ export async function sendAftercareEmail(data: {
   template?: string;
 }): Promise<{ sent: boolean }> {
   if (!env().RESEND_API_KEY) {
-    console.warn(
-      'RESEND_API_KEY not configured -- skipping aftercare email'
-    );
+    logger.warn('RESEND_API_KEY not configured -- skipping aftercare email');
     return { sent: false };
   }
 
@@ -207,9 +194,7 @@ export async function sendBalanceDueReminder(data: {
   remainingBalance: number;
 }): Promise<{ sent: boolean }> {
   if (!env().RESEND_API_KEY) {
-    console.warn(
-      'RESEND_API_KEY not configured -- skipping balance due reminder email'
-    );
+    logger.warn('RESEND_API_KEY not configured -- skipping balance due reminder email');
     return { sent: false };
   }
 
@@ -233,9 +218,7 @@ export async function sendNoShowFollowUp(data: {
   appointmentType: string;
 }): Promise<{ sent: boolean }> {
   if (!env().RESEND_API_KEY) {
-    console.warn(
-      'RESEND_API_KEY not configured -- skipping no-show follow-up email'
-    );
+    logger.warn('RESEND_API_KEY not configured -- skipping no-show follow-up email');
     return { sent: false };
   }
 
@@ -260,9 +243,7 @@ export async function sendInvoiceEmail(data: {
   pdfBuffer: Buffer;
 }): Promise<{ sent: boolean }> {
   if (!env().RESEND_API_KEY) {
-    console.warn(
-      'RESEND_API_KEY not configured -- skipping invoice email'
-    );
+    logger.warn('RESEND_API_KEY not configured -- skipping invoice email');
     return { sent: false };
   }
 

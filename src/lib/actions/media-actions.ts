@@ -17,6 +17,7 @@ import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { del } from '@vercel/blob';
+import { logger } from '@/lib/logger';
 
 export async function createMediaAction(formData: FormData): Promise<ActionResult<{ id: string }>> {
   const session = await requireRole('admin');
@@ -103,9 +104,9 @@ export async function deleteMediaAction(id: string): Promise<ActionResult<void>>
       try {
         await del(media.fileUrl);
         if (media.thumbnailUrl) await del(media.thumbnailUrl);
-      } catch {
+      } catch (err) {
         // Log but don't block deletion if blob cleanup fails
-        console.error(`[Media] Failed to delete blob for media ${id}`);
+        logger.error({ err, mediaId: id }, 'Failed to delete blob for media');
       }
     }
 

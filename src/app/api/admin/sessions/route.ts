@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCurrentSession } from '@/lib/auth';
 import { getSessions } from '@/lib/dal/sessions';
+import { logger } from '@/lib/logger';
 
 const ADMIN_ROLES = ['admin', 'super_admin'];
 
@@ -19,7 +20,7 @@ export async function GET() {
     const sessions = await getSessions();
     return NextResponse.json(sessions);
   } catch (err) {
-    console.error('[API] GET /api/admin/sessions failed:', err);
+    logger.error({ err }, 'GET /api/admin/sessions failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
