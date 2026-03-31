@@ -122,7 +122,7 @@ bun run db:studio
 
 ### Schema Location
 
-- Schema definition: `src/lib/db/schema.ts` (19 tables)
+- Schema definition: `src/lib/db/schema.ts` (23 tables)
 - Migration files: `drizzle/`
 - Drizzle config: `drizzle.config.ts`
 

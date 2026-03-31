@@ -118,7 +118,7 @@ ink37-tattoos/
       actions/              -- Server Actions (22 action files)
       cal/                  -- Cal.com integration
       dal/                  -- Data Access Layer (21 DAL modules)
-      db/                   -- Database connection and schema (19 tables)
+      db/                   -- Database connection and schema (23 tables)
       email/                -- Resend email templates and sending
       security/             -- Rate limiter, XSS sanitizer
       utils/                -- Shared utilities
