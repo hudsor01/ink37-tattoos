@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('webhook:resend');
 
 interface ResendWebhookEvent {
   type: string;
@@ -84,18 +87,14 @@ export async function POST(request: Request) {
     case 'email.bounced': {
       const bouncedEmail = body.data?.to?.[0];
       if (bouncedEmail) {
-        console.warn(`[Resend] Email bounced: ${bouncedEmail}`, {
-          emailId: body.data.email_id,
-        });
+        log.warn({ email: bouncedEmail, emailId: body.data.email_id }, 'Email bounced');
       }
       break;
     }
     case 'email.complained': {
       const complainedEmail = body.data?.to?.[0];
       if (complainedEmail) {
-        console.warn(`[Resend] Spam complaint: ${complainedEmail}`, {
-          emailId: body.data.email_id,
-        });
+        log.warn({ email: complainedEmail, emailId: body.data.email_id }, 'Spam complaint');
       }
       break;
     }
