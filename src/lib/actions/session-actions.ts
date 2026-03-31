@@ -8,7 +8,10 @@ import { requireRole, getCurrentSession } from '@/lib/auth';
 import { sendAftercareEmail } from '@/lib/email/resend';
 import { safeAction } from './safe-action';
 import type { ActionResult } from './types';
+import { createLogger } from '@/lib/logger';
 import { after } from 'next/server';
+
+const log = createLogger('session-actions');
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { del } from '@vercel/blob';
@@ -90,7 +93,7 @@ export async function updateSessionAction(id: string, formData: FormData): Promi
               .set({ aftercareProvided: true })
               .where(eq(schema.tattooSession.id, id));
           } catch (err) {
-            console.error('[Aftercare] Email failed:', err);
+            log.error({ err }, 'Aftercare email failed');
           }
         });
       }
@@ -198,7 +201,7 @@ export async function updateSessionFieldAction(
             .set({ aftercareProvided: true })
             .where(eq(schema.tattooSession.id, id));
         } catch (err) {
-          console.error('[Aftercare] Email failed:', err);
+          log.error({ err }, 'Aftercare email failed');
         }
       });
     }
@@ -273,10 +276,7 @@ export async function removeSessionImageAction(id: string, imageUrl: string) {
     await del(imageUrl);
   } catch (err) {
     // Log but don't fail -- DB record is already updated
-    console.error(
-      `[Session] Failed to delete blob for session ${id}:`,
-      err instanceof Error ? err.message : err
-    );
+    log.error({ err, sessionId: id }, 'Failed to delete blob for session');
   }
 
   const hdrs = await headers();

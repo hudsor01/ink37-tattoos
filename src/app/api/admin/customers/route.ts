@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getCurrentSession } from '@/lib/auth';
 import { getCustomers } from '@/lib/dal/customers';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('api:admin-customers');
 
 const ADMIN_ROLES = ['admin', 'super_admin'];
 
@@ -19,7 +22,7 @@ export async function GET() {
     const customers = await getCustomers();
     return NextResponse.json(customers);
   } catch (err) {
-    console.error('[API] GET /api/admin/customers failed:', err);
+    log.error({ err }, 'GET /api/admin/customers failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

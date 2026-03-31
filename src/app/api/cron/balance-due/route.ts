@@ -3,6 +3,9 @@ import { db } from '@/lib/db';
 import * as schema from '@/lib/db/schema';
 import { sql } from 'drizzle-orm';
 import { sendBalanceDueReminder } from '@/lib/email/resend';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('cron:balance-due');
 
 /**
  * POST /api/cron/balance-due
@@ -72,7 +75,7 @@ export async function POST(request: Request) {
     // Skip sessions where customer has no email
     if (!row.customerEmail) {
       errors++;
-      console.warn(`[Balance-Due] Session ${row.id}: customer has no email`);
+      log.warn({ sessionId: row.id }, 'Session customer has no email');
       continue;
     }
 
@@ -97,7 +100,7 @@ export async function POST(request: Request) {
       }
     } catch (err) {
       errors++;
-      console.error(`[Balance-Due] Failed for session ${row.id}:`, err);
+      log.error({ err, sessionId: row.id }, 'Balance due reminder failed');
     }
   }
 

@@ -8,7 +8,10 @@ import { sendContactNotification } from '@/lib/email/resend';
 import { logAudit } from '@/lib/dal/audit';
 import { createNotificationForAdmins } from '@/lib/dal/notifications';
 import { getCurrentSession } from '@/lib/auth';
+import { createLogger } from '@/lib/logger';
 import { after } from 'next/server';
+
+const log = createLogger('contact-actions');
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
@@ -43,7 +46,7 @@ export async function submitContactForm(formData: FormData) {
 
     // Send email notifications (non-blocking for the response)
     sendContactNotification(result.data).catch((err) =>
-      console.error('Contact email notification failed:', err)
+      log.error({ err }, 'Contact email notification failed')
     );
 
     // Notification: inform admins of new contact submission
@@ -55,12 +58,12 @@ export async function submitContactForm(formData: FormData) {
         metadata: { contactName: result.data.name, contactEmail: result.data.email },
       });
     } catch (err) {
-      console.error('Failed to create contact notification:', err);
+      log.error({ err }, 'Failed to create contact notification');
     }
 
     return { success: true as const };
   } catch (error) {
-    console.error('Contact form submission failed:', error);
+    log.error({ err: error }, 'Contact form submission failed');
     return {
       success: false as const,
       error: 'Something went wrong. Please try again.',
@@ -104,7 +107,7 @@ export async function updateContactNotesAction(
     revalidatePath('/dashboard/contacts');
     return { success: true, data: undefined };
   } catch (error) {
-    console.error('Update contact notes failed:', error);
+    log.error({ err: error }, 'Update contact notes failed');
     return { success: false, error: 'Failed to update notes' };
   }
 }
@@ -135,7 +138,7 @@ export async function deleteContactAction(
     revalidatePath('/dashboard/contacts');
     return { success: true, data: undefined };
   } catch (error) {
-    console.error('Delete contact failed:', error);
+    log.error({ err: error }, 'Delete contact failed');
     return { success: false, error: 'Failed to delete contact' };
   }
 }

@@ -10,7 +10,9 @@ import { createGiftCard, redeemGiftCard } from '@/lib/dal/gift-cards';
 import { createNotificationForAdmins } from '@/lib/dal/notifications';
 import { sendOrderConfirmationEmail, sendGiftCardEmail, sendGiftCardPurchaseConfirmationEmail } from '@/lib/email/resend';
 import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
+import { createLogger } from '@/lib/logger';
 
+const log = createLogger('webhook:stripe');
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(request: Request) {
@@ -36,7 +38,7 @@ export async function POST(request: Request) {
   try {
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
   } catch (err) {
-    console.error('Webhook signature verification failed:', err);
+    log.error({ err }, 'Webhook signature verification failed');
     return NextResponse.json(
       { error: 'Invalid signature' },
       { status: 400 }
@@ -87,7 +89,7 @@ export async function POST(request: Request) {
             metadata: { sessionId: checkoutSession.id, amount, orderType },
           });
         } catch (err) {
-          console.error('Failed to create payment notification:', err);
+          log.error({ err }, 'Failed to create payment notification');
           // Do not re-throw -- notification failure must not break webhook
         }
 
@@ -115,7 +117,7 @@ export async function POST(request: Request) {
     }
 
   } catch (err) {
-    console.error(`Webhook handler error for ${event.type}:`, err);
+    log.error({ err, eventType: event.type }, 'Webhook handler error');
     return NextResponse.json(
       { error: 'Handler failed' },
       { status: 500 }
@@ -135,7 +137,7 @@ async function handleCheckoutCompleted(
 ) {
   const tattooSessionId = session.metadata?.tattooSessionId;
   if (!tattooSessionId) {
-    console.error('Checkout session missing tattooSessionId in metadata');
+    log.error({ sessionId: session.id }, 'Checkout session missing tattooSessionId in metadata');
     return;
   }
 
@@ -196,7 +198,7 @@ async function handleStoreCheckoutCompleted(
 ) {
   const orderId = session.metadata?.orderId;
   if (!orderId) {
-    console.error('Store checkout session missing orderId in metadata');
+    log.error({ sessionId: session.id }, 'Store checkout session missing orderId in metadata');
     return;
   }
 
@@ -288,7 +290,7 @@ async function handleGiftCardCheckoutCompleted(
   const purchaserEmail = session.customer_details?.email ?? '';
 
   if (!denomination || !recipientEmail) {
-    console.error('Gift card checkout missing required metadata');
+    log.error({ sessionId: session.id }, 'Gift card checkout missing required metadata');
     return;
   }
 
