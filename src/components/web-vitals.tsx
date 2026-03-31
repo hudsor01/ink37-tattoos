@@ -19,16 +19,9 @@ export function WebVitals() {
       console.debug(`[Web Vital] ${metric.name}: ${metric.value.toFixed(2)} (${metric.rating})`);
     }
 
-    // Report to Sentry if available
-    if (typeof Sentry.metrics !== 'undefined') {
-      Sentry.metrics.distribution(metric.name, metric.value, {
-        unit: metric.name === 'CLS' ? '' : 'millisecond',
-        tags: {
-          rating: metric.rating,
-          navigationType: metric.navigationType,
-        },
-      });
-    }
+    // Report to Sentry via setMeasurement (Sentry SDK v10+)
+    const unit = metric.name === 'CLS' ? '' : 'millisecond';
+    Sentry.setMeasurement(metric.name, metric.value, unit);
   });
 
   return null;

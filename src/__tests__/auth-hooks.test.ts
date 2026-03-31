@@ -10,7 +10,16 @@ const mockBetterAuth = vi.fn().mockReturnValue({
   handler: vi.fn(),
 });
 
+const mockLoggerError = vi.fn();
 vi.mock('server-only', () => ({}));
+vi.mock('@/lib/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    error: mockLoggerError,
+    warn: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
 vi.mock('pg', () => ({ Pool: vi.fn() }));
 vi.mock('better-auth', () => ({ betterAuth: (...args: unknown[]) => mockBetterAuth(...args) }));
 vi.mock('better-auth/next-js', () => ({ nextCookies: vi.fn(() => ({})) }));
@@ -103,25 +112,23 @@ describe('Auth databaseHooks - user.create.after', () => {
   });
 
   it('catches db select error without propagating', async () => {
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    mockLoggerError.mockClear();
     mockSelectLimit.mockRejectedValue(new Error('DB connection failed'));
     await afterHook({ id: 'u1', email: 'error@test.com' });
-    expect(errorSpy).toHaveBeenCalledWith(
-      '[Auth Hook] Customer auto-link failed:',
-      expect.any(Error),
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      expect.objectContaining({ err: expect.any(Error) }),
+      expect.stringContaining('auto-link failed'),
     );
-    errorSpy.mockRestore();
   });
 
   it('catches insert error without propagating', async () => {
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    mockLoggerError.mockClear();
     mockSelectLimit.mockResolvedValue([]);
     mockInsertValues.mockRejectedValue(new Error('Insert failed'));
     await afterHook({ id: 'u1', email: 'fail@test.com', name: 'Test' });
-    expect(errorSpy).toHaveBeenCalledWith(
-      '[Auth Hook] Customer auto-link failed:',
-      expect.any(Error),
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      expect.objectContaining({ err: expect.any(Error) }),
+      expect.stringContaining('auto-link failed'),
     );
-    errorSpy.mockRestore();
   });
 });

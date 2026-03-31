@@ -1,6 +1,28 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createHmac } from 'crypto';
 
+vi.mock('server-only', () => ({}));
+
+const { mockLoggerWarn } = vi.hoisted(() => ({
+  mockLoggerWarn: vi.fn(),
+}));
+vi.mock('@/lib/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: mockLoggerWarn,
+    debug: vi.fn(),
+  },
+}));
+
+vi.mock('@/lib/security/rate-limiter', () => ({
+  rateLimiters: {
+    webhook: { limit: vi.fn().mockResolvedValue({ success: true, reset: Date.now() + 60000 }) },
+  },
+  getRequestIp: vi.fn().mockReturnValue('127.0.0.1'),
+  rateLimitResponse: vi.fn().mockReturnValue(Response.json({ error: 'Too many requests' }, { status: 429 })),
+}));
+
 // Mock next/server
 vi.mock('next/server', () => ({
   NextResponse: {
@@ -121,21 +143,25 @@ describe('Resend Webhook Handler', () => {
     }
 
     it('logs warning for email.bounced event', async () => {
-      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      mockLoggerWarn.mockClear();
       const body = JSON.stringify({ type: 'email.bounced', data: { to: ['user@test.com'], email_id: 'em_1' } });
       const response = await POST(makeValidRequest(body));
       expect(response.status).toBe(200);
-      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Email bounced: user@test.com'), expect.anything());
-      warnSpy.mockRestore();
+      expect(mockLoggerWarn).toHaveBeenCalledWith(
+        expect.objectContaining({ email: 'user@test.com' }),
+        expect.stringContaining('bounced'),
+      );
     });
 
     it('logs warning for email.complained event', async () => {
-      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      mockLoggerWarn.mockClear();
       const body = JSON.stringify({ type: 'email.complained', data: { to: ['spam@test.com'], email_id: 'em_2' } });
       const response = await POST(makeValidRequest(body));
       expect(response.status).toBe(200);
-      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Spam complaint: spam@test.com'), expect.anything());
-      warnSpy.mockRestore();
+      expect(mockLoggerWarn).toHaveBeenCalledWith(
+        expect.objectContaining({ email: 'spam@test.com' }),
+        expect.stringContaining('complaint'),
+      );
     });
 
     it('returns 200 for unknown event types', async () => {
