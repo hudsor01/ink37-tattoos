@@ -278,9 +278,7 @@ Plans:
   2. Running `bun run db:seed` populates the production database with an artist profile, default studio settings, and a current consent form template
   3. The Content-Security-Policy header uses nonce-based script/style sources instead of unsafe-inline or unsafe-eval -- inline scripts without a valid nonce are blocked by the browser
   4. Rapid requests to any /api/admin/* or /api/upload/* endpoint return 429 after threshold, preventing brute-force or abuse of authenticated routes
-**Plans** (2/2 complete):
-- [x] 25-01-PLAN.md -- Migration consolidation and production seed data
-- [x] 25-02-PLAN.md -- CSP nonces and admin/upload rate limiting
+**Plans**: TBD
 
 ### Phase 26: Assets + Infrastructure
 **Goal**: All missing public assets are in place (gallery videos, search verification, PWA manifest), n8n cron workflows are configured, and all production environment variables are documented and verified
@@ -292,11 +290,7 @@ Plans:
   3. The site has a valid manifest.json and service worker that enable "Add to Home Screen" on mobile devices
   4. n8n workflows at n8n.thehudsonfam.com run balance-due reminder emails daily and no-show follow-up emails hourly on schedule
   5. Every environment variable required for production is documented with its purpose, and all values are verified as set in the Vercel dashboard
-**Plans**: 3 plans
-Plans:
-- [ ] 26-01-PLAN.md -- Search verification files + PWA manifest and service worker
-- [ ] 26-02-PLAN.md -- Gallery video upload to Vercel Blob and gallery integration
-- [x] 26-03-PLAN.md -- n8n cron workflows and environment variable documentation
+**Plans**: TBD
 
 ### Phase 27: Documentation
 **Goal**: The project has a complete deployment runbook and an up-to-date README that captures the final architecture, setup instructions, and operational procedures
@@ -305,9 +299,8 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. DEPLOYMENT.md contains a step-by-step production deployment checklist covering env var setup, database migration, DNS cutover, smoke tests, and rollback procedures
   2. README.md provides a project overview, local development setup instructions, architecture diagram reference, and links to all operational documentation
-**Plans**: 1 plan
 Plans:
-- [ ] 27-01-PLAN.md -- Production deployment runbook and project README
+- [x] 27-01-PLAN.md -- Production deployment checklist and README update
 
 ## Progress
 
@@ -335,8 +328,8 @@ Plans:
 | 20. Business Workflows | v2.0 | 4/4 | Complete | 2026-03-30 |
 | 21. Analytics Depth | v2.0 | 4/4 | Complete | 2026-03-30 |
 | 22. Testing and Tech Debt | v2.0 | 4/4 | Complete | 2026-03-30 |
-| 23. Git Merge + CI/CD Pipeline | v3.0 | 0/? | Complete | 2026-03-31 |
-| 24. Monitoring + Observability | v3.0 | 1/2 | In Progress | - |
-| 25. Database + Security Hardening | v3.0 | 2/2 | Complete | 2026-03-31 |
-| 26. Assets + Infrastructure | v3.0 | 1/3 | Complete    | 2026-03-31 |
-| 27. Documentation | v3.0 | 0/1 | Not started | - |
+| 23. Git Merge + CI/CD Pipeline | v3.0 | 0/? | Not started | - |
+| 24. Monitoring + Observability | v3.0 | 2/2 | Complete   | 2026-03-31 |
+| 25. Database + Security Hardening | v3.0 | 0/? | Not started | - |
+| 26. Assets + Infrastructure | v3.0 | 0/? | Not started | - |
+| 27. Documentation | v3.0 | 1/1 | Complete | 2026-03-31 |
