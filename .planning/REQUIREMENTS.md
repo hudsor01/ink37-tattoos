@@ -184,11 +184,11 @@ Requirements for production launch. Derived from comprehensive project audit (20
 
 ### Database & Infrastructure
 
-- [x] **DB-01**: Drizzle migrations consolidated -- single clean migration from baseline to v3.0 schema
-- [x] **DB-02**: Production database seeded with initial data (artist profile, default settings, consent form)
+- [ ] **DB-01**: Drizzle migrations consolidated -- single clean migration from baseline to v3.0 schema
+- [ ] **DB-02**: Production database seeded with initial data (artist profile, default settings, consent form)
 - [ ] **INFRA-01**: n8n workflows configured at n8n.thehudsonfam.com (balance-due daily + no-show hourly cron)
-- [ ] **INFRA-02**: CSP tightened -- replace unsafe-inline/unsafe-eval with nonce-based CSP where possible
-- [ ] **INFRA-03**: Rate limiting added to admin API routes (/api/admin/*, /api/upload/*)
+- [x] **INFRA-02**: CSP tightened -- replace unsafe-inline/unsafe-eval with nonce-based CSP where possible
+- [x] **INFRA-03**: Rate limiting added to admin API routes (/api/admin/*, /api/upload/*)
 - [ ] **INFRA-04**: Production environment variables documented and audited in Vercel dashboard
 
 ### Documentation
@@ -297,10 +297,10 @@ Requirements for production launch. Derived from comprehensive project audit (20
 | MON-03 | Phase 24 | Complete |
 | MON-04 | Phase 24 | Pending |
 >>>>>>> worktree-agent-a2c56885
-| DB-01 | Phase 25 | Complete |
-| DB-02 | Phase 25 | Complete |
-| INFRA-02 | Phase 25 | Pending |
-| INFRA-03 | Phase 25 | Pending |
+| DB-01 | Phase 25 | Pending |
+| DB-02 | Phase 25 | Pending |
+| INFRA-02 | Phase 25 | Complete |
+| INFRA-03 | Phase 25 | Complete |
 | ASSET-01 | Phase 26 | Pending |
 | ASSET-02 | Phase 26 | Pending |
 | ASSET-03 | Phase 26 | Pending |

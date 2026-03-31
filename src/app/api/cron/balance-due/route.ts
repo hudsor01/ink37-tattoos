@@ -3,14 +3,7 @@ import { db } from '@/lib/db';
 import * as schema from '@/lib/db/schema';
 import { sql } from 'drizzle-orm';
 import { sendBalanceDueReminder } from '@/lib/email/resend';
-<<<<<<< HEAD
 import { logger } from '@/lib/logger';
-||||||| fdedb97
-=======
-import { createLogger } from '@/lib/logger';
-
-const log = createLogger('cron:balance-due');
->>>>>>> worktree-agent-a2c56885
 
 /**
  * POST /api/cron/balance-due
@@ -80,13 +73,7 @@ export async function POST(request: Request) {
     // Skip sessions where customer has no email
     if (!row.customerEmail) {
       errors++;
-<<<<<<< HEAD
       logger.warn({ sessionId: row.id }, 'Balance-due: customer has no email');
-||||||| fdedb97
-      console.warn(`[Balance-Due] Session ${row.id}: customer has no email`);
-=======
-      log.warn({ sessionId: row.id }, 'Session customer has no email');
->>>>>>> worktree-agent-a2c56885
       continue;
     }
 
@@ -111,13 +98,7 @@ export async function POST(request: Request) {
       }
     } catch (err) {
       errors++;
-<<<<<<< HEAD
       logger.error({ err, sessionId: row.id }, 'Balance-due reminder failed');
-||||||| fdedb97
-      console.error(`[Balance-Due] Failed for session ${row.id}:`, err);
-=======
-      log.error({ err, sessionId: row.id }, 'Balance due reminder failed');
->>>>>>> worktree-agent-a2c56885
     }
   }
 
