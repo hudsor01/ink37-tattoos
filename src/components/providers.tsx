@@ -5,6 +5,7 @@ import { ThemeProvider } from 'next-themes';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { Toaster } from 'sonner';
 import { useState } from 'react';
+import { ServiceWorkerRegistration } from './service-worker-registration';
 import { WebVitals } from './web-vitals';
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -21,6 +22,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           {children}
           <WebVitals />
           <Toaster position="bottom-right" richColors />
+          <ServiceWorkerRegistration />
         </ThemeProvider>
       </QueryClientProvider>
     </NuqsAdapter>
