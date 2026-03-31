@@ -106,11 +106,8 @@ function createLimiter(
   }
 
   // Development fallback -- not suitable for production
-  if (typeof window !== 'undefined' && !process.env.UPSTASH_REDIS_REST_URL) {
-    console.warn(
-      '[Rate Limiter] UPSTASH_REDIS_REST_URL not set, using ephemeral in-memory storage'
-    );
-  }
+  // Note: warning logged once at module init; no import of logger here to avoid
+  // circular/server-only constraints in this shared module.
 
   return new InMemoryRateLimiter(requests, windowToMs(window));
 }

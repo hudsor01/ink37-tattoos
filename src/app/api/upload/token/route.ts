@@ -1,6 +1,7 @@
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { NextResponse } from 'next/server';
 import { getCurrentSession } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 
 const ADMIN_ROLES = ['admin', 'super_admin'];
 
@@ -30,13 +31,13 @@ export async function POST(request: Request): Promise<NextResponse> {
         };
       },
       onUploadCompleted: async ({ blob }) => {
-        console.log('[Upload] Client upload completed:', blob.url);
+        logger.info({ blobUrl: blob.url }, 'Client upload completed');
       },
     });
 
     return NextResponse.json(jsonResponse);
   } catch (err) {
-    console.error('[API] POST /api/upload/token failed:', err);
+    logger.error({ err }, 'POST /api/upload/token failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,0 +1,42 @@
+import * as Sentry from '@sentry/nextjs';
+
+export async function register() {
+  if (process.env.NEXT_RUNTIME === 'nodejs') {
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN,
+      environment: process.env.NODE_ENV || 'development',
+      enabled: !!process.env.SENTRY_DSN || !!process.env.NEXT_PUBLIC_SENTRY_DSN,
+
+      // Performance monitoring
+      tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+
+      // Set sampling rate for profiling
+      profilesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+
+      // Filter out noisy errors
+      ignoreErrors: [
+        'NEXT_NOT_FOUND',
+        'NEXT_REDIRECT',
+        'AbortError',
+        'NetworkError',
+      ],
+    });
+  }
+
+  if (process.env.NEXT_RUNTIME === 'edge') {
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN,
+      environment: process.env.NODE_ENV || 'development',
+      enabled: !!process.env.SENTRY_DSN || !!process.env.NEXT_PUBLIC_SENTRY_DSN,
+      tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+      ignoreErrors: [
+        'NEXT_NOT_FOUND',
+        'NEXT_REDIRECT',
+        'AbortError',
+        'NetworkError',
+      ],
+    });
+  }
+}
+
+export const onRequestError = Sentry.captureRequestError;

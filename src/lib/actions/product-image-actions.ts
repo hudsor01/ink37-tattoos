@@ -14,6 +14,7 @@ import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
 
 const uuidSchema = z.string().uuid();
 
@@ -130,7 +131,7 @@ export async function deleteProductImageAction(imageId: string, productId: strin
     try {
       await del(deletedImage.url);
     } catch (err) {
-      console.error(`[ProductImage] Failed to delete blob for image ${imageId}:`, err);
+      logger.error({ err, imageId }, 'Failed to delete blob for product image');
       // Don't fail the overall action if blob cleanup fails
     }
   }

@@ -5,6 +5,7 @@ import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { eq, and, desc, gte, lte, sql, count } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
+import { logger } from '@/lib/logger';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];
 
@@ -41,7 +42,7 @@ export async function logAudit(entry: AuditEntry) {
       metadata: entry.metadata ?? null,
     });
   } catch (error) {
-    console.error('Audit log write failed:', error);
+    logger.error({ err: error }, 'Audit log write failed');
   }
 }
 
