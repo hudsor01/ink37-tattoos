@@ -278,10 +278,7 @@ Plans:
   2. Running `bun run db:seed` populates the production database with an artist profile, default studio settings, and a current consent form template
   3. The Content-Security-Policy header uses nonce-based script/style sources instead of unsafe-inline or unsafe-eval -- inline scripts without a valid nonce are blocked by the browser
   4. Rapid requests to any /api/admin/* or /api/upload/* endpoint return 429 after threshold, preventing brute-force or abuse of authenticated routes
-**Plans**: 2 plans
-Plans:
-- [ ] 25-01-PLAN.md -- Migration consolidation and production seed script
-- [ ] 25-02-PLAN.md -- CSP nonce implementation and admin rate limiting
+**Plans**: TBD
 
 ### Phase 26: Assets + Infrastructure
 **Goal**: All missing public assets are in place (gallery videos, search verification, PWA manifest), n8n cron workflows are configured, and all production environment variables are documented and verified
@@ -330,8 +327,16 @@ Plans:
 | 20. Business Workflows | v2.0 | 4/4 | Complete | 2026-03-30 |
 | 21. Analytics Depth | v2.0 | 4/4 | Complete | 2026-03-30 |
 | 22. Testing and Tech Debt | v2.0 | 4/4 | Complete | 2026-03-30 |
+<<<<<<< HEAD
 | 23. Git Merge + CI/CD Pipeline | v3.0 | 0/? | Not started | - |
-| 24. Monitoring + Observability | v3.0 | 1/2 | In Progress | - |
-| 25. Database + Security Hardening | v3.0 | 0/2 | Not started | - |
+| 24. Monitoring + Observability | v3.0 | 1/1 | Complete   | 2026-03-31 |
+||||||| fdedb97
+| 23. Git Merge + CI/CD Pipeline | v3.0 | 0/? | Complete    | 2026-03-31 |
+| 24. Monitoring + Observability | v3.0 | 0/? | Not started | - |
+=======
+| 23. Git Merge + CI/CD Pipeline | v3.0 | 0/? | Complete    | 2026-03-31 |
+| 24. Monitoring + Observability | v3.0 | 1/2 | In Progress|  |
+>>>>>>> worktree-agent-a2c56885
+| 25. Database + Security Hardening | v3.0 | 1/1 | Complete   | 2026-03-31 |
 | 26. Assets + Infrastructure | v3.0 | 0/? | Not started | - |
 | 27. Documentation | v3.0 | 0/? | Not started | - |
