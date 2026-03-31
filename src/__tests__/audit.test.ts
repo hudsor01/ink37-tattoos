@@ -11,13 +11,7 @@ describe('Audit logging', () => {
     // Must have try-catch to prevent throws
     expect(content).toContain('try {');
     expect(content).toContain('catch (error)');
-<<<<<<< HEAD
     expect(content).toContain('logger.error');
-||||||| fdedb97
-    expect(content).toContain('console.error');
-=======
-    expect(content).toContain('log.error');
->>>>>>> worktree-agent-a2c56885
   });
 
   it('logAudit writes to db via Drizzle insert', async () => {

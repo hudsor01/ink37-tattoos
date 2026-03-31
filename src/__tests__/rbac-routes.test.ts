@@ -98,6 +98,11 @@ vi.mock('@/lib/db/schema', () => ({
 vi.mock('@/lib/security/rate-limiter', () => ({
   rateLimiters: {
     portalBilling: { limit: vi.fn().mockResolvedValue({ success: true, reset: Date.now() + 60000 }) },
+    admin: { limit: vi.fn().mockResolvedValue({ success: true, reset: Date.now() + 60000 }) },
+    upload: { limit: vi.fn().mockResolvedValue({ success: true, reset: Date.now() + 60000 }) },
+    webhook: { limit: vi.fn().mockResolvedValue({ success: true, reset: Date.now() + 60000 }) },
+    storeDownload: { limit: vi.fn().mockResolvedValue({ success: true, reset: Date.now() + 60000 }) },
+    contact: { limit: vi.fn().mockResolvedValue({ success: true, reset: Date.now() + 60000 }) },
   },
   getRequestIp: vi.fn().mockReturnValue('127.0.0.1'),
   rateLimitResponse: vi.fn().mockReturnValue(Response.json({ error: 'Too many requests' }, { status: 429 })),
@@ -182,7 +187,8 @@ describe('RBAC Route Enforcement', () => {
           expect(response.status).toBe(200);
           expect(data).toEqual([{ id: '1' }]);
         } else {
-          const response = await GET();
+          const req = new Request(`http://localhost${name}`);
+          const response = await GET(req);
           const data = await response.json();
           expect(response.status).toBe(200);
           expect(data).toEqual([{ id: '1' }]);
@@ -200,7 +206,8 @@ describe('RBAC Route Enforcement', () => {
           Object.defineProperty(req, 'nextUrl', { value: url });
           response = await GET(req as never);
         } else {
-          response = await GET();
+          const req = new Request(`http://localhost${name}`);
+          response = await GET(req);
         }
         const data = await response.json();
         expect(response.status).toBe(401);

@@ -125,6 +125,10 @@ export const rateLimiters = {
   portalBilling: createLimiter(10, '1 m', 'rl:billing'),
   /** Webhooks (Stripe, Cal.com, Resend): 100 requests per minute */
   webhook: createLimiter(100, '1 m', 'rl:webhook'),
+  /** Admin data routes (/api/admin/*): 60 requests per minute */
+  admin: createLimiter(60, '1 m', 'rl:admin'),
+  /** Upload routes (/api/upload/*): 20 requests per minute */
+  upload: createLimiter(20, '1 m', 'rl:upload'),
 } as const;
 
 // ---------------------------------------------------------------------------

@@ -9,6 +9,15 @@ const mockGetSessions = vi.fn();
 
 vi.mock('server-only', () => ({}));
 
+vi.mock('@/lib/security/rate-limiter', () => ({
+  rateLimiters: {
+    admin: { limit: vi.fn().mockResolvedValue({ success: true, reset: Date.now() + 60000 }) },
+    upload: { limit: vi.fn().mockResolvedValue({ success: true, reset: Date.now() + 60000 }) },
+  },
+  getRequestIp: vi.fn().mockReturnValue('127.0.0.1'),
+  rateLimitResponse: vi.fn().mockReturnValue(Response.json({ error: 'Too many requests' }, { status: 429 })),
+}));
+
 vi.mock('@/lib/auth', () => ({
   getCurrentSession: (...args: unknown[]) => mockGetCurrentSession(...args),
 }));
@@ -48,6 +57,11 @@ const adminSession = {
   session: { id: 'test-session' },
 };
 
+/** Create a mock Request for route handlers that need the request parameter */
+function mockRequest(path: string) {
+  return new Request(`http://localhost${path}`);
+}
+
 describe('Admin Customers API Route', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -58,7 +72,7 @@ describe('Admin Customers API Route', () => {
     mockGetCustomers.mockRejectedValue(new Error('Unauthorized'));
 
     const { GET } = await import('@/app/api/admin/customers/route');
-    const response = await GET();
+    const response = await GET(mockRequest('/api/admin/customers'));
     expect(response.status).toBe(401);
     const data = await response.json();
     expect(data.error).toBe('Unauthorized');
@@ -69,7 +83,7 @@ describe('Admin Customers API Route', () => {
     mockGetCustomers.mockRejectedValue(new Error('Insufficient permissions: requires staff role or above'));
 
     const { GET } = await import('@/app/api/admin/customers/route');
-    const response = await GET();
+    const response = await GET(mockRequest('/api/admin/customers'));
     // Route checks role and returns 403 for non-admin users
     expect(response.status).toBe(403);
   });
@@ -83,7 +97,7 @@ describe('Admin Customers API Route', () => {
     mockGetCustomers.mockResolvedValue(mockCustomerData);
 
     const { GET } = await import('@/app/api/admin/customers/route');
-    const response = await GET();
+    const response = await GET(mockRequest('/api/admin/customers'));
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data).toEqual(mockCustomerData);
@@ -95,7 +109,7 @@ describe('Admin Customers API Route', () => {
     mockGetCustomers.mockResolvedValue([]);
 
     const { GET } = await import('@/app/api/admin/customers/route');
-    const response = await GET();
+    const response = await GET(mockRequest('/api/admin/customers'));
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data).toEqual([]);
@@ -156,7 +170,7 @@ describe('Admin Appointments API Route', () => {
     mockGetCurrentSession.mockResolvedValue(null);
 
     const { GET } = await import('@/app/api/admin/appointments/route');
-    const response = await GET();
+    const response = await GET(mockRequest('/api/admin/appointments'));
     expect(response.status).toBe(401);
     const data = await response.json();
     expect(data.error).toBe('Unauthorized');
@@ -166,7 +180,7 @@ describe('Admin Appointments API Route', () => {
     mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'user' } });
 
     const { GET } = await import('@/app/api/admin/appointments/route');
-    const response = await GET();
+    const response = await GET(mockRequest('/api/admin/appointments'));
     expect(response.status).toBe(403);
   });
 
@@ -183,7 +197,7 @@ describe('Admin Appointments API Route', () => {
     mockGetAppointments.mockResolvedValue(mockAppointmentData);
 
     const { GET } = await import('@/app/api/admin/appointments/route');
-    const response = await GET();
+    const response = await GET(mockRequest('/api/admin/appointments'));
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data).toEqual(mockAppointmentData);
@@ -199,7 +213,7 @@ describe('Admin Sessions API Route', () => {
     mockGetCurrentSession.mockResolvedValue(null);
 
     const { GET } = await import('@/app/api/admin/sessions/route');
-    const response = await GET();
+    const response = await GET(mockRequest('/api/admin/sessions'));
     expect(response.status).toBe(401);
     const data = await response.json();
     expect(data.error).toBe('Unauthorized');
@@ -209,7 +223,7 @@ describe('Admin Sessions API Route', () => {
     mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'user' } });
 
     const { GET } = await import('@/app/api/admin/sessions/route');
-    const response = await GET();
+    const response = await GET(mockRequest('/api/admin/sessions'));
     expect(response.status).toBe(403);
   });
 
@@ -221,7 +235,7 @@ describe('Admin Sessions API Route', () => {
     mockGetSessions.mockResolvedValue(mockSessionData);
 
     const { GET } = await import('@/app/api/admin/sessions/route');
-    const response = await GET();
+    const response = await GET(mockRequest('/api/admin/sessions'));
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data).toEqual(mockSessionData);
@@ -232,7 +246,7 @@ describe('Admin Sessions API Route', () => {
     mockGetSessions.mockResolvedValue([]);
 
     const { GET } = await import('@/app/api/admin/sessions/route');
-    const response = await GET();
+    const response = await GET(mockRequest('/api/admin/sessions'));
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data).toEqual([]);

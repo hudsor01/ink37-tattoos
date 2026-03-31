@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAppointmentsByDateRange } from '@/lib/dal/appointments';
+import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
 
 export async function GET(request: NextRequest) {
+  const ip = getRequestIp(request);
+  const { success, reset } = await rateLimiters.admin.limit(ip);
+  if (!success) return rateLimitResponse(reset);
+
   const searchParams = request.nextUrl.searchParams;
   const start = searchParams.get('start');
   const end = searchParams.get('end');

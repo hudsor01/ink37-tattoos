@@ -278,7 +278,9 @@ Plans:
   2. Running `bun run db:seed` populates the production database with an artist profile, default studio settings, and a current consent form template
   3. The Content-Security-Policy header uses nonce-based script/style sources instead of unsafe-inline or unsafe-eval -- inline scripts without a valid nonce are blocked by the browser
   4. Rapid requests to any /api/admin/* or /api/upload/* endpoint return 429 after threshold, preventing brute-force or abuse of authenticated routes
-**Plans**: TBD
+**Plans** (2/2 complete):
+- [x] 25-01-PLAN.md -- Migration consolidation and production seed data
+- [x] 25-02-PLAN.md -- CSP nonces and admin/upload rate limiting
 
 ### Phase 26: Assets + Infrastructure
 **Goal**: All missing public assets are in place (gallery videos, search verification, PWA manifest), n8n cron workflows are configured, and all production environment variables are documented and verified
