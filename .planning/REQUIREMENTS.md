@@ -179,8 +179,8 @@ Requirements for production launch. Derived from comprehensive project audit (20
 ### Missing Assets
 
 - [ ] **ASSET-01**: 7 gallery video files (.mov) copied from source repo to public/videos/
-- [ ] **ASSET-02**: Search engine verification files (Bing, Google) copied from source repo
-- [ ] **ASSET-03**: PWA manifest.json + site.webmanifest + service worker from source repo
+- [x] **ASSET-02**: Search engine verification files (Bing, Google) copied from source repo
+- [x] **ASSET-03**: PWA manifest.json + site.webmanifest + service worker from source repo
 
 ### Database & Infrastructure
 
@@ -302,8 +302,8 @@ Requirements for production launch. Derived from comprehensive project audit (20
 | INFRA-02 | Phase 25 | Pending |
 | INFRA-03 | Phase 25 | Pending |
 | ASSET-01 | Phase 26 | Pending |
-| ASSET-02 | Phase 26 | Pending |
-| ASSET-03 | Phase 26 | Pending |
+| ASSET-02 | Phase 26 | Complete |
+| ASSET-03 | Phase 26 | Complete |
 | INFRA-01 | Phase 26 | Pending |
 | INFRA-04 | Phase 26 | Pending |
 | DOC-01 | Phase 27 | Pending |

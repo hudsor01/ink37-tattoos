@@ -266,7 +266,7 @@
   4. Vercel Analytics or Web Vitals tracking is enabled and reporting LCP, FID, and CLS metrics for the public site
 **Plans**: 2 plans
 Plans:
-- [ ] 24-01-PLAN.md -- Sentry error tracking, health check endpoint, web vitals
+- [x] 24-01-PLAN.md -- Sentry error tracking, health check endpoint, web vitals
 - [x] 24-02-PLAN.md -- Pino structured logging replacing all console.* calls
 
 ### Phase 25: Database + Security Hardening
@@ -290,7 +290,11 @@ Plans:
   3. The site has a valid manifest.json and service worker that enable "Add to Home Screen" on mobile devices
   4. n8n workflows at n8n.thehudsonfam.com run balance-due reminder emails daily and no-show follow-up emails hourly on schedule
   5. Every environment variable required for production is documented with its purpose, and all values are verified as set in the Vercel dashboard
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [x] 26-01-PLAN.md -- Search verification files, PWA manifest, service worker
+- [ ] 26-02-PLAN.md -- Gallery videos
+- [ ] 26-03-PLAN.md -- n8n workflows, env audit
 
 ### Phase 27: Documentation
 **Goal**: The project has a complete deployment runbook and an up-to-date README that captures the final architecture, setup instructions, and operational procedures
@@ -327,16 +331,8 @@ Plans:
 | 20. Business Workflows | v2.0 | 4/4 | Complete | 2026-03-30 |
 | 21. Analytics Depth | v2.0 | 4/4 | Complete | 2026-03-30 |
 | 22. Testing and Tech Debt | v2.0 | 4/4 | Complete | 2026-03-30 |
-<<<<<<< HEAD
-| 23. Git Merge + CI/CD Pipeline | v3.0 | 0/? | Not started | - |
-| 24. Monitoring + Observability | v3.0 | 1/1 | Complete   | 2026-03-31 |
-||||||| fdedb97
 | 23. Git Merge + CI/CD Pipeline | v3.0 | 0/? | Complete    | 2026-03-31 |
-| 24. Monitoring + Observability | v3.0 | 0/? | Not started | - |
-=======
-| 23. Git Merge + CI/CD Pipeline | v3.0 | 0/? | Complete    | 2026-03-31 |
-| 24. Monitoring + Observability | v3.0 | 1/2 | In Progress|  |
->>>>>>> worktree-agent-a2c56885
+| 24. Monitoring + Observability | v3.0 | 2/2 | Complete   | 2026-03-31 |
 | 25. Database + Security Hardening | v3.0 | 0/? | Not started | - |
-| 26. Assets + Infrastructure | v3.0 | 0/? | Not started | - |
+| 26. Assets + Infrastructure | v3.0 | 1/3 | In Progress | - |
 | 27. Documentation | v3.0 | 0/? | Not started | - |
