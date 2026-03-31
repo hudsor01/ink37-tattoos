@@ -8,6 +8,7 @@ import type { CalBookingPayload } from '@/lib/cal/types';
 import { CalWebhookPayloadSchema } from '@/lib/security/validation';
 import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
 import { createNotificationForAdmins } from '@/lib/dal/notifications';
+import { logger } from '@/lib/logger';
 
 const VALID_APPOINTMENT_TYPES = ['CONSULTATION', 'DESIGN_REVIEW', 'TATTOO_SESSION', 'TOUCH_UP', 'REMOVAL'] as const;
 
@@ -38,13 +39,13 @@ export async function POST(request: Request) {
 
   const parsed = CalWebhookPayloadSchema.safeParse(JSON.parse(body));
   if (!parsed.success) {
-    console.error('[Cal Webhook] Payload validation failed:', {
+    logger.error({
       errors: parsed.error.issues.map((i) => ({
         path: i.path.join('.'),
         code: i.code,
         message: i.message,
       })),
-    });
+    }, 'Cal webhook payload validation failed');
     return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
   }
 
@@ -75,7 +76,7 @@ export async function POST(request: Request) {
             metadata: { calBookingUid: payload.uid, attendeeName: name },
           });
         } catch (err) {
-          console.error('Failed to create booking notification:', err);
+          logger.error({ err }, 'Failed to create booking notification');
         }
 
         break;
@@ -89,10 +90,10 @@ export async function POST(request: Request) {
         break;
     }
 
-    console.log(`Cal.com ${event.triggerEvent}: ${payload.uid}`);
+    logger.info({ triggerEvent: event.triggerEvent, uid: payload.uid }, 'Cal.com webhook processed');
     return NextResponse.json({ received: true });
   } catch (err) {
-    console.error(`Cal.com webhook handler error for ${event.triggerEvent}:`, err);
+    logger.error({ err, triggerEvent: event.triggerEvent }, 'Cal.com webhook handler error');
     return NextResponse.json({ error: 'Handler failed' }, { status: 500 });
   }
 }
@@ -182,7 +183,7 @@ async function handleBookingCreated(payload: CalBookingPayload) {
 async function handleBookingRescheduled(payload: CalBookingPayload) {
   // CRITICAL: Look up by rescheduleUid (the OLD UID), not payload.uid
   if (!payload.rescheduleUid) {
-    console.error('Cal.com BOOKING_RESCHEDULED missing rescheduleUid');
+    logger.error('Cal.com BOOKING_RESCHEDULED missing rescheduleUid');
     return;
   }
 
@@ -200,7 +201,7 @@ async function handleBookingRescheduled(payload: CalBookingPayload) {
     .returning();
 
   if (!updated) {
-    console.error(`Cal.com reschedule: no appointment found for calBookingUid=${payload.rescheduleUid}`);
+    logger.error({ calBookingUid: payload.rescheduleUid }, 'Cal.com reschedule: no appointment found');
   }
 }
 
@@ -214,6 +215,6 @@ async function handleBookingCancelled(payload: CalBookingPayload) {
     .returning();
 
   if (!updated) {
-    console.error(`Cal.com cancellation: no appointment found for calBookingUid=${payload.uid}`);
+    logger.error({ calBookingUid: payload.uid }, 'Cal.com cancellation: no appointment found');
   }
 }

@@ -7,6 +7,7 @@ import { db } from '@/lib/db';
 import * as schema from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { env } from '@/lib/env';
+import { logger } from '@/lib/logger';
 
 let _authPool: Pool | undefined;
 function getAuthPool() {
@@ -43,10 +44,7 @@ function createAuth() {
                   // Handle unique constraint violation on customer.userId
                   const message = linkError instanceof Error ? linkError.message : String(linkError);
                   if (message.includes('unique constraint') || message.includes('duplicate key')) {
-                    console.error('[Auth Hook] Customer userId conflict -- admin resolution needed:', {
-                      email: user.email,
-                      customerId: existing[0].id,
-                    });
+                    logger.error({ email: user.email, customerId: existing[0].id }, 'Auth hook: customer userId conflict -- admin resolution needed');
                   } else {
                     throw linkError;
                   }
@@ -64,7 +62,7 @@ function createAuth() {
               // If existing customer already has a userId, do nothing (admin resolves)
             } catch (error) {
               // Never fail registration due to customer linking errors
-              console.error('[Auth Hook] Customer auto-link failed:', error);
+              logger.error({ err: error }, 'Auth hook: customer auto-link failed');
             }
           },
         },

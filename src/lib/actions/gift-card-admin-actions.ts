@@ -8,6 +8,7 @@ import { getCurrentSession } from '@/lib/auth';
 import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
+import { logger } from '@/lib/logger';
 
 const IssueGiftCardSchema = z.object({
   amount: z.number().min(5, 'Minimum $5').max(500, 'Maximum $500'),
@@ -55,7 +56,7 @@ export async function issueGiftCardAction(data: {
         code: result.code,
       });
     } catch (emailError) {
-      console.error('Gift card email delivery failed:', emailError);
+      logger.error({ err: emailError }, 'Gift card email delivery failed');
       emailFailed = true;
     }
 
@@ -75,7 +76,7 @@ export async function issueGiftCardAction(data: {
     revalidatePath('/dashboard/gift-cards');
     return { success: true, data: { code: result.code, emailFailed } };
   } catch (error) {
-    console.error('Issue gift card failed:', error);
+    logger.error({ err: error }, 'Issue gift card failed');
     return { success: false, error: 'Failed to issue gift card' };
   }
 }
@@ -103,7 +104,7 @@ export async function deactivateGiftCardAction(id: string): Promise<ActionResult
     revalidatePath('/dashboard/gift-cards');
     return { success: true, data: undefined };
   } catch (error) {
-    console.error('Deactivate gift card failed:', error);
+    logger.error({ err: error }, 'Deactivate gift card failed');
     return { success: false, error: 'Failed to deactivate gift card' };
   }
 }

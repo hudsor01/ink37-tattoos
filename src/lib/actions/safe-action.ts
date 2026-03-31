@@ -2,6 +2,7 @@
 
 import { z } from 'zod';
 import type { ActionResult } from './types';
+import { logger } from '@/lib/logger';
 
 /**
  * Wraps a server action callback with consistent error handling.
@@ -18,7 +19,7 @@ import type { ActionResult } from './types';
  * 3. FK validation errors -> user-friendly message
  * 4. DB constraint violations -> user-friendly message
  * 5. Scheduling conflicts -> pass through message
- * 6. All other errors -> generic message + console.error
+ * 6. All other errors -> generic message + logger.error
  */
 export async function safeAction<T>(fn: () => Promise<T>): Promise<ActionResult<T>> {
   try {
@@ -90,7 +91,7 @@ export async function safeAction<T>(fn: () => Promise<T>): Promise<ActionResult<
     }
 
     // 6. All other errors
-    console.error('Unexpected action error:', error);
+    logger.error({ err: error }, 'Unexpected action error');
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
