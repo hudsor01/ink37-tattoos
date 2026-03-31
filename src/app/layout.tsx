@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { inter, montserrat, pacifico, satisfy } from '../styles/fonts';
 import { Providers } from '@/components/providers';
 import './globals.css';
@@ -100,7 +101,9 @@ const jsonLd = {
   },
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
+
   return (
     <html
       lang="en"
@@ -110,6 +113,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="min-h-screen antialiased">
         <script
           type="application/ld+json"
+          nonce={nonce}
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <Providers>{children}</Providers>
