@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next';
+import { withSentryConfig } from '@sentry/nextjs';
 
 const securityHeaders = [
   { key: 'X-Frame-Options', value: 'DENY' },
@@ -21,7 +22,7 @@ const securityHeaders = [
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
       "frame-src 'self' https://app.cal.com",
-      "connect-src 'self' https://api.cal.com",
+      "connect-src 'self' https://api.cal.com https://*.sentry.io https://*.ingest.sentry.io",
     ].join('; '),
   },
 ];
@@ -33,4 +34,23 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  // Suppresses source map uploading logs during build
+  silent: true,
+
+  // Organization and project (configured via env vars)
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+
+  // Upload source maps for better stack traces
+  widenClientFileUpload: true,
+
+  // Automatically tree-shake Sentry logger statements
+  disableLogger: true,
+
+  // Hide source maps from generated client bundles
+  hideSourceMaps: true,
+
+  // Disable Sentry webpack plugin when no auth token (local dev)
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+});

@@ -4,6 +4,7 @@ import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { markAsRead, markAllAsRead } from '@/lib/dal/notifications';
 import { revalidatePath } from 'next/cache';
+import { logger } from '@/lib/logger';
 
 export async function markNotificationReadAction(notificationId: string) {
   const session = await getCurrentSession();
@@ -14,7 +15,7 @@ export async function markNotificationReadAction(notificationId: string) {
     revalidatePath('/dashboard/notifications');
     return { success: true as const, data: result };
   } catch (error) {
-    console.error('Failed to mark notification as read:', error);
+    logger.error({ err: error }, 'Failed to mark notification as read');
     return { success: false as const, error: 'Failed to mark notification as read' };
   }
 }
@@ -28,7 +29,7 @@ export async function markAllNotificationsReadAction() {
     revalidatePath('/dashboard/notifications');
     return { success: true as const };
   } catch (error) {
-    console.error('Failed to mark all notifications as read:', error);
+    logger.error({ err: error }, 'Failed to mark all notifications as read');
     return { success: false as const, error: 'Failed to mark all notifications as read' };
   }
 }
