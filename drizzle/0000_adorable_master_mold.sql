@@ -1,3 +1,7 @@
+-- PRODUCTION BASELINE: If deploying to an existing database, do NOT run this migration.
+-- Instead, insert a record into __drizzle_migrations using the hash from meta/_journal.json.
+-- See DEPLOYMENT.md for the exact SQL command.
+
 CREATE TYPE "public"."AppointmentStatus" AS ENUM('PENDING', 'CONFIRMED', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'NO_SHOW');--> statement-breakpoint
 CREATE TYPE "public"."AppointmentType" AS ENUM('CONSULTATION', 'DESIGN_REVIEW', 'TATTOO_SESSION', 'TOUCH_UP', 'REMOVAL');--> statement-breakpoint
 CREATE TYPE "public"."ContactStatus" AS ENUM('NEW', 'READ', 'REPLIED', 'RESOLVED');--> statement-breakpoint
@@ -61,6 +65,24 @@ CREATE TABLE "audit_log" (
 	"userAgent" text NOT NULL,
 	"timestamp" timestamp DEFAULT now() NOT NULL,
 	"metadata" jsonb
+);
+--> statement-breakpoint
+CREATE TABLE "cal_event" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"calEventUid" text NOT NULL,
+	"triggerEvent" text NOT NULL,
+	"processedAt" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "consent_form" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"version" integer NOT NULL,
+	"title" text DEFAULT 'Tattoo Consent Form' NOT NULL,
+	"content" text NOT NULL,
+	"isActive" boolean DEFAULT true NOT NULL,
+	"createdAt" timestamp DEFAULT now() NOT NULL,
+	"updatedAt" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "consent_form_version_unique" UNIQUE("version")
 );
 --> statement-breakpoint
 CREATE TABLE "contact" (
@@ -131,6 +153,17 @@ CREATE TABLE "gift_card" (
 	CONSTRAINT "gift_card_code_unique" UNIQUE("code")
 );
 --> statement-breakpoint
+CREATE TABLE "notification" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"userId" uuid NOT NULL,
+	"type" text NOT NULL,
+	"title" text NOT NULL,
+	"message" text NOT NULL,
+	"isRead" boolean DEFAULT false NOT NULL,
+	"metadata" jsonb,
+	"createdAt" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "order" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"email" text NOT NULL,
@@ -148,6 +181,8 @@ CREATE TABLE "order" (
 	"shippingPostalCode" text,
 	"shippingCountry" text,
 	"giftCardCode" text,
+	"trackingNumber" text,
+	"trackingCarrier" text,
 	"notes" text,
 	"createdAt" timestamp DEFAULT now() NOT NULL,
 	"updatedAt" timestamp DEFAULT now() NOT NULL,
@@ -199,6 +234,16 @@ CREATE TABLE "product" (
 	CONSTRAINT "product_stripePriceId_unique" UNIQUE("stripePriceId")
 );
 --> statement-breakpoint
+CREATE TABLE "product_image" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"productId" uuid NOT NULL,
+	"url" text NOT NULL,
+	"alt" text,
+	"sortOrder" integer DEFAULT 0 NOT NULL,
+	"isVisible" boolean DEFAULT true NOT NULL,
+	"createdAt" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "session" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"userId" uuid NOT NULL,
@@ -242,6 +287,9 @@ CREATE TABLE "tattoo_artist" (
 	"isActive" boolean DEFAULT true NOT NULL,
 	"portfolio" text[],
 	"bio" text,
+	"profileImage" text,
+	"instagramHandle" text,
+	"yearsExperience" integer,
 	"createdAt" timestamp DEFAULT now() NOT NULL,
 	"updatedAt" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "tattoo_artist_email_unique" UNIQUE("email")
@@ -259,6 +307,7 @@ CREATE TABLE "tattoo_design" (
 	"tags" text[],
 	"isApproved" boolean DEFAULT false NOT NULL,
 	"isPublic" boolean DEFAULT true NOT NULL,
+	"rejectionNotes" text,
 	"estimatedHours" numeric(10, 2),
 	"popularity" integer DEFAULT 0 NOT NULL,
 	"artistId" uuid NOT NULL,
@@ -290,6 +339,8 @@ CREATE TABLE "tattoo_session" (
 	"consentSigned" boolean DEFAULT false NOT NULL,
 	"consentSignedAt" timestamp,
 	"consentSignedBy" text,
+	"consentFormVersion" integer,
+	"consentExpiresAt" timestamp,
 	"createdAt" timestamp DEFAULT now() NOT NULL,
 	"updatedAt" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "tattoo_session_appointmentId_unique" UNIQUE("appointmentId")
@@ -326,10 +377,12 @@ ALTER TABLE "audit_log" ADD CONSTRAINT "audit_log_userId_user_id_fk" FOREIGN KEY
 ALTER TABLE "customer" ADD CONSTRAINT "customer_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "download_token" ADD CONSTRAINT "download_token_orderId_order_id_fk" FOREIGN KEY ("orderId") REFERENCES "public"."order"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "download_token" ADD CONSTRAINT "download_token_orderItemId_order_item_id_fk" FOREIGN KEY ("orderItemId") REFERENCES "public"."order_item"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "notification" ADD CONSTRAINT "notification_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "order_item" ADD CONSTRAINT "order_item_orderId_order_id_fk" FOREIGN KEY ("orderId") REFERENCES "public"."order"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "order_item" ADD CONSTRAINT "order_item_productId_product_id_fk" FOREIGN KEY ("productId") REFERENCES "public"."product"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "payment" ADD CONSTRAINT "payment_customerId_customer_id_fk" FOREIGN KEY ("customerId") REFERENCES "public"."customer"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "payment" ADD CONSTRAINT "payment_tattooSessionId_tattoo_session_id_fk" FOREIGN KEY ("tattooSessionId") REFERENCES "public"."tattoo_session"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "product_image" ADD CONSTRAINT "product_image_productId_product_id_fk" FOREIGN KEY ("productId") REFERENCES "public"."product"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "session" ADD CONSTRAINT "session_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "tattoo_design" ADD CONSTRAINT "tattoo_design_artistId_tattoo_artist_id_fk" FOREIGN KEY ("artistId") REFERENCES "public"."tattoo_artist"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "tattoo_design" ADD CONSTRAINT "tattoo_design_customerId_customer_id_fk" FOREIGN KEY ("customerId") REFERENCES "public"."customer"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -348,6 +401,7 @@ CREATE INDEX "audit_log_action_idx" ON "audit_log" USING btree ("action");--> st
 CREATE INDEX "audit_log_resource_idx" ON "audit_log" USING btree ("resource");--> statement-breakpoint
 CREATE INDEX "audit_log_timestamp_idx" ON "audit_log" USING btree ("timestamp");--> statement-breakpoint
 CREATE INDEX "audit_log_userId_idx" ON "audit_log" USING btree ("userId");--> statement-breakpoint
+CREATE INDEX "cal_event_calEventUid_idx" ON "cal_event" USING btree ("calEventUid");--> statement-breakpoint
 CREATE INDEX "contact_email_idx" ON "contact" USING btree ("email");--> statement-breakpoint
 CREATE INDEX "contact_status_idx" ON "contact" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "contact_createdAt_idx" ON "contact" USING btree ("createdAt");--> statement-breakpoint
@@ -360,6 +414,10 @@ CREATE INDEX "download_token_expiresAt_idx" ON "download_token" USING btree ("ex
 CREATE INDEX "gift_card_code_idx" ON "gift_card" USING btree ("code");--> statement-breakpoint
 CREATE INDEX "gift_card_recipientEmail_idx" ON "gift_card" USING btree ("recipientEmail");--> statement-breakpoint
 CREATE INDEX "gift_card_purchaserEmail_idx" ON "gift_card" USING btree ("purchaserEmail");--> statement-breakpoint
+CREATE INDEX "notification_userId_idx" ON "notification" USING btree ("userId");--> statement-breakpoint
+CREATE INDEX "notification_isRead_idx" ON "notification" USING btree ("isRead");--> statement-breakpoint
+CREATE INDEX "notification_createdAt_idx" ON "notification" USING btree ("createdAt");--> statement-breakpoint
+CREATE INDEX "notification_userId_isRead_idx" ON "notification" USING btree ("userId","isRead");--> statement-breakpoint
 CREATE INDEX "order_email_idx" ON "order" USING btree ("email");--> statement-breakpoint
 CREATE INDEX "order_status_idx" ON "order" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "order_createdAt_idx" ON "order" USING btree ("createdAt");--> statement-breakpoint
@@ -375,6 +433,8 @@ CREATE INDEX "payment_stripePaymentIntentId_idx" ON "payment" USING btree ("stri
 CREATE INDEX "product_productType_idx" ON "product" USING btree ("productType");--> statement-breakpoint
 CREATE INDEX "product_isActive_idx" ON "product" USING btree ("isActive");--> statement-breakpoint
 CREATE INDEX "product_isActive_productType_idx" ON "product" USING btree ("isActive","productType");--> statement-breakpoint
+CREATE INDEX "product_image_productId_idx" ON "product_image" USING btree ("productId");--> statement-breakpoint
+CREATE INDEX "product_image_sortOrder_idx" ON "product_image" USING btree ("sortOrder");--> statement-breakpoint
 CREATE INDEX "session_userId_idx" ON "session" USING btree ("userId");--> statement-breakpoint
 CREATE INDEX "session_token_idx" ON "session" USING btree ("token");--> statement-breakpoint
 CREATE INDEX "session_expiresAt_idx" ON "session" USING btree ("expiresAt");--> statement-breakpoint
