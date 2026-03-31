@@ -5,6 +5,8 @@ import { useQueryStates } from 'nuqs';
 import Image from 'next/image';
 import { LazyMotion, domAnimation, m } from 'framer-motion';
 import { GalleryFilterBar, galleryFilterParsers } from '@/components/public/gallery-filter-bar';
+import { GalleryVideoCard } from '@/components/public/gallery-video-card';
+import { GALLERY_VIDEOS } from '@/lib/gallery-videos';
 import dynamic from 'next/dynamic';
 
 const containerVariants = {
@@ -153,6 +155,23 @@ export function GalleryClient({ initialDesigns }: GalleryClientProps) {
         }}
         onNavigate={setLightboxIndex}
       />
+
+      {/* Video Gallery Section */}
+      {GALLERY_VIDEOS.length > 0 && (
+        <section className="mt-16">
+          <h2 className="text-2xl font-bold mb-6">Videos</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {GALLERY_VIDEOS.map((video) => (
+              <GalleryVideoCard
+                key={video.id}
+                name={video.name}
+                url={video.url}
+                posterUrl={video.posterUrl}
+              />
+            ))}
+          </div>
+        </section>
+      )}
     </>
   );
 }
