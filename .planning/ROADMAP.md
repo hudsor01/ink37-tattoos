@@ -305,7 +305,9 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. DEPLOYMENT.md contains a step-by-step production deployment checklist covering env var setup, database migration, DNS cutover, smoke tests, and rollback procedures
   2. README.md provides a project overview, local development setup instructions, architecture diagram reference, and links to all operational documentation
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 27-01-PLAN.md -- Production deployment runbook and project README
 
 ## Progress
 
@@ -337,4 +339,4 @@ Plans:
 | 24. Monitoring + Observability | v3.0 | 1/2 | In Progress | - |
 | 25. Database + Security Hardening | v3.0 | 2/2 | Complete | 2026-03-31 |
 | 26. Assets + Infrastructure | v3.0 | 1/3 | Complete    | 2026-03-31 |
-| 27. Documentation | v3.0 | 0/? | Not started | - |
+| 27. Documentation | v3.0 | 0/1 | Not started | - |
