@@ -11,7 +11,7 @@ describe('Audit logging', () => {
     // Must have try-catch to prevent throws
     expect(content).toContain('try {');
     expect(content).toContain('catch (error)');
-    expect(content).toContain('console.error');
+    expect(content).toContain('log.error');
   });
 
   it('logAudit writes to db via Drizzle insert', async () => {

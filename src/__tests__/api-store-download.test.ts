@@ -9,6 +9,23 @@ const mockFetch = vi.fn();
 
 vi.mock('server-only', () => ({}));
 
+vi.mock('@/lib/logger', () => ({
+  createLogger: () => ({
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    child: vi.fn().mockReturnThis(),
+  }),
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    child: vi.fn().mockReturnThis(),
+  },
+}));
+
 vi.mock('@/lib/env', () => ({
   env: () => ({
     BLOB_PRIVATE_READ_WRITE_TOKEN: 'test-blob-token',
@@ -205,10 +222,7 @@ describe('Store Download API Route', () => {
     mockBlobHead.mockRejectedValue(new Error('Blob service error'));
 
     const { GET } = await import('@/app/api/store/download/route');
-    // Suppress console.error in test output
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const response = await GET(makeRequest('valid-token') as never);
-    errorSpy.mockRestore();
     expect(response.status).toBe(500);
     const data = await response.json();
     expect(data.error).toBe('Failed to serve download');
