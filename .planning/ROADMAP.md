@@ -267,7 +267,7 @@
 **Plans**: 2 plans
 Plans:
 - [ ] 24-01-PLAN.md -- Sentry error tracking, health check endpoint, web vitals
-- [ ] 24-02-PLAN.md -- Pino structured logging replacing all console.* calls
+- [x] 24-02-PLAN.md -- Pino structured logging replacing all console.* calls
 
 ### Phase 25: Database + Security Hardening
 **Goal**: Drizzle migrations are consolidated into a clean baseline, the production database has seed data for first launch, CSP headers use nonces instead of unsafe-inline, and admin API routes are rate-limited
@@ -328,7 +328,7 @@ Plans:
 | 21. Analytics Depth | v2.0 | 4/4 | Complete | 2026-03-30 |
 | 22. Testing and Tech Debt | v2.0 | 4/4 | Complete | 2026-03-30 |
 | 23. Git Merge + CI/CD Pipeline | v3.0 | 0/? | Complete    | 2026-03-31 |
-| 24. Monitoring + Observability | v3.0 | 0/2 | Planned | - |
+| 24. Monitoring + Observability | v3.0 | 1/2 | In Progress|  |
 | 25. Database + Security Hardening | v3.0 | 0/? | Not started | - |
 | 26. Assets + Infrastructure | v3.0 | 0/? | Not started | - |
 | 27. Documentation | v3.0 | 0/? | Not started | - |
