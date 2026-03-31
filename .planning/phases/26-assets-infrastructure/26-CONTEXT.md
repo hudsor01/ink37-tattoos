@@ -35,7 +35,7 @@ Place all missing public assets (gallery videos via Vercel Blob, search verifica
 
 ### Environment Variable Audit
 - **D-11:** Markdown documentation file with all env vars, their purpose, required/optional status, and where to get values. No .env.example file.
-- **D-12:** Source of truth for env vars is `src/lib/env.ts` Zod schema (currently 17 vars).
+- **D-12:** Source of truth for env vars is `src/lib/env.ts` Zod schema (currently 19 vars).
 
 ### Claude's Discretion (Env Audit)
 - Whether to verify env vars are set in Vercel via CLI/API or just document the checklist -- pick the most practical approach.
@@ -60,7 +60,7 @@ Place all missing public assets (gallery videos via Vercel Blob, search verifica
 - `src/app/api/cron/no-show-followup/route.ts` -- Existing no-show followup endpoint (n8n calls this)
 
 ### Environment
-- `src/lib/env.ts` -- Zod schema with all 17 env vars (source of truth for audit)
+- `src/lib/env.ts` -- Zod schema with all 19 env vars (source of truth for audit)
 
 ### Site Configuration
 - `src/app/layout.tsx` -- Root layout (manifest link goes here)
