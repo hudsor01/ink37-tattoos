@@ -291,7 +291,7 @@ export const settings = pgTable('settings', {
 
 export const consentForm = pgTable('consent_form', {
   id: uuid('id').defaultRandom().primaryKey(),
-  version: integer('version').notNull(),
+  version: integer('version').notNull().unique(),
   title: text('title').notNull().default('Tattoo Consent Form'),
   content: text('content').notNull(),
   isActive: boolean('isActive').notNull().default(true),
