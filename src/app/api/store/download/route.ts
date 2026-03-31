@@ -4,7 +4,14 @@ import { eq, sql } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 import { env } from '@/lib/env';
 import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
+<<<<<<< HEAD
 import { logger } from '@/lib/logger';
+||||||| fdedb97
+=======
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('api:store-download');
+>>>>>>> worktree-agent-a2c56885
 
 export async function GET(request: NextRequest) {
   // Rate limit: 20 requests per minute per IP
@@ -97,7 +104,13 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (err) {
+<<<<<<< HEAD
     logger.error({ err }, 'Download error');
+||||||| fdedb97
+    console.error('Download error:', err);
+=======
+    log.error({ err }, 'Download error');
+>>>>>>> worktree-agent-a2c56885
     return NextResponse.json(
       { error: 'Failed to serve download' },
       { status: 500 }

@@ -8,7 +8,14 @@ import type { CalBookingPayload } from '@/lib/cal/types';
 import { CalWebhookPayloadSchema } from '@/lib/security/validation';
 import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
 import { createNotificationForAdmins } from '@/lib/dal/notifications';
+<<<<<<< HEAD
 import { logger } from '@/lib/logger';
+||||||| fdedb97
+=======
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('webhook:cal');
+>>>>>>> worktree-agent-a2c56885
 
 const VALID_APPOINTMENT_TYPES = ['CONSULTATION', 'DESIGN_REVIEW', 'TATTOO_SESSION', 'TOUCH_UP', 'REMOVAL'] as const;
 
@@ -39,13 +46,25 @@ export async function POST(request: Request) {
 
   const parsed = CalWebhookPayloadSchema.safeParse(JSON.parse(body));
   if (!parsed.success) {
+<<<<<<< HEAD
     logger.error({
+||||||| fdedb97
+    console.error('[Cal Webhook] Payload validation failed:', {
+=======
+    log.error({
+>>>>>>> worktree-agent-a2c56885
       errors: parsed.error.issues.map((i) => ({
         path: i.path.join('.'),
         code: i.code,
         message: i.message,
       })),
+<<<<<<< HEAD
     }, 'Cal webhook payload validation failed');
+||||||| fdedb97
+    });
+=======
+    }, 'Payload validation failed');
+>>>>>>> worktree-agent-a2c56885
     return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
   }
 
@@ -76,7 +95,13 @@ export async function POST(request: Request) {
             metadata: { calBookingUid: payload.uid, attendeeName: name },
           });
         } catch (err) {
+<<<<<<< HEAD
           logger.error({ err }, 'Failed to create booking notification');
+||||||| fdedb97
+          console.error('Failed to create booking notification:', err);
+=======
+          log.error({ err }, 'Failed to create booking notification');
+>>>>>>> worktree-agent-a2c56885
         }
 
         break;
@@ -90,10 +115,22 @@ export async function POST(request: Request) {
         break;
     }
 
+<<<<<<< HEAD
     logger.info({ triggerEvent: event.triggerEvent, uid: payload.uid }, 'Cal.com webhook processed');
+||||||| fdedb97
+    console.log(`Cal.com ${event.triggerEvent}: ${payload.uid}`);
+=======
+    log.info({ triggerEvent: event.triggerEvent, uid: payload.uid }, 'Cal.com webhook processed');
+>>>>>>> worktree-agent-a2c56885
     return NextResponse.json({ received: true });
   } catch (err) {
+<<<<<<< HEAD
     logger.error({ err, triggerEvent: event.triggerEvent }, 'Cal.com webhook handler error');
+||||||| fdedb97
+    console.error(`Cal.com webhook handler error for ${event.triggerEvent}:`, err);
+=======
+    log.error({ err, triggerEvent: event.triggerEvent }, 'Cal.com webhook handler error');
+>>>>>>> worktree-agent-a2c56885
     return NextResponse.json({ error: 'Handler failed' }, { status: 500 });
   }
 }
@@ -183,7 +220,13 @@ async function handleBookingCreated(payload: CalBookingPayload) {
 async function handleBookingRescheduled(payload: CalBookingPayload) {
   // CRITICAL: Look up by rescheduleUid (the OLD UID), not payload.uid
   if (!payload.rescheduleUid) {
+<<<<<<< HEAD
     logger.error('Cal.com BOOKING_RESCHEDULED missing rescheduleUid');
+||||||| fdedb97
+    console.error('Cal.com BOOKING_RESCHEDULED missing rescheduleUid');
+=======
+    log.error('BOOKING_RESCHEDULED missing rescheduleUid');
+>>>>>>> worktree-agent-a2c56885
     return;
   }
 
@@ -201,7 +244,13 @@ async function handleBookingRescheduled(payload: CalBookingPayload) {
     .returning();
 
   if (!updated) {
+<<<<<<< HEAD
     logger.error({ calBookingUid: payload.rescheduleUid }, 'Cal.com reschedule: no appointment found');
+||||||| fdedb97
+    console.error(`Cal.com reschedule: no appointment found for calBookingUid=${payload.rescheduleUid}`);
+=======
+    log.error({ calBookingUid: payload.rescheduleUid }, 'Reschedule: no appointment found');
+>>>>>>> worktree-agent-a2c56885
   }
 }
 
@@ -215,6 +264,12 @@ async function handleBookingCancelled(payload: CalBookingPayload) {
     .returning();
 
   if (!updated) {
+<<<<<<< HEAD
     logger.error({ calBookingUid: payload.uid }, 'Cal.com cancellation: no appointment found');
+||||||| fdedb97
+    console.error(`Cal.com cancellation: no appointment found for calBookingUid=${payload.uid}`);
+=======
+    log.error({ calBookingUid: payload.uid }, 'Cancellation: no appointment found');
+>>>>>>> worktree-agent-a2c56885
   }
 }

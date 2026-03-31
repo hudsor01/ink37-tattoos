@@ -264,7 +264,10 @@
   2. Hitting GET /api/health returns 200 with `{ status: "ok", db: "connected" }` when healthy, or 503 with `{ status: "error", db: "disconnected" }` when the database is unreachable
   3. All server-side log output uses Pino structured JSON format with request IDs, timestamps, and log levels -- no raw console.log or console.error calls remain
   4. Vercel Analytics or Web Vitals tracking is enabled and reporting LCP, FID, and CLS metrics for the public site
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 24-01-PLAN.md -- Sentry error tracking, health check endpoint, web vitals
+- [x] 24-02-PLAN.md -- Pino structured logging replacing all console.* calls
 
 ### Phase 25: Database + Security Hardening
 **Goal**: Drizzle migrations are consolidated into a clean baseline, the production database has seed data for first launch, CSP headers use nonces instead of unsafe-inline, and admin API routes are rate-limited
@@ -324,8 +327,16 @@
 | 20. Business Workflows | v2.0 | 4/4 | Complete | 2026-03-30 |
 | 21. Analytics Depth | v2.0 | 4/4 | Complete | 2026-03-30 |
 | 22. Testing and Tech Debt | v2.0 | 4/4 | Complete | 2026-03-30 |
+<<<<<<< HEAD
 | 23. Git Merge + CI/CD Pipeline | v3.0 | 0/? | Not started | - |
 | 24. Monitoring + Observability | v3.0 | 1/1 | Complete   | 2026-03-31 |
+||||||| fdedb97
+| 23. Git Merge + CI/CD Pipeline | v3.0 | 0/? | Complete    | 2026-03-31 |
+| 24. Monitoring + Observability | v3.0 | 0/? | Not started | - |
+=======
+| 23. Git Merge + CI/CD Pipeline | v3.0 | 0/? | Complete    | 2026-03-31 |
+| 24. Monitoring + Observability | v3.0 | 1/2 | In Progress|  |
+>>>>>>> worktree-agent-a2c56885
 | 25. Database + Security Hardening | v3.0 | 0/? | Not started | - |
 | 26. Assets + Infrastructure | v3.0 | 0/? | Not started | - |
 | 27. Documentation | v3.0 | 0/? | Not started | - |

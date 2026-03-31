@@ -10,8 +10,14 @@ import { createGiftCard, redeemGiftCard } from '@/lib/dal/gift-cards';
 import { createNotificationForAdmins } from '@/lib/dal/notifications';
 import { sendOrderConfirmationEmail, sendGiftCardEmail, sendGiftCardPurchaseConfirmationEmail } from '@/lib/email/resend';
 import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
+<<<<<<< HEAD
 import { logger } from '@/lib/logger';
+||||||| fdedb97
+=======
+import { createLogger } from '@/lib/logger';
+>>>>>>> worktree-agent-a2c56885
 
+const log = createLogger('webhook:stripe');
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(request: Request) {
@@ -37,7 +43,13 @@ export async function POST(request: Request) {
   try {
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
   } catch (err) {
+<<<<<<< HEAD
     logger.error({ err }, 'Stripe webhook signature verification failed');
+||||||| fdedb97
+    console.error('Webhook signature verification failed:', err);
+=======
+    log.error({ err }, 'Webhook signature verification failed');
+>>>>>>> worktree-agent-a2c56885
     return NextResponse.json(
       { error: 'Invalid signature' },
       { status: 400 }
@@ -88,7 +100,13 @@ export async function POST(request: Request) {
             metadata: { sessionId: checkoutSession.id, amount, orderType },
           });
         } catch (err) {
+<<<<<<< HEAD
           logger.error({ err }, 'Failed to create payment notification');
+||||||| fdedb97
+          console.error('Failed to create payment notification:', err);
+=======
+          log.error({ err }, 'Failed to create payment notification');
+>>>>>>> worktree-agent-a2c56885
           // Do not re-throw -- notification failure must not break webhook
         }
 
@@ -116,7 +134,13 @@ export async function POST(request: Request) {
     }
 
   } catch (err) {
+<<<<<<< HEAD
     logger.error({ err, eventType: event.type }, 'Stripe webhook handler error');
+||||||| fdedb97
+    console.error(`Webhook handler error for ${event.type}:`, err);
+=======
+    log.error({ err, eventType: event.type }, 'Webhook handler error');
+>>>>>>> worktree-agent-a2c56885
     return NextResponse.json(
       { error: 'Handler failed' },
       { status: 500 }
@@ -136,7 +160,13 @@ async function handleCheckoutCompleted(
 ) {
   const tattooSessionId = session.metadata?.tattooSessionId;
   if (!tattooSessionId) {
+<<<<<<< HEAD
     logger.error('Checkout session missing tattooSessionId in metadata');
+||||||| fdedb97
+    console.error('Checkout session missing tattooSessionId in metadata');
+=======
+    log.error({ sessionId: session.id }, 'Checkout session missing tattooSessionId in metadata');
+>>>>>>> worktree-agent-a2c56885
     return;
   }
 
@@ -197,7 +227,13 @@ async function handleStoreCheckoutCompleted(
 ) {
   const orderId = session.metadata?.orderId;
   if (!orderId) {
+<<<<<<< HEAD
     logger.error('Store checkout session missing orderId in metadata');
+||||||| fdedb97
+    console.error('Store checkout session missing orderId in metadata');
+=======
+    log.error({ sessionId: session.id }, 'Store checkout session missing orderId in metadata');
+>>>>>>> worktree-agent-a2c56885
     return;
   }
 
@@ -289,7 +325,13 @@ async function handleGiftCardCheckoutCompleted(
   const purchaserEmail = session.customer_details?.email ?? '';
 
   if (!denomination || !recipientEmail) {
+<<<<<<< HEAD
     logger.error('Gift card checkout missing required metadata');
+||||||| fdedb97
+    console.error('Gift card checkout missing required metadata');
+=======
+    log.error({ sessionId: session.id }, 'Gift card checkout missing required metadata');
+>>>>>>> worktree-agent-a2c56885
     return;
   }
 
