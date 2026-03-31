@@ -159,22 +159,10 @@ Requirements for production launch. Derived from comprehensive project audit (20
 
 ### Monitoring & Observability
 
-<<<<<<< HEAD
 - [x] **MON-01**: Sentry SDK integrated for error tracking in production
 - [x] **MON-02**: Health check endpoint at /api/health returns 200 + DB connectivity status
 - [x] **MON-03**: Structured logging with Pino replaces console.error/log
 - [x] **MON-04**: Vercel Analytics or Web Vitals tracking enabled
-||||||| fdedb97
-- [ ] **MON-01**: Sentry SDK integrated for error tracking in production
-- [ ] **MON-02**: Health check endpoint at /api/health returns 200 + DB connectivity status
-- [ ] **MON-03**: Structured logging with Pino replaces console.error/log
-- [ ] **MON-04**: Vercel Analytics or Web Vitals tracking enabled
-=======
-- [ ] **MON-01**: Sentry SDK integrated for error tracking in production
-- [ ] **MON-02**: Health check endpoint at /api/health returns 200 + DB connectivity status
-- [x] **MON-03**: Structured logging with Pino replaces console.error/log
-- [ ] **MON-04**: Vercel Analytics or Web Vitals tracking enabled
->>>>>>> worktree-agent-a2c56885
 
 ### Missing Assets
 
@@ -193,8 +181,8 @@ Requirements for production launch. Derived from comprehensive project audit (20
 
 ### Documentation
 
-- [ ] **DOC-01**: DEPLOYMENT.md -- production deployment checklist, env var setup, DNS cutover, rollback
-- [ ] **DOC-02**: README.md updated with project overview, setup instructions, architecture
+- [x] **DOC-01**: DEPLOYMENT.md -- production deployment checklist, env var setup, DNS cutover, rollback
+- [x] **DOC-02**: README.md updated with project overview, setup instructions, architecture
 
 ## Traceability
 
@@ -281,22 +269,10 @@ Requirements for production launch. Derived from comprehensive project audit (20
 | CICD-01 | Phase 23 | Pending |
 | CICD-02 | Phase 23 | Pending |
 | CICD-03 | Phase 23 | Pending |
-<<<<<<< HEAD
 | MON-01 | Phase 24 | Complete |
 | MON-02 | Phase 24 | Complete |
 | MON-03 | Phase 24 | Complete |
 | MON-04 | Phase 24 | Complete |
-||||||| fdedb97
-| MON-01 | Phase 24 | Pending |
-| MON-02 | Phase 24 | Pending |
-| MON-03 | Phase 24 | Pending |
-| MON-04 | Phase 24 | Pending |
-=======
-| MON-01 | Phase 24 | Pending |
-| MON-02 | Phase 24 | Pending |
-| MON-03 | Phase 24 | Complete |
-| MON-04 | Phase 24 | Pending |
->>>>>>> worktree-agent-a2c56885
 | DB-01 | Phase 25 | Pending |
 | DB-02 | Phase 25 | Pending |
 | INFRA-02 | Phase 25 | Pending |
@@ -306,8 +282,8 @@ Requirements for production launch. Derived from comprehensive project audit (20
 | ASSET-03 | Phase 26 | Pending |
 | INFRA-01 | Phase 26 | Pending |
 | INFRA-04 | Phase 26 | Pending |
-| DOC-01 | Phase 27 | Pending |
-| DOC-02 | Phase 27 | Pending |
+| DOC-01 | Phase 27 | Complete |
+| DOC-02 | Phase 27 | Complete |
 
 **Coverage:**
 - v2.0 requirements: 75 total, mapped: 75, unmapped: 0
@@ -315,4 +291,4 @@ Requirements for production launch. Derived from comprehensive project audit (20
 
 ---
 *Requirements defined: 2026-03-27*
-*Last updated: 2026-03-28 after v3.0 roadmap creation*
+*Last updated: 2026-03-31 after Phase 27 Documentation completion*

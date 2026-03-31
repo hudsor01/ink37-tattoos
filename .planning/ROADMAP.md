@@ -299,7 +299,8 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. DEPLOYMENT.md contains a step-by-step production deployment checklist covering env var setup, database migration, DNS cutover, smoke tests, and rollback procedures
   2. README.md provides a project overview, local development setup instructions, architecture diagram reference, and links to all operational documentation
-**Plans**: TBD
+Plans:
+- [x] 27-01-PLAN.md -- Production deployment checklist and README update
 
 ## Progress
 
@@ -327,16 +328,8 @@ Plans:
 | 20. Business Workflows | v2.0 | 4/4 | Complete | 2026-03-30 |
 | 21. Analytics Depth | v2.0 | 4/4 | Complete | 2026-03-30 |
 | 22. Testing and Tech Debt | v2.0 | 4/4 | Complete | 2026-03-30 |
-<<<<<<< HEAD
 | 23. Git Merge + CI/CD Pipeline | v3.0 | 0/? | Not started | - |
-| 24. Monitoring + Observability | v3.0 | 1/1 | Complete   | 2026-03-31 |
-||||||| fdedb97
-| 23. Git Merge + CI/CD Pipeline | v3.0 | 0/? | Complete    | 2026-03-31 |
-| 24. Monitoring + Observability | v3.0 | 0/? | Not started | - |
-=======
-| 23. Git Merge + CI/CD Pipeline | v3.0 | 0/? | Complete    | 2026-03-31 |
-| 24. Monitoring + Observability | v3.0 | 1/2 | In Progress|  |
->>>>>>> worktree-agent-a2c56885
+| 24. Monitoring + Observability | v3.0 | 2/2 | Complete   | 2026-03-31 |
 | 25. Database + Security Hardening | v3.0 | 0/? | Not started | - |
 | 26. Assets + Infrastructure | v3.0 | 0/? | Not started | - |
-| 27. Documentation | v3.0 | 0/? | Not started | - |
+| 27. Documentation | v3.0 | 1/1 | Complete | 2026-03-31 |
