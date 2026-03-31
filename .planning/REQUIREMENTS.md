@@ -186,10 +186,10 @@ Requirements for production launch. Derived from comprehensive project audit (20
 
 - [ ] **DB-01**: Drizzle migrations consolidated -- single clean migration from baseline to v3.0 schema
 - [ ] **DB-02**: Production database seeded with initial data (artist profile, default settings, consent form)
-- [ ] **INFRA-01**: n8n workflows configured at n8n.thehudsonfam.com (balance-due daily + no-show hourly cron)
+- [x] **INFRA-01**: n8n workflows configured at n8n.thehudsonfam.com (balance-due daily + no-show hourly cron)
 - [x] **INFRA-02**: CSP tightened -- replace unsafe-inline/unsafe-eval with nonce-based CSP where possible
 - [x] **INFRA-03**: Rate limiting added to admin API routes (/api/admin/*, /api/upload/*)
-- [ ] **INFRA-04**: Production environment variables documented and audited in Vercel dashboard
+- [x] **INFRA-04**: Production environment variables documented and audited in Vercel dashboard
 
 ### Documentation
 
@@ -304,8 +304,8 @@ Requirements for production launch. Derived from comprehensive project audit (20
 | ASSET-01 | Phase 26 | Pending |
 | ASSET-02 | Phase 26 | Pending |
 | ASSET-03 | Phase 26 | Pending |
-| INFRA-01 | Phase 26 | Pending |
-| INFRA-04 | Phase 26 | Pending |
+| INFRA-01 | Phase 26 | Complete |
+| INFRA-04 | Phase 26 | Complete |
 | DOC-01 | Phase 27 | Pending |
 | DOC-02 | Phase 27 | Pending |
 
