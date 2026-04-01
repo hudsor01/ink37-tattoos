@@ -35,7 +35,7 @@ export function PublicFooter() {
 
           {/* Footer Info */}
           <div className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-4 text-xs text-zinc-500">
-            <span>&copy; {new Date().getFullYear()} Ink 37. All rights reserved.</span>
+            <span>&copy; {new Date().getFullYear()} Ink 37 Tattoos. All rights reserved.</span>
             <span className="hidden md:inline">&bull;</span>
             <span>Dallas-Fort Worth, Texas</span>
             <span className="hidden md:inline">&bull;</span>

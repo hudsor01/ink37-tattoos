@@ -46,11 +46,16 @@ export function PublicNav() {
         <div className="container mx-auto px-4 md:px-6">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <Link href="/" className="relative z-20 shrink-0">
-              <span className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
-                <span className="fernando-gradient">INK</span>
-                <span className="text-white ml-1">37</span>
-              </span>
+            <Link href="/" className="relative z-20 shrink-0 group">
+              <div className="flex flex-col items-start leading-none">
+                <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight">
+                  <span className="fernando-gradient">INK</span>
+                  <span className="text-white ml-0.5">37</span>
+                </span>
+                <span className="text-[0.5rem] sm:text-[0.6rem] md:text-xs font-semibold tracking-[0.35em] text-zinc-400 uppercase mt-0.5 group-hover:text-white transition-colors">
+                  TATTOOS
+                </span>
+              </div>
             </Link>
 
             {/* Desktop Navigation */}
