@@ -5,6 +5,7 @@ import { logger } from '@/lib/logger';
 import {
   contactAdminTemplate,
   contactConfirmationTemplate,
+  passwordResetTemplate,
   paymentRequestTemplate,
   orderConfirmationTemplate,
   giftCardDeliveryTemplate,
@@ -17,6 +18,28 @@ import {
 
 const getResend = () => new Resend(env().RESEND_API_KEY ?? '');
 const FROM_EMAIL = 'Ink 37 Tattoos <noreply@ink37tattoos.com>';
+
+export async function sendPasswordResetEmail(data: {
+  to: string;
+  url: string;
+}): Promise<{ sent: boolean }> {
+  if (!env().RESEND_API_KEY) {
+    logger.warn('RESEND_API_KEY not configured -- skipping password reset email');
+    return { sent: false };
+  }
+
+  const result = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to: data.to,
+    subject: 'Reset Your Password - Ink 37 Tattoos',
+    html: passwordResetTemplate({ url: data.url }),
+    headers: {
+      'X-Entity-Ref-ID': `password-reset-${Date.now()}`,
+    },
+  });
+
+  return { sent: !!result.data?.id };
+}
 
 export async function sendContactNotification(data: {
   name: string;

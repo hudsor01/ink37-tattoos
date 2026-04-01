@@ -24,7 +24,15 @@ function createAuth() {
       nextCookies(),
       admin({ defaultRole: 'user' }),
     ],
-    emailAndPassword: { enabled: true },
+    emailAndPassword: {
+      enabled: true,
+      sendResetPassword: async ({ user, url }) => {
+        // Fire-and-forget to prevent timing attacks
+        void import('@/lib/email/resend').then(({ sendPasswordResetEmail }) =>
+          sendPasswordResetEmail({ to: user.email, url })
+        );
+      },
+    },
     databaseHooks: {
       user: {
         create: {
