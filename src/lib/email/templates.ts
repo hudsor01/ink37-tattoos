@@ -215,6 +215,29 @@ export function giftCardPurchaseConfirmationTemplate(data: {
 
 
 // ============================================================================
+// AUTH TEMPLATES
+// ============================================================================
+
+export function passwordResetTemplate(data: {
+  url: string;
+}): string {
+  return `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #1a1a1a;">Reset Your Password</h2>
+      <p>We received a request to reset your password for your Ink 37 Tattoos account.</p>
+      <p>Click the button below to choose a new password:</p>
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="${data.url}" style="background-color: #1a1a1a; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+          Reset Password
+        </a>
+      </div>
+      <p style="color: #666; font-size: 14px;">This link will expire in 1 hour. If you did not request a password reset, you can safely ignore this email.</p>
+      <p>Best regards,<br>Ink 37 Tattoos</p>
+    </div>
+  `;
+}
+
+// ============================================================================
 // BUSINESS WORKFLOW TEMPLATES
 // ============================================================================
 
