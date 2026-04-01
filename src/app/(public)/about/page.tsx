@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import AboutClient from '@/components/public/about-client';
+import { BreadcrumbNav } from '@/components/public/breadcrumb-nav';
 
 export const metadata: Metadata = {
   title: 'About Fernando Govea | Ink 37 Tattoos',
@@ -13,5 +14,15 @@ export const metadata: Metadata = {
 };
 
 export default function AboutPage() {
-  return <AboutClient />;
+  return (
+    <>
+      <BreadcrumbNav
+        items={[
+          { label: 'Home', href: '/' },
+          { label: 'About' },
+        ]}
+      />
+      <AboutClient />
+    </>
+  );
 }
