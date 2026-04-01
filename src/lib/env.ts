@@ -28,7 +28,12 @@ export type Env = z.infer<typeof envSchema>;
 let _env: Env | undefined;
 export function env(): Env {
   if (!_env) {
-    _env = envSchema.parse(process.env);
+    // Strip empty strings → undefined so Zod .optional() works correctly
+    // (Vercel sets unset optional vars to "" instead of leaving them undefined)
+    const cleaned = Object.fromEntries(
+      Object.entries(process.env).filter(([, v]) => v !== '')
+    );
+    _env = envSchema.parse(cleaned);
   }
   return _env;
 }
