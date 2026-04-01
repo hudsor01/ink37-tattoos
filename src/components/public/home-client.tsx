@@ -82,10 +82,10 @@ function HomeClient() {
   }, [isMounted]);
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-black" suppressHydrationWarning>
-      <div className="h-full w-full flex flex-col md:flex-row px-6 lg:px-12">
+    <div className="min-h-[calc(100vh-5rem)] md:fixed md:inset-0 overflow-y-auto md:overflow-hidden bg-black" suppressHydrationWarning>
+      <div className="h-full w-full flex flex-col md:flex-row px-4 sm:px-6 lg:px-12">
         {/* Left side - Content */}
-        <div className="md:w-[45%] flex items-center justify-start py-16 md:py-8 pl-4 md:pl-8">
+        <div className="md:w-[45%] flex items-center justify-start pt-8 pb-4 md:py-8 pl-2 sm:pl-4 md:pl-8">
           <div className="w-full md:max-w-2xl">
             <h1 className="artist-name text-white mb-6">
               <span className="sr-only">
@@ -140,9 +140,9 @@ function HomeClient() {
         </div>
 
         {/* Right side - Image carousel */}
-        <div className="md:w-[55%] flex items-center justify-center py-16 md:py-8 pr-4 md:pr-8">
+        <div className="md:w-[55%] flex items-center justify-center pb-8 md:py-8 pr-2 sm:pr-4 md:pr-8">
           <div className="h-full w-full flex items-center justify-center">
-            <div className="h-[60vh] w-full max-w-[500px] aspect-[9/16] relative">
+            <div className="h-[50vh] sm:h-[55vh] md:h-[60vh] w-full max-w-[500px] aspect-[9/16] relative">
               <div
                 className="w-full h-full relative overflow-hidden rounded-xl"
                 style={{
