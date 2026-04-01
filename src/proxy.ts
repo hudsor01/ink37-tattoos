@@ -49,6 +49,9 @@ export function proxy(request: NextRequest) {
     }
   }
 
+  // Build canonical URL (origin + pathname, no query params)
+  const canonicalUrl = `${request.nextUrl.origin}${pathname}`;
+
   // Normal request -- inject nonce header and CSP
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-nonce', nonce);
@@ -56,6 +59,8 @@ export function proxy(request: NextRequest) {
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set('Content-Security-Policy', cspHeader);
+  response.headers.set('Link', `<${canonicalUrl}>; rel="canonical"`);
+  response.headers.set('X-Robots-Tag', 'index, follow');
   return response;
 }
 
