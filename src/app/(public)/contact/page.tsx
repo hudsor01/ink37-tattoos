@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import ContactClient from '@/components/public/contact-client';
+import { BreadcrumbNav } from '@/components/public/breadcrumb-nav';
 
 export const metadata: Metadata = {
   title: 'Contact | Ink 37 Tattoos',
@@ -13,5 +14,15 @@ export const metadata: Metadata = {
 };
 
 export default function ContactPage() {
-  return <ContactClient />;
+  return (
+    <>
+      <BreadcrumbNav
+        items={[
+          { label: 'Home', href: '/' },
+          { label: 'Contact' },
+        ]}
+      />
+      <ContactClient />
+    </>
+  );
 }

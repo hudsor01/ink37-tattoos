@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import ServicesClient from '@/components/public/services-client';
+import { BreadcrumbNav } from '@/components/public/breadcrumb-nav';
 
 export const metadata: Metadata = {
   title: 'Tattoo Services | Ink 37 Tattoos',
@@ -13,5 +14,15 @@ export const metadata: Metadata = {
 };
 
 export default function ServicesPage() {
-  return <ServicesClient />;
+  return (
+    <>
+      <BreadcrumbNav
+        items={[
+          { label: 'Home', href: '/' },
+          { label: 'Services' },
+        ]}
+      />
+      <ServicesClient />
+    </>
+  );
 }
