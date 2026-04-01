@@ -85,8 +85,8 @@ function HomeClient() {
     <div className="min-h-[calc(100vh-5rem)] md:fixed md:inset-0 overflow-y-auto md:overflow-hidden bg-black" suppressHydrationWarning>
       <div className="h-full w-full flex flex-col md:flex-row px-4 sm:px-6 lg:px-12">
         {/* Left side - Content */}
-        <div className="md:w-[45%] flex items-center justify-start pt-8 pb-4 md:py-8 pl-2 sm:pl-4 md:pl-8">
-          <div className="w-full md:max-w-2xl">
+        <div className="md:w-[45%] flex items-center justify-start pt-8 pb-4 md:py-8 pl-2 sm:pl-4 md:pl-8 overflow-hidden">
+          <div className="w-full max-w-full md:max-w-2xl">
             <h1 className="artist-name text-white mb-6">
               <span className="sr-only">
                 Custom Tattoos by Fernando Govea - Professional Tattoo Artist in
@@ -99,11 +99,11 @@ function HomeClient() {
               </span>
             </h1>
 
-            <p className="paragraph-large mb-10">
+            <p className="paragraph-large mb-6 md:mb-8">
               Crafting exceptional custom tattoos in Dallas/Fort Worth
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-6">
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
               <motion.div
                 whileHover={{
                   y: -4,
@@ -113,7 +113,7 @@ function HomeClient() {
               >
                 <Link
                   href="/gallery"
-                  className="block px-8 py-4 border-2 border-white text-white font-semibold text-lg rounded-md transition-all text-center shadow-lg relative overflow-hidden group"
+                  className="block px-5 py-3 md:px-6 md:py-3 border-2 border-white text-white font-semibold text-base rounded-md transition-all text-center shadow-lg relative overflow-hidden group"
                 >
                   <div className="absolute inset-0 bg-fernando-gradient opacity-0 group-hover:opacity-100 transition-all duration-300 -z-10" />
                   <span className="relative z-10">See My Work</span>
@@ -129,7 +129,7 @@ function HomeClient() {
               >
                 <Link
                   href="/booking"
-                  className="block px-8 py-4 border-2 border-white text-white font-semibold text-lg rounded-md transition-all text-center shadow-lg relative overflow-hidden group"
+                  className="block px-5 py-3 md:px-6 md:py-3 border-2 border-white text-white font-semibold text-base rounded-md transition-all text-center shadow-lg relative overflow-hidden group"
                 >
                   <div className="absolute inset-0 bg-fernando-gradient opacity-0 group-hover:opacity-100 transition-all duration-300 -z-10" />
                   <span className="relative z-10">Book a Consultation</span>
