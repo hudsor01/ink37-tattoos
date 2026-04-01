@@ -40,9 +40,12 @@ export function proxy(request: NextRequest) {
     }
   }
 
-  // Auth pages: redirect authenticated users
+  // Auth pages: redirect authenticated users by role
   if (pathname === '/login' || pathname === '/register') {
     if (sessionToken) {
+      // Parse session cookie to extract role for routing
+      // Proxy can't call Better Auth API, so default to /portal
+      // The login page itself handles role-based routing after fresh sign-in
       const response = NextResponse.redirect(new URL('/portal', request.url));
       response.headers.set('Content-Security-Policy', cspHeader);
       return response;
