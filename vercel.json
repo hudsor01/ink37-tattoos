@@ -1,0 +1,10 @@
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "www.ink37tattoos.com" }],
+      "destination": "https://ink37tattoos.com/$1",
+      "permanent": true
+    }
+  ]
+}
