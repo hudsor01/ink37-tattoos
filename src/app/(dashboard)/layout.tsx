@@ -1,4 +1,6 @@
 import { connection } from 'next/server';
+import { redirect } from 'next/navigation';
+import { getCurrentSession } from '@/lib/auth';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { AdminNav } from '@/components/dashboard/admin-nav';
 import { Separator } from '@/components/ui/separator';
@@ -12,8 +14,19 @@ import { ThemeToggle } from '@/components/dashboard/theme-toggle';
 import { NotificationBell } from '@/components/dashboard/notification-bell';
 import { PageTransition } from '@/components/page-transition';
 
+const ADMIN_ROLES = ['admin', 'super_admin'];
+
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   await connection();
+
+  // Auth guard: require admin or super_admin role
+  const session = await getCurrentSession();
+  if (!session?.user) {
+    redirect('/login');
+  }
+  if (!ADMIN_ROLES.includes(session.user.role)) {
+    redirect('/portal');
+  }
   return (
     <SidebarProvider>
       <AdminNav />

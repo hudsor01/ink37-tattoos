@@ -29,10 +29,9 @@ export default function LoginPage() {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
 
-    const { error: authError } = await signIn.email({
+    const { data, error: authError } = await signIn.email({
       email,
       password,
-      callbackURL: '/portal',
     });
 
     if (authError) {
@@ -41,7 +40,10 @@ export default function LoginPage() {
       return;
     }
 
-    router.push('/portal');
+    // Route by role: admin/super_admin → dashboard, everyone else → portal
+    const role = data?.user?.role as string | undefined;
+    const isAdmin = role === 'admin' || role === 'super_admin';
+    router.push(isAdmin ? '/dashboard' : '/portal');
   }
 
   return (
@@ -49,7 +51,7 @@ export default function LoginPage() {
       <CardHeader>
         <CardTitle className="text-2xl">Welcome back</CardTitle>
         <CardDescription>
-          Sign in to your account to access the client portal.
+          Sign in to your account.
         </CardDescription>
       </CardHeader>
       <CardContent>
