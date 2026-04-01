@@ -17,7 +17,7 @@ import {
   Calendar,
 } from 'lucide-react';
 
-import { KPICard } from '@/components/dashboard/kpi-card';
+import { StatCard } from '@/components/dashboard/stat-card';
 import { DateRangePicker } from '@/components/dashboard/date-range-picker';
 import { RevenueChart } from '@/components/dashboard/analytics-chart';
 import { StatusBadge } from '@/components/dashboard/status-badge';
@@ -183,35 +183,35 @@ export function DashboardClient({
       {/* KPI Cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Link href="/dashboard/reports" className="block">
-          <KPICard
+          <StatCard
             title="Total Revenue"
             value={currencyFormatter.format(stats.revenue.value)}
+            change={stats.revenue.trend}
             icon={DollarSign}
-            trend={{ value: stats.revenue.trend, label: 'vs prev period' }}
           />
         </Link>
         <Link href="/dashboard/customers" className="block">
-          <KPICard
+          <StatCard
             title="New Customers"
             value={stats.customers.value}
+            change={stats.customers.trend}
             icon={Users}
-            trend={{ value: stats.customers.trend, label: 'vs prev period' }}
           />
         </Link>
         <Link href="/dashboard/appointments" className="block">
-          <KPICard
+          <StatCard
             title="Appointments"
             value={stats.appointments.value}
+            change={stats.appointments.trend}
             icon={Calendar}
-            trend={{ value: stats.appointments.trend, label: 'vs prev period' }}
           />
         </Link>
         <Link href="/dashboard/sessions" className="block">
-          <KPICard
+          <StatCard
             title="Sessions Completed"
             value={stats.sessions.value}
+            change={stats.sessions.trend}
             icon={CheckCircle}
-            trend={{ value: stats.sessions.trend, label: 'vs prev period' }}
           />
         </Link>
       </div>
