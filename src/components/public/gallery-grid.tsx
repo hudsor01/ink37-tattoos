@@ -3,7 +3,9 @@
 import { useMemo, useState } from 'react';
 import { useQueryStates } from 'nuqs';
 import Image from 'next/image';
+import Link from 'next/link';
 import { LazyMotion, domAnimation, m } from 'framer-motion';
+import { Calendar } from 'lucide-react';
 import { GalleryFilterBar, galleryFilterParsers } from '@/components/public/gallery-filter-bar';
 import { GalleryVideoCard } from '@/components/public/gallery-video-card';
 import { GALLERY_VIDEOS } from '@/lib/gallery-videos';
@@ -172,6 +174,15 @@ export function GalleryClient({ initialDesigns }: GalleryClientProps) {
           </div>
         </section>
       )}
+
+      {/* Floating Booking CTA */}
+      <Link
+        href="/booking"
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-fernando-gradient hover:opacity-90 text-white font-semibold px-4 py-3 md:px-6 md:py-3.5 rounded-full shadow-lg shadow-black/40 transition-all duration-200 hover:scale-105"
+      >
+        <Calendar className="h-4 w-4 md:h-5 md:w-5" />
+        <span className="text-sm md:text-base">Book a Consultation</span>
+      </Link>
     </>
   );
 }
