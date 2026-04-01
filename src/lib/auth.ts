@@ -118,7 +118,15 @@ export const auth = new Proxy({} as AuthInstance, {
   get(_, prop) {
     return (getAuth() as unknown as Record<string | symbol, unknown>)[prop];
   },
+  has(_, prop) {
+    return prop in getAuth();
+  },
 });
+
+// Direct instance for toNextJsHandler (bypasses Proxy)
+export function getAuthInstance() {
+  return getAuth();
+}
 
 // Helper to get current session in server components / DAL
 export async function getCurrentSession() {
