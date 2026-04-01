@@ -20,7 +20,7 @@ export function proxy(request: NextRequest) {
     `style-src 'self' 'nonce-${nonce}' 'unsafe-inline'`,
     "font-src 'self'",
     "img-src 'self' data: blob: https:",
-    "frame-src 'self' https://app.cal.com",
+    "frame-src 'self' https://app.cal.com https://www.google.com/maps/",
     "connect-src 'self' https://api.cal.com https://*.sentry.io https://*.ingest.sentry.io",
     "object-src 'none'",
     "base-uri 'self'",
