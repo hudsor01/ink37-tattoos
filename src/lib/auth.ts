@@ -2,12 +2,18 @@ import 'server-only';
 import { betterAuth } from 'better-auth';
 import { nextCookies } from 'better-auth/next-js';
 import { admin } from 'better-auth/plugins';
-import { Pool } from 'pg';
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import ws from 'ws';
 import { db } from '@/lib/db';
 import * as schema from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { env } from '@/lib/env';
 import { logger } from '@/lib/logger';
+
+// WebSocket support for Node.js/Bun (not needed in Edge but harmless)
+if (typeof globalThis.WebSocket === 'undefined') {
+  neonConfig.webSocketConstructor = ws;
+}
 
 let _authPool: Pool | undefined;
 function getAuthPool() {

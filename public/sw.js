@@ -43,7 +43,14 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Only handle GET requests
   if (event.request.method !== 'GET') return;
+
+  // Only cache-first for shell assets; everything else goes to network
+  const url = new URL(event.request.url);
+  const isShellAsset = SHELL_ASSETS.some((asset) => url.pathname === asset);
+
+  if (!isShellAsset) return;
 
   event.respondWith(
     caches.match(event.request).then((cached) => cached || fetch(event.request))
