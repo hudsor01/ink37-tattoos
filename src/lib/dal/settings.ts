@@ -27,20 +27,79 @@ async function requireAdminRole() {
   return session;
 }
 
+// ============================================================================
+// TTL CACHE
+// ============================================================================
+
+const DEFAULT_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+interface CacheEntry<T> {
+  data: T;
+  expiresAt: number;
+}
+
+const settingsCache = new Map<string, CacheEntry<unknown>>();
+
+function getCached<T>(key: string): T | undefined {
+  const entry = settingsCache.get(key);
+  if (!entry) return undefined;
+  if (Date.now() > entry.expiresAt) {
+    settingsCache.delete(key);
+    return undefined;
+  }
+  return entry.data as T;
+}
+
+function setCached<T>(key: string, data: T, ttlMs: number = DEFAULT_TTL_MS): void {
+  settingsCache.set(key, { data, expiresAt: Date.now() + ttlMs });
+}
+
+/**
+ * Invalidate the entire settings cache.
+ * Call this after mutations or when fresh data is needed.
+ */
+export function invalidateSettingsCache(): void {
+  settingsCache.clear();
+}
+
+// ============================================================================
+// QUERIES
+// ============================================================================
+
 export const getSettings = cache(async (category?: string) => {
   await requireStaffRole();
-  return db.query.settings.findMany({
+
+  const cacheKey = `settings:list:${category ?? '__all__'}`;
+  const cached = getCached<Awaited<ReturnType<typeof db.query.settings.findMany>>>(cacheKey);
+  if (cached) return cached;
+
+  const result = await db.query.settings.findMany({
     where: category ? eq(schema.settings.category, category) : undefined,
     orderBy: [asc(schema.settings.key)],
   });
+
+  setCached(cacheKey, result);
+  return result;
 });
 
 export const getSettingByKey = cache(async (key: string) => {
   await requireStaffRole();
-  return db.query.settings.findFirst({
+
+  const cacheKey = `settings:key:${key}`;
+  const cached = getCached<Awaited<ReturnType<typeof db.query.settings.findFirst>>>(cacheKey);
+  if (cached !== undefined) return cached;
+
+  const result = await db.query.settings.findFirst({
     where: eq(schema.settings.key, key),
   });
+
+  if (result) setCached(cacheKey, result);
+  return result;
 });
+
+// ============================================================================
+// MUTATIONS
+// ============================================================================
 
 export async function upsertSetting(data: {
   key: string;
@@ -63,5 +122,9 @@ export async function upsertSetting(data: {
     },
   }).returning();
   if (!result) throw new Error('Failed to upsert setting: no result returned');
+
+  // Invalidate cache after mutation so subsequent reads get fresh data
+  invalidateSettingsCache();
+
   return result;
 }
