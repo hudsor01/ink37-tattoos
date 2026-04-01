@@ -96,6 +96,13 @@ function createAuth() {
     },
     baseURL: env().BETTER_AUTH_URL,
     secret: env().BETTER_AUTH_SECRET,
+    trustedOrigins: [
+      env().BETTER_AUTH_URL,
+      env().NEXT_PUBLIC_APP_URL,
+      // Accept both www and non-www
+      env().BETTER_AUTH_URL.replace('://', '://www.'),
+      env().NEXT_PUBLIC_APP_URL.replace('://', '://www.'),
+    ],
     advanced: {
       database: {
         generateId: false, // Use database UUID generation
