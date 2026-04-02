@@ -1,14 +1,13 @@
 import 'server-only';
 import { betterAuth } from 'better-auth';
-// nextCookies deliberately omitted — it breaks cookie setting in Route Handlers
-// (it calls cookies().set() which only works in Server Actions, not Route Handlers)
+import { nextCookies } from 'better-auth/next-js';
 import { admin } from 'better-auth/plugins';
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import ws from 'ws';
 import { db } from '@/lib/db';
 import * as schema from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
-import { env } from '@/lib/env';
+import { headers } from 'next/headers';
 import { logger } from '@/lib/logger';
 
 // WebSocket support for Node.js/Bun (not needed in Edge but harmless)
@@ -16,128 +15,89 @@ if (typeof globalThis.WebSocket === 'undefined') {
   neonConfig.webSocketConstructor = ws;
 }
 
-let _authPool: Pool | undefined;
-function getAuthPool() {
-  if (!_authPool) {
-    _authPool = new Pool({ connectionString: process.env.DATABASE_URL });
-  }
-  return _authPool;
-}
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
-function createAuth() {
-  return betterAuth({
-    database: getAuthPool(),
-    plugins: [
-      admin({ defaultRole: 'user' }),
-    ],
-    emailAndPassword: {
-      enabled: true,
-      sendResetPassword: async ({ user, url }) => {
-        // Fire-and-forget to prevent timing attacks
-        void import('@/lib/email/resend').then(({ sendPasswordResetEmail }) =>
-          sendPasswordResetEmail({ to: user.email, url })
-        );
-      },
+export const auth = betterAuth({
+  database: pool,
+  plugins: [
+    admin({ defaultRole: 'user' }),
+    nextCookies(), // must be last — handles cookie setting in Route Handlers & Server Actions
+  ],
+  emailAndPassword: {
+    enabled: true,
+    sendResetPassword: async ({ user, url }) => {
+      void import('@/lib/email/resend').then(({ sendPasswordResetEmail }) =>
+        sendPasswordResetEmail({ to: user.email, url })
+      );
     },
-    databaseHooks: {
-      user: {
-        create: {
-          after: async (user) => {
-            try {
-              // D-01: Auto-link by email match
-              const existing = await db.select()
-                .from(schema.customer)
-                .where(eq(schema.customer.email, user.email))
-                .limit(1);
-              if (existing[0] && !existing[0].userId) {
-                try {
-                  await db.update(schema.customer)
-                    .set({ userId: user.id })
-                    .where(eq(schema.customer.id, existing[0].id));
-                } catch (linkError: unknown) {
-                  // Handle unique constraint violation on customer.userId
-                  const message = linkError instanceof Error ? linkError.message : String(linkError);
-                  if (message.includes('unique constraint') || message.includes('duplicate key')) {
-                    logger.error({ email: user.email, customerId: existing[0].id }, 'Auth hook: customer userId conflict -- admin resolution needed');
-                  } else {
-                    throw linkError;
-                  }
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          try {
+            const existing = await db.select()
+              .from(schema.customer)
+              .where(eq(schema.customer.email, user.email))
+              .limit(1);
+            if (existing[0] && !existing[0].userId) {
+              try {
+                await db.update(schema.customer)
+                  .set({ userId: user.id })
+                  .where(eq(schema.customer.id, existing[0].id));
+              } catch (linkError: unknown) {
+                const message = linkError instanceof Error ? linkError.message : String(linkError);
+                if (message.includes('unique constraint') || message.includes('duplicate key')) {
+                  logger.error({ email: user.email, customerId: existing[0].id }, 'Auth hook: customer userId conflict -- admin resolution needed');
+                } else {
+                  throw linkError;
                 }
-              } else if (!existing[0]) {
-                // D-02: No match -- create new Customer record
-                const [firstName, ...rest] = (user.name || 'Client').split(' ');
-                await db.insert(schema.customer).values({
-                  firstName,
-                  lastName: rest.join(' ') || '',
-                  email: user.email,
-                  userId: user.id,
-                });
               }
-              // If existing customer already has a userId, do nothing (admin resolves)
-            } catch (error) {
-              // Never fail registration due to customer linking errors
-              logger.error({ err: error }, 'Auth hook: customer auto-link failed');
+            } else if (!existing[0]) {
+              const [firstName, ...rest] = (user.name || 'Client').split(' ');
+              await db.insert(schema.customer).values({
+                firstName,
+                lastName: rest.join(' ') || '',
+                email: user.email,
+                userId: user.id,
+              });
             }
-          },
+          } catch (error) {
+            logger.error({ err: error }, 'Auth hook: customer auto-link failed');
+          }
         },
       },
     },
-    session: {
-      expiresIn: 60 * 60 * 24 * 7,  // 7 days
-      updateAge: 60 * 60 * 24,       // refresh after 24 hours
-    },
-    user: {
-      additionalFields: {
-        role: { type: 'string', defaultValue: 'user', input: false },
-        banned: { type: 'boolean', defaultValue: false, input: false },
-        banReason: { type: 'string', required: false, input: false },
-        banExpires: { type: 'date', required: false, input: false },
-      },
-    },
-    baseURL: env().BETTER_AUTH_URL,
-    secret: env().BETTER_AUTH_SECRET,
-    trustedOrigins: [
-      env().BETTER_AUTH_URL,
-      env().NEXT_PUBLIC_APP_URL,
-      // Accept both www and non-www
-      env().BETTER_AUTH_URL.replace('://', '://www.'),
-      env().NEXT_PUBLIC_APP_URL.replace('://', '://www.'),
-    ],
-    advanced: {
-      database: {
-        generateId: false, // Use database UUID generation
-      },
-    },
-  });
-}
-
-type AuthInstance = ReturnType<typeof createAuth>;
-
-let _auth: AuthInstance | undefined;
-function getAuth(): AuthInstance {
-  if (!_auth) {
-    _auth = createAuth();
-  }
-  return _auth;
-}
-
-export const auth = new Proxy({} as AuthInstance, {
-  get(_, prop) {
-    return (getAuth() as unknown as Record<string | symbol, unknown>)[prop];
   },
-  has(_, prop) {
-    return prop in getAuth();
+  session: {
+    expiresIn: 60 * 60 * 24 * 7,
+    updateAge: 60 * 60 * 24,
+  },
+  user: {
+    additionalFields: {
+      role: { type: 'string', defaultValue: 'user', input: false },
+      banned: { type: 'boolean', defaultValue: false, input: false },
+      banReason: { type: 'string', required: false, input: false },
+      banExpires: { type: 'date', required: false, input: false },
+    },
+  },
+  baseURL: process.env.BETTER_AUTH_URL,
+  secret: process.env.BETTER_AUTH_SECRET,
+  trustedOrigins: [
+    process.env.BETTER_AUTH_URL!,
+    process.env.NEXT_PUBLIC_APP_URL!,
+    process.env.BETTER_AUTH_URL!.replace('://', '://www.'),
+    process.env.NEXT_PUBLIC_APP_URL!.replace('://', '://www.'),
+  ],
+  advanced: {
+    database: {
+      generateId: false,
+    },
   },
 });
 
-// Direct instance for toNextJsHandler (bypasses Proxy)
-export function getAuthInstance() {
-  return getAuth();
-}
-
 // Helper to get current session in server components / DAL
 export async function getCurrentSession() {
-  const { headers } = await import('next/headers');
   return auth.api.getSession({ headers: await headers() });
 }
 
@@ -153,11 +113,6 @@ const ROLE_HIERARCHY: Record<Role, number> = {
   super_admin: 4,
 };
 
-/**
- * Require the current user to have at least the specified role.
- * Throws 'Unauthorized' if no session, 'Forbidden' if insufficient role.
- * Returns the session with guaranteed non-null user for downstream use.
- */
 export async function requireRole(minimumRole: Role) {
   const session = await getCurrentSession();
   if (!session?.user) {
