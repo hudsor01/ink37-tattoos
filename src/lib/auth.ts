@@ -1,6 +1,7 @@
 import 'server-only';
 import { betterAuth } from 'better-auth';
-import { nextCookies } from 'better-auth/next-js';
+// nextCookies deliberately omitted — it breaks cookie setting in Route Handlers
+// (it calls cookies().set() which only works in Server Actions, not Route Handlers)
 import { admin } from 'better-auth/plugins';
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import ws from 'ws';
@@ -27,7 +28,6 @@ function createAuth() {
   return betterAuth({
     database: getAuthPool(),
     plugins: [
-      nextCookies(),
       admin({ defaultRole: 'user' }),
     ],
     emailAndPassword: {
