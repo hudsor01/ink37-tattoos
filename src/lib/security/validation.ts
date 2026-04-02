@@ -44,7 +44,7 @@ export const CreateCustomerSchema = z.object({
     .refine(noHtml, noHtmlMessage),
   email: z.string().email().optional(),
   phone: z.string().optional(),
-  dateOfBirth: z.string().datetime().optional(),
+  dateOfBirth: z.string().date().optional(),
   address: optionalNoHtml,
   city: optionalNoHtml,
   state: optionalNoHtml,
