@@ -78,7 +78,7 @@ describe('CreateCustomerSchema', () => {
       ...valid,
       email: 'john@test.com',
       phone: '555-1234',
-      dateOfBirth: ISO_DATE,
+      dateOfBirth: '1990-06-15',
       address: '123 Main St',
       city: 'Portland',
       state: 'OR',
