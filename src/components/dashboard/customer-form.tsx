@@ -214,6 +214,9 @@ export function CustomerForm({ customer, onSuccess }: CustomerFormProps) {
                     value={field.value ? new Date(field.value) : undefined}
                     onChange={(date) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
                     placeholder="Select date of birth"
+                    captionLayout="dropdown"
+                    fromYear={1920}
+                    toYear={new Date().getFullYear() - 16}
                   />
                   <FormMessage />
                 </FormItem>

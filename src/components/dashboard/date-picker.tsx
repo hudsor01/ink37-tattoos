@@ -12,6 +12,10 @@ interface DatePickerProps {
   onChange: (date: Date | undefined) => void;
   placeholder?: string;
   className?: string;
+  /** Use "dropdown" for date-of-birth fields to allow quick year/month jumping */
+  captionLayout?: 'label' | 'dropdown';
+  fromYear?: number;
+  toYear?: number;
 }
 
 export function DatePicker({
@@ -19,6 +23,9 @@ export function DatePicker({
   onChange,
   placeholder = 'Pick a date',
   className,
+  captionLayout = 'label',
+  fromYear,
+  toYear,
 }: DatePickerProps) {
   return (
     <Popover>
@@ -43,6 +50,10 @@ export function DatePicker({
           mode="single"
           selected={value}
           onSelect={onChange}
+          captionLayout={captionLayout}
+          defaultMonth={value}
+          {...(fromYear && { fromYear })}
+          {...(toYear && { toYear })}
         />
       </PopoverContent>
     </Popover>
