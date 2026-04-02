@@ -52,8 +52,10 @@ export default withSentryConfig(nextConfig, {
   // Upload source maps for better stack traces
   widenClientFileUpload: true,
 
-  // Automatically tree-shake Sentry logger statements
-  disableLogger: true,
+  // Tree-shake Sentry logger statements (disableLogger is deprecated)
+  // Note: removeDebugLogging is not supported with Turbopack yet
+  // Will take effect once Turbopack adds support
+
 
   // Disable Sentry webpack plugin when no auth token (local dev)
   authToken: process.env.SENTRY_AUTH_TOKEN,
