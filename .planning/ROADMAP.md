@@ -318,7 +318,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 28-01-PLAN.md -- Shared cron auth utility, env schema coercion, env tests, n8n workflow JSON
+- [x] 28-01-PLAN.md -- Shared cron auth utility, env schema coercion, env tests, n8n workflow JSON
 - [ ] 28-02-PLAN.md -- Update all 3 cron routes, fix DAL purge, cron route tests
 
 ## Progress
@@ -352,4 +352,4 @@ Plans:
 | 25. Database + Security Hardening | v3.0 | 0/? | Not started | - |
 | 26. Assets + Infrastructure | v3.0 | 0/? | Not started | - |
 | 27. Documentation | v3.0 | 1/1 | Complete    | 2026-03-31 |
-| 28. Fix PR #5 Cron Issues | v3.0 | 0/2 | Not started | - |
+| 28. Fix PR #5 Cron Issues | v3.0 | 1/2 | In Progress|  |
