@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { signIn } from '@/lib/auth-client';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   Card,
@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -25,25 +26,37 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
+    try {
+      const formData = new FormData(e.currentTarget);
+      const email = formData.get('email') as string;
+      const password = formData.get('password') as string;
 
-    const { data, error: authError } = await signIn.email({
-      email,
-      password,
-    });
+      const { data, error: authError } = await signIn.email({
+        email,
+        password,
+      });
 
-    if (authError) {
-      setError(authError.message ?? 'Invalid email or password. Please try again.');
+      if (authError) {
+        setError(authError.message ?? 'Invalid email or password. Please try again.');
+        setLoading(false);
+        return;
+      }
+
+      // Use callbackUrl if present, otherwise route by role
+      const callbackUrl = searchParams.get('callbackUrl');
+      if (callbackUrl?.startsWith('/')) {
+        window.location.href = callbackUrl;
+        return;
+      }
+
+      const role = data?.user?.role as string | undefined;
+      const isAdmin = role === 'admin' || role === 'super_admin';
+      // Full page navigation to ensure cookies are sent with the request
+      window.location.href = isAdmin ? '/dashboard' : '/portal';
+    } catch {
+      setError('Something went wrong. Please try again.');
       setLoading(false);
-      return;
     }
-
-    // Route by role: admin/super_admin → dashboard, everyone else → portal
-    const role = data?.user?.role as string | undefined;
-    const isAdmin = role === 'admin' || role === 'super_admin';
-    router.push(isAdmin ? '/dashboard' : '/portal');
   }
 
   return (
