@@ -1,14 +1,10 @@
-// TODO: Notification retention policy -- currently notifications are never deleted.
-// Future enhancement: add a scheduled job or DAL function to purge notifications
-// older than N days (e.g., 90 days) to prevent unbounded table growth.
-
 import 'server-only';
 import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { eq, and, desc, ilike, or, count, inArray } from 'drizzle-orm';
-import { notification, user } from '@/lib/db/schema';
+import { eq, and, desc, ilike, or, count, inArray, lt, sql } from 'drizzle-orm';
+import { notification, user, auditLog } from '@/lib/db/schema';
 import type { PaginationParams, PaginatedResult } from './types';
 import { DEFAULT_PAGE_SIZE } from './types';
 
@@ -102,6 +98,79 @@ export async function markAllAsRead(userId: string) {
 
 // LOW_STOCK notification trigger deferred: product table lacks stock tracking column.
 // When inventory management is added, trigger LOW_STOCK notifications from stock update logic.
+
+export async function purgeOldNotifications(
+  options: {
+    readRetentionDays?: number;
+    unreadRetentionDays?: number;
+    batchSize?: number;
+  } = {}
+) {
+  const {
+    readRetentionDays = 30,
+    unreadRetentionDays = 90,
+    batchSize = 1000,
+  } = options;
+
+  const readCutoff = new Date();
+  readCutoff.setDate(readCutoff.getDate() - readRetentionDays);
+
+  const unreadCutoff = new Date();
+  unreadCutoff.setDate(unreadCutoff.getDate() - unreadRetentionDays);
+
+  // Delete old READ notifications using raw SQL for batch deletion
+  // Drizzle's delete doesn't support LIMIT, so we use a subquery approach
+  const deletedReadResult = await db.execute(sql`
+    DELETE FROM ${notification}
+    WHERE id IN (
+      SELECT id FROM ${notification}
+      WHERE ${eq(notification.isRead, true)} AND ${lt(notification.createdAt, readCutoff)}
+      ORDER BY ${notification.createdAt} ASC
+      LIMIT ${batchSize}
+    )
+    RETURNING ${notification.id}
+  `);
+
+  // Delete old UNREAD notifications using raw SQL for batch deletion
+  const deletedUnreadResult = await db.execute(sql`
+    DELETE FROM ${notification}
+    WHERE id IN (
+      SELECT id FROM ${notification}
+      WHERE ${eq(notification.isRead, false)} AND ${lt(notification.createdAt, unreadCutoff)}
+      ORDER BY ${notification.createdAt} ASC
+      LIMIT ${batchSize}
+    )
+    RETURNING ${notification.id}
+  `);
+
+  const deletedReadCount = deletedReadResult.rowCount ?? 0;
+  const deletedUnreadCount = deletedUnreadResult.rowCount ?? 0;
+  const totalDeleted = deletedReadCount + deletedUnreadCount;
+
+  // Log audit trail for compliance
+  if (totalDeleted > 0) {
+    await db.insert(auditLog).values({
+      action: 'NOTIFICATION_CLEANUP',
+      resource: 'notification',
+      ip: 'system',
+      userAgent: 'notification-cleanup-cron',
+      metadata: {
+        deletedReadCount,
+        deletedUnreadCount,
+        totalDeleted,
+        readRetentionDays,
+        unreadRetentionDays,
+        batchSize,
+      },
+    });
+  }
+
+  return {
+    deletedReadCount,
+    deletedUnreadCount,
+    totalDeleted,
+  };
+}
 
 export async function createNotificationForAdmins(data: {
   type: 'BOOKING' | 'PAYMENT' | 'CONTACT' | 'LOW_STOCK';

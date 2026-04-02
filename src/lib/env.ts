@@ -24,6 +24,9 @@ const envSchema = z.object({
   CAL_WEBHOOK_SECRET: z.string().min(1).optional(),
   RESEND_WEBHOOK_SECRET: z.string().optional(),
   CRON_SECRET: z.string().optional(),
+  NOTIFICATION_RETENTION_READ_DAYS: z.string().optional(),
+  NOTIFICATION_RETENTION_UNREAD_DAYS: z.string().optional(),
+  NOTIFICATION_CLEANUP_BATCH_SIZE: z.string().optional(),
   SENTRY_DSN: optionalUrl,
   NEXT_PUBLIC_SENTRY_DSN: optionalUrl,
 });
