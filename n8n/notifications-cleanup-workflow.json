@@ -1,0 +1,68 @@
+{
+  "name": "Ink37 - Notification Cleanup",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 3,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Daily 3AM CT",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ink37tattoos.com/api/cron/notifications-cleanup",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000
+        },
+        "retryOnFail": true,
+        "maxRetries": 2,
+        "waitBetweenRetries": 5000
+      },
+      "id": "http-request",
+      "name": "Call Notification Cleanup",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [450, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "CREDENTIAL_ID",
+          "name": "Ink37 Cron Auth"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Daily 3AM CT": {
+      "main": [
+        [
+          {
+            "node": "Call Notification Cleanup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Chicago"
+  },
+  "tags": [
+    { "name": "ink37" },
+    { "name": "cron" }
+  ]
+}
