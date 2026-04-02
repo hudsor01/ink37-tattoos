@@ -1,45 +1,41 @@
 {
   "name": "Ink37 - Notification Cleanup",
+  "description": "Daily cleanup of read (>30d) and unread (>90d) notifications directly via Postgres. No Vercel function invocation needed.",
+  "workflowId": "ahHGHSBasO5M9wdr",
   "nodes": [
     {
+      "name": "Daily 3AM CT",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [250, 300],
       "parameters": {
         "rule": {
           "interval": [
             {
+              "field": "days",
+              "daysInterval": 1,
               "triggerAtHour": 3,
               "triggerAtMinute": 0
             }
           ]
         }
-      },
-      "id": "schedule-trigger",
-      "name": "Daily 3AM CT",
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.2,
-      "position": [250, 300]
+      }
     },
     {
-      "parameters": {
-        "method": "POST",
-        "url": "https://ink37tattoos.com/api/cron/notifications-cleanup",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "options": {
-          "timeout": 30000
-        },
-        "retryOnFail": true,
-        "maxRetries": 2,
-        "waitBetweenRetries": 5000
-      },
-      "id": "http-request",
-      "name": "Call Notification Cleanup",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "name": "Cleanup Notifications",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
       "position": [450, 300],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH deleted_read AS ( DELETE FROM notification WHERE id IN ( SELECT id FROM notification WHERE \"isRead\" = true AND \"createdAt\" < NOW() - INTERVAL '30 days' ORDER BY \"createdAt\" ASC LIMIT 1000 ) RETURNING id ), deleted_unread AS ( DELETE FROM notification WHERE id IN ( SELECT id FROM notification WHERE \"isRead\" = false AND \"createdAt\" < NOW() - INTERVAL '90 days' ORDER BY \"createdAt\" ASC LIMIT 1000 ) RETURNING id ), counts AS ( SELECT (SELECT count(*) FROM deleted_read)::int AS read_deleted, (SELECT count(*) FROM deleted_unread)::int AS unread_deleted ), audit AS ( INSERT INTO audit_log (action, resource, ip, \"userAgent\", timestamp, metadata) SELECT 'NOTIFICATION_CLEANUP', 'notification', 'system', 'n8n-notification-cleanup-cron', NOW(), jsonb_build_object( 'readDeleted', c.read_deleted, 'unreadDeleted', c.unread_deleted, 'readRetentionDays', 30, 'unreadRetentionDays', 90, 'batchSize', 1000 ) FROM counts c WHERE c.read_deleted > 0 OR c.unread_deleted > 0 RETURNING * ) SELECT * FROM counts;",
+        "options": {
+          "connectionTimeout": 30
+        }
+      },
       "credentials": {
-        "httpHeaderAuth": {
-          "id": "CREDENTIAL_ID",
-          "name": "Ink37 Cron Auth"
+        "postgres": {
+          "name": "Neon Ink37"
         }
       }
     }
@@ -49,7 +45,7 @@
       "main": [
         [
           {
-            "node": "Call Notification Cleanup",
+            "node": "Cleanup Notifications",
             "type": "main",
             "index": 0
           }
