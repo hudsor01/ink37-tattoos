@@ -4,6 +4,7 @@ import * as schema from '@/lib/db/schema';
 import { sql } from 'drizzle-orm';
 import { sendBalanceDueReminder } from '@/lib/email/resend';
 import { logger } from '@/lib/logger';
+import { verifyCronAuth } from '@/lib/security/cron-auth';
 
 /**
  * POST /api/cron/balance-due
@@ -15,22 +16,10 @@ import { logger } from '@/lib/logger';
  * Returns: { processed, sent, errors }
  */
 export async function POST(request: Request) {
-  // Verify CRON_SECRET is configured
-  const secret = process.env.CRON_SECRET;
-  if (!secret) {
-    return NextResponse.json(
-      { error: 'CRON_SECRET not configured' },
-      { status: 500 }
-    );
-  }
-
-  // Verify Bearer auth
-  const authHeader = request.headers.get('authorization');
-  if (authHeader !== `Bearer ${secret}`) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
-    );
+  // Verify Bearer auth via shared timing-safe utility
+  const auth = verifyCronAuth(request);
+  if (!auth.valid) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
   // Per research pitfall 4: Calculate true balance from payment table SUM,

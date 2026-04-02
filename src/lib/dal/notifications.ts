@@ -99,6 +99,14 @@ export async function markAllAsRead(userId: string) {
 // LOW_STOCK notification trigger deferred: product table lacks stock tracking column.
 // When inventory management is added, trigger LOW_STOCK notifications from stock update logic.
 
+/**
+ * Purge notifications older than configured retention periods.
+ *
+ * @cron-authorized This function intentionally does NOT call requireStaffRole().
+ * It is invoked exclusively from the /api/cron/notifications-cleanup route handler,
+ * which performs its own Bearer token authentication via verifyCronAuth().
+ * Adding requireStaffRole() here would break the cron job (no user session in cron context).
+ */
 export async function purgeOldNotifications(
   options: {
     readRetentionDays?: number;
@@ -128,7 +136,6 @@ export async function purgeOldNotifications(
       ORDER BY ${notification.createdAt} ASC
       LIMIT ${batchSize}
     )
-    RETURNING ${notification.id}
   `);
 
   // Delete old UNREAD notifications using raw SQL for batch deletion
@@ -140,7 +147,6 @@ export async function purgeOldNotifications(
       ORDER BY ${notification.createdAt} ASC
       LIMIT ${batchSize}
     )
-    RETURNING ${notification.id}
   `);
 
   const deletedReadCount = deletedReadResult.rowCount ?? 0;
