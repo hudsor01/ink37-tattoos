@@ -26,37 +26,28 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    try {
-      const formData = new FormData(e.currentTarget);
-      const email = formData.get('email') as string;
-      const password = formData.get('password') as string;
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    const callbackUrl = searchParams.get('callbackUrl');
 
-      const { data, error: authError } = await signIn.email({
-        email,
-        password,
-      });
-
-      if (authError) {
-        setError(authError.message ?? 'Invalid email or password. Please try again.');
+    await signIn.email({
+      email,
+      password,
+      callbackURL: callbackUrl?.startsWith('/') ? callbackUrl : '/dashboard',
+    }, {
+      onSuccess: (ctx) => {
+        // Route by role: admin/super_admin → dashboard, everyone else → portal
+        const role = ctx.data?.user?.role as string | undefined;
+        const isAdmin = role === 'admin' || role === 'super_admin';
+        const target = callbackUrl?.startsWith('/') ? callbackUrl : (isAdmin ? '/dashboard' : '/portal');
+        window.location.href = target;
+      },
+      onError: (ctx) => {
+        setError(ctx.error.message ?? 'Invalid email or password. Please try again.');
         setLoading(false);
-        return;
-      }
-
-      // Use callbackUrl if present, otherwise route by role
-      const callbackUrl = searchParams.get('callbackUrl');
-      if (callbackUrl?.startsWith('/')) {
-        window.location.href = callbackUrl;
-        return;
-      }
-
-      const role = data?.user?.role as string | undefined;
-      const isAdmin = role === 'admin' || role === 'super_admin';
-      // Full page navigation to ensure cookies are sent with the request
-      window.location.href = isAdmin ? '/dashboard' : '/portal';
-    } catch {
-      setError('Something went wrong. Please try again.');
-      setLoading(false);
-    }
+      },
+    });
   }
 
   return (
