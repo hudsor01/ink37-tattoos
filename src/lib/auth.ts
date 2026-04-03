@@ -84,11 +84,11 @@ export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL,
   secret: process.env.BETTER_AUTH_SECRET,
   trustedOrigins: [
-    process.env.BETTER_AUTH_URL!,
-    process.env.NEXT_PUBLIC_APP_URL!,
-    process.env.BETTER_AUTH_URL!.replace('://', '://www.'),
-    process.env.NEXT_PUBLIC_APP_URL!.replace('://', '://www.'),
-  ],
+    process.env.BETTER_AUTH_URL,
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.BETTER_AUTH_URL?.replace('://', '://www.'),
+    process.env.NEXT_PUBLIC_APP_URL?.replace('://', '://www.'),
+  ].filter(Boolean) as string[],
   advanced: {
     database: {
       generateId: false,
