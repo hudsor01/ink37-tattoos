@@ -89,7 +89,7 @@ None.
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
-| 260402-oxe | Deploy n8n notification cleanup workflow | 2026-04-02 | pending | [260402-oxe-deploy-n8n-notification-cleanup-workflow](./quick/260402-oxe-deploy-n8n-notification-cleanup-workflow/) |
+| 260402-oxe | Deploy n8n notification cleanup workflow | 2026-04-02 | dc11657 | [260402-oxe-deploy-n8n-notification-cleanup-workflow](./quick/260402-oxe-deploy-n8n-notification-cleanup-workflow/) |
 
 ## Session Continuity
 
