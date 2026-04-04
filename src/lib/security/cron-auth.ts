@@ -2,13 +2,6 @@ import crypto from 'node:crypto';
 import { Redis } from '@upstash/redis';
 
 // ---------------------------------------------------------------------------
-// Constants (shared with notifications-cleanup route for lock acquire/release)
-// ---------------------------------------------------------------------------
-
-export const LOCK_KEY = 'lock:notification-cleanup';
-export const LOCK_TTL_SECONDS = 300; // 5 minutes max lock time (prevent stale locks)
-
-// ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 

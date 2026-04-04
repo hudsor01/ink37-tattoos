@@ -28,7 +28,7 @@
       "position": [450, 300],
       "parameters": {
         "operation": "executeQuery",
-        "query": "WITH deleted_read AS ( DELETE FROM notification WHERE id IN ( SELECT id FROM notification WHERE \"isRead\" = true AND \"createdAt\" < NOW() - INTERVAL '30 days' ORDER BY \"createdAt\" ASC LIMIT 1000 ) RETURNING id ), deleted_unread AS ( DELETE FROM notification WHERE id IN ( SELECT id FROM notification WHERE \"isRead\" = false AND \"createdAt\" < NOW() - INTERVAL '90 days' ORDER BY \"createdAt\" ASC LIMIT 1000 ) RETURNING id ), counts AS ( SELECT (SELECT count(*) FROM deleted_read)::int AS read_deleted, (SELECT count(*) FROM deleted_unread)::int AS unread_deleted ), audit AS ( INSERT INTO audit_log (action, resource, ip, \"userAgent\", timestamp, metadata) SELECT 'NOTIFICATION_CLEANUP', 'notification', 'system', 'n8n-notification-cleanup-cron', NOW(), jsonb_build_object( 'readDeleted', c.read_deleted, 'unreadDeleted', c.unread_deleted, 'readRetentionDays', 30, 'unreadRetentionDays', 90, 'batchSize', 1000 ) FROM counts c WHERE c.read_deleted > 0 OR c.unread_deleted > 0 RETURNING * ) SELECT * FROM counts;",
+        "query": "WITH deleted_read AS ( DELETE FROM notification WHERE id IN ( SELECT id FROM notification WHERE \"isRead\" = true AND \"createdAt\" < NOW() - INTERVAL '30 days' ORDER BY \"createdAt\" ASC LIMIT 1000 ) ), deleted_unread AS ( DELETE FROM notification WHERE id IN ( SELECT id FROM notification WHERE \"isRead\" = false AND \"createdAt\" < NOW() - INTERVAL '90 days' ORDER BY \"createdAt\" ASC LIMIT 1000 ) ) SELECT 'cleanup_complete' AS status;",
         "options": {
           "connectionTimeout": 30
         }

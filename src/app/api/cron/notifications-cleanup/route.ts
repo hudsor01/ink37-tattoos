@@ -3,12 +3,10 @@ import { NextResponse } from 'next/server';
 import { purgeOldNotifications } from '@/lib/dal/notifications';
 import { logger } from '@/lib/logger';
 import { env } from '@/lib/env';
-import {
-  verifyCronAuth,
-  getRedis,
-  LOCK_KEY,
-  LOCK_TTL_SECONDS,
-} from '@/lib/security/cron-auth';
+import { verifyCronAuth, getRedis } from '@/lib/security/cron-auth';
+
+const LOCK_KEY = 'lock:notification-cleanup';
+const LOCK_TTL_SECONDS = 300; // 5 minutes max lock time
 
 /**
  * Lua script for atomic check-and-delete of a Redis lock.

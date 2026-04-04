@@ -1,7 +1,7 @@
 /**
  * Seed an admin user with proper Better Auth password hashing.
  *
- * Usage: DATABASE_URL=<url> bun run scripts/seed-admin.ts
+ * Usage: DATABASE_URL=<url> SEED_ADMIN_PASSWORD=<pw> bun run scripts/seed-admin.ts
  */
 
 import { drizzle } from 'drizzle-orm/neon-serverless';
@@ -14,9 +14,14 @@ import { hashPassword } from 'better-auth/crypto';
 
 neonConfig.webSocketConstructor = ws;
 
-const ADMIN_NAME = 'Fernando Govea';
-const ADMIN_EMAIL = 'fennyg83@gmail.com';
-const ADMIN_PASSWORD = 'REDACTED_PASSWORD';
+const ADMIN_NAME = process.env.SEED_ADMIN_NAME ?? 'Fernando Govea';
+const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL ?? 'fennyg83@gmail.com';
+const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD;
+
+if (!ADMIN_PASSWORD) {
+  console.error('SEED_ADMIN_PASSWORD environment variable is required');
+  process.exit(1);
+}
 
 async function seedAdmin() {
   const databaseUrl = process.env.DATABASE_URL;

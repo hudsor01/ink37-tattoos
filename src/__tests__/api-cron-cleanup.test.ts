@@ -22,8 +22,6 @@ const mockGetRedis = vi.fn();
 vi.mock('@/lib/security/cron-auth', () => ({
   verifyCronAuth: mockVerifyCronAuth,
   getRedis: mockGetRedis,
-  LOCK_KEY: 'lock:notification-cleanup',
-  LOCK_TTL_SECONDS: 300,
 }));
 
 // Mock purgeOldNotifications from the DAL
