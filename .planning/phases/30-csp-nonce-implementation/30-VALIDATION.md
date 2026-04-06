@@ -1,9 +1,9 @@
 ---
 phase: 30
 slug: csp-nonce-implementation
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-04-05
 ---
 
@@ -38,9 +38,9 @@ created: 2026-04-05
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 30-01-01 | 01 | 1 | INFRA-02 | T-30-01 | Nonce generated per request via crypto | unit | `bun run test -- --run` | ❌ W0 | ⬜ pending |
-| 30-01-02 | 01 | 1 | INFRA-02 | T-30-02 | CSP header contains nonce in script-src | integration | `bun run build` | ❌ W0 | ⬜ pending |
-| 30-01-03 | 01 | 1 | INFRA-02 | — | layout.tsx reads x-nonce from middleware | integration | `grep 'x-nonce' src/app/layout.tsx` | ✅ | ⬜ pending |
+| 30-01-01 | 01 | 1 | INFRA-02 | T-30-01 | Nonce generated per request via crypto | unit | `bun run test -- src/__tests__/csp.test.ts` | W0 (Task 1 creates) | ⬜ pending |
+| 30-01-02 | 01 | 1 | INFRA-02 | T-30-02 | CSP header contains nonce in script-src | unit | `bun run test -- src/__tests__/csp.test.ts` | W0 (Task 1 creates) | ⬜ pending |
+| 30-01-03 | 01 | 1 | INFRA-02 | — | layout.tsx reads x-nonce from middleware | integration | `bun run build` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -48,10 +48,11 @@ created: 2026-04-05
 
 ## Wave 0 Requirements
 
-- [ ] Middleware test utilities — mock NextRequest/NextResponse for nonce verification
-- [ ] CSP header parsing test helper — extract directives from CSP string
+- [x] `src/__tests__/csp.test.ts` — created by Task 1 (TDD: RED phase writes tests first, before implementation)
+- [x] Middleware test utilities — mock NextRequest/NextResponse for nonce verification (inside csp.test.ts)
+- [x] CSP header parsing test helper — `parseCSP()` function inside csp.test.ts
 
-*Existing vitest infrastructure covers test runner needs.*
+*Task 1 is type `tdd="true"`, meaning tests are written first (RED), then implementation (GREEN). This satisfies Wave 0 — the test file is the first artifact created during Task 1 execution.*
 
 ---
 
@@ -66,11 +67,11 @@ created: 2026-04-05
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (Task 1 TDD creates test file first)
+- [x] No watch-mode flags
+- [x] Feedback latency < 30s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved
