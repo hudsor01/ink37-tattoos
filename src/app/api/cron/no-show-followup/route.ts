@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { sendNoShowFollowUp } from '@/lib/email/resend';
 import { createNotificationForAdmins } from '@/lib/dal/notifications';
 import { logger } from '@/lib/logger';
+import { verifyCronAuth } from '@/lib/security/cron-auth';
 
 /**
  * POST /api/cron/no-show-followup
@@ -23,22 +24,10 @@ import { logger } from '@/lib/logger';
  * Returns: { processed, sent, errors }
  */
 export async function POST(request: Request) {
-  // Verify CRON_SECRET is configured
-  const secret = process.env.CRON_SECRET;
-  if (!secret) {
-    return NextResponse.json(
-      { error: 'CRON_SECRET not configured' },
-      { status: 500 }
-    );
-  }
-
-  // Verify Bearer auth
-  const authHeader = request.headers.get('authorization');
-  if (authHeader !== `Bearer ${secret}`) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
-    );
+  // Verify Bearer auth via shared timing-safe utility
+  const auth = verifyCronAuth(request);
+  if (!auth.valid) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
   // 48-hour window: only process no-shows from the last 48 hours

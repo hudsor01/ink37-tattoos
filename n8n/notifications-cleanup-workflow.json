@@ -1,0 +1,64 @@
+{
+  "name": "Ink37 - Notification Cleanup",
+  "description": "Daily cleanup of read (>30d) and unread (>90d) notifications directly via Postgres. No Vercel function invocation needed.",
+  "workflowId": "ahHGHSBasO5M9wdr",
+  "nodes": [
+    {
+      "name": "Daily 3AM CT",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [250, 300],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 3,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Cleanup Notifications",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [450, 300],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH deleted_read AS ( DELETE FROM notification WHERE id IN ( SELECT id FROM notification WHERE \"isRead\" = true AND \"createdAt\" < NOW() - INTERVAL '30 days' ORDER BY \"createdAt\" ASC LIMIT 1000 ) ), deleted_unread AS ( DELETE FROM notification WHERE id IN ( SELECT id FROM notification WHERE \"isRead\" = false AND \"createdAt\" < NOW() - INTERVAL '90 days' ORDER BY \"createdAt\" ASC LIMIT 1000 ) ) SELECT 'cleanup_complete' AS status;",
+        "options": {
+          "connectionTimeout": 30
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "name": "Neon Ink37"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Daily 3AM CT": {
+      "main": [
+        [
+          {
+            "node": "Cleanup Notifications",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Chicago"
+  },
+  "tags": [
+    { "name": "ink37" },
+    { "name": "cron" }
+  ]
+}

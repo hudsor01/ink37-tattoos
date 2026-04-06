@@ -4,7 +4,7 @@
 
 - **v1.0 MVP** -- Phases 1-12 (shipped 2026-03-27) | [Archive](milestones/v1.0-ROADMAP.md)
 - **v2.0 Admin Panel** -- Phases 13-22 (shipped 2026-03-30)
-- **v3.0 Production Launch** -- Phases 23-27 (active)
+- **v3.0 Production Launch** -- Phases 23-28 (active)
 
 ## Phases
 
@@ -302,6 +302,25 @@ Plans:
 Plans:
 - [x] 27-01-PLAN.md -- Production deployment checklist and README update
 
+### Phase 28: Fix PR #5 Notification Retention Policy Review Issues
+**Goal**: All security, correctness, robustness, and code quality issues identified in the PR #5 review are resolved before merge
+**Depends on**: Nothing (fixes apply to feature/notification-retention-policy branch)
+**Requirements**: CRON-SEC-01, CRON-SEC-02, CRON-ROB-01, CRON-ROB-02, CRON-ROB-03, CRON-CLEAN-01, CRON-CLEAN-02, CRON-INFRA-01
+**Success Criteria** (what must be TRUE):
+  1. Bearer token comparison in /api/cron/notifications-cleanup uses crypto.timingSafeEqual — string === is eliminated
+  2. Redis distributed lock stores a unique value per acquisition and only releases if the value matches — cross-process lock deletion is impossible
+  3. Non-numeric env vars for retention days/batch size are caught at startup via zod coercion, not silently producing NaN at runtime
+  4. Purge SQL queries do not use RETURNING clause — rowCount is used for counts with no unnecessary data transfer
+  5. purgeOldNotifications has explicit documentation or guard clarifying it intentionally bypasses requireStaffRole for cron use
+  6. Redis client instantiation is shared between tryAcquireLock and releaseLock — no duplicate new Redis() calls
+  7. Env schema uses z.coerce.number().optional() for all three notification retention env vars
+  8. n8n workflow at n8n.thehudsonfam.com is configured to POST to /api/cron/notifications-cleanup on a daily schedule
+**Plans**: 2 plans
+
+Plans:
+- [x] 28-01-PLAN.md -- Shared cron auth utility, env schema coercion, env tests, n8n workflow JSON
+- [x] 28-02-PLAN.md -- Update all 3 cron routes, fix DAL purge, cron route tests
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -333,3 +352,4 @@ Plans:
 | 25. Database + Security Hardening | v3.0 | 0/? | Not started | - |
 | 26. Assets + Infrastructure | v3.0 | 0/? | Not started | - |
 | 27. Documentation | v3.0 | 1/1 | Complete    | 2026-03-31 |
+| 28. Fix PR #5 Cron Issues | v3.0 | 2/2 | Complete    | 2026-04-02 |
