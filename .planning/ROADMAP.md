@@ -347,7 +347,7 @@ Plans:
 | 20. Business Workflows | v2.0 | 4/4 | Complete | 2026-03-30 |
 | 21. Analytics Depth | v2.0 | 4/4 | Complete | 2026-03-30 |
 | 22. Testing and Tech Debt | v2.0 | 4/4 | Complete | 2026-03-30 |
-| 23. Git Merge + CI/CD Pipeline | v3.0 | 0/? | Not started | - |
+| 23. Git Merge + CI/CD Pipeline | v3.0 | 2/2 | Complete    | 2026-04-06 |
 | 24. Monitoring + Observability | v3.0 | 2/2 | Complete   | 2026-03-31 |
 | 25. Database + Security Hardening | v3.0 | 0/? | Not started | - |
 | 26. Assets + Infrastructure | v3.0 | 0/? | Not started | - |
@@ -359,7 +359,7 @@ Plans:
 **Goal:** Self-hosted secret scanning on k3s with webhook-triggered + scheduled scans, dashboard, and notifications
 **Requirements**: TBD
 **Depends on:** Phase 28
-**Plans:** 0 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] TBD (run /gsd:plan-phase 29 to break down)
