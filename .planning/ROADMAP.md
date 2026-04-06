@@ -353,3 +353,13 @@ Plans:
 | 26. Assets + Infrastructure | v3.0 | 0/? | Not started | - |
 | 27. Documentation | v3.0 | 1/1 | Complete    | 2026-03-31 |
 | 28. Fix PR #5 Cron Issues | v3.0 | 2/2 | Complete    | 2026-04-02 |
+
+### Phase 29: Secret Scanning Pipeline
+
+**Goal:** Self-hosted secret scanning on k3s with webhook-triggered + scheduled scans, dashboard, and notifications
+**Requirements**: TBD
+**Depends on:** Phase 28
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 29 to break down)
