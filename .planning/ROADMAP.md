@@ -353,6 +353,8 @@ Plans:
 | 26. Assets + Infrastructure | v3.0 | 3/3 | Complete    | 2026-04-06 |
 | 27. Documentation | v3.0 | 1/1 | Complete    | 2026-03-31 |
 | 28. Fix PR #5 Cron Issues | v3.0 | 2/2 | Complete    | 2026-04-02 |
+| 30. CSP Nonce Implementation | v3.0 | 0/0 | Planned | — |
+| 31. Documentation + Tracking Corrections | v3.0 | 0/0 | Planned | — |
 
 ### Phase 29: Secret Scanning Pipeline
 
@@ -363,3 +365,17 @@ Plans:
 
 Plans:
 - [ ] TBD (run /gsd:plan-phase 29 to break down)
+
+### Phase 30: CSP Nonce Implementation
+**Goal:** Implement per-request nonce generation in middleware, emit dynamic Content-Security-Policy response header with nonce-based script-src/style-src, and wire nonce propagation to layout.tsx
+**Requirements:** INFRA-02
+**Depends on:** Phase 25 (extends proxy.ts / middleware)
+**Gap Closure:** Closes INFRA-02 (unsatisfied), proxy.ts→layout.tsx integration gap, CSP nonce enforcement flow
+**Plans:** TBD
+
+### Phase 31: Documentation + Tracking Corrections
+**Goal:** Fix all stale documentation (table counts, cron endpoint count, CRON_SECRET categorization), update n8n/README.md with notifications-cleanup workflow, and correct REQUIREMENTS.md traceability checkboxes
+**Requirements:** INFRA-01, DOC-01
+**Depends on:** Phase 28 (documentation reflects Phase 28 additions)
+**Gap Closure:** Closes INFRA-01 (partial), tech debt across phases 26, 27, 28, requirements tracking
+**Plans:** TBD

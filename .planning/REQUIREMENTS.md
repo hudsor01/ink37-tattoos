@@ -147,15 +147,15 @@ Requirements for production launch. Derived from comprehensive project audit (20
 
 ### Git & Merge
 
-- [ ] **GIT-01**: All v2.0 phase branch commits are merged to main via clean PR
-- [ ] **GIT-02**: All worktree-agent-* branches are deleted after merge
-- [ ] **GIT-03**: Phase branches are cleaned up (delete after merge to main)
+- [x] **GIT-01**: All v2.0 phase branch commits are merged to main via clean PR
+- [x] **GIT-02**: All worktree-agent-* branches are deleted after merge
+- [x] **GIT-03**: Phase branches are cleaned up (delete after merge to main)
 
 ### CI/CD
 
-- [ ] **CICD-01**: GitHub Actions workflow runs `bun run test` on all PRs to main
-- [ ] **CICD-02**: GitHub Actions workflow runs `bun run build` on all PRs to main
-- [ ] **CICD-03**: Vercel auto-deploys on merge to main (Vercel GitHub integration)
+- [x] **CICD-01**: GitHub Actions workflow runs `bun run test` on all PRs to main
+- [x] **CICD-02**: GitHub Actions workflow runs `bun run build` on all PRs to main
+- [x] **CICD-03**: Vercel auto-deploys on merge to main (Vercel GitHub integration)
 
 ### Monitoring & Observability
 
@@ -166,18 +166,18 @@ Requirements for production launch. Derived from comprehensive project audit (20
 
 ### Missing Assets
 
-- [ ] **ASSET-01**: 7 gallery video files (.mov) copied from source repo to public/videos/
-- [ ] **ASSET-02**: Search engine verification files (Bing, Google) copied from source repo
-- [ ] **ASSET-03**: PWA manifest.json + site.webmanifest + service worker from source repo
+- [x] **ASSET-01**: 7 gallery video files (.mov) copied from source repo to public/videos/
+- [x] **ASSET-02**: Search engine verification files (Bing, Google) copied from source repo
+- [x] **ASSET-03**: PWA manifest.json + site.webmanifest + service worker from source repo
 
 ### Database & Infrastructure
 
-- [ ] **DB-01**: Drizzle migrations consolidated -- single clean migration from baseline to v3.0 schema
-- [ ] **DB-02**: Production database seeded with initial data (artist profile, default settings, consent form)
+- [x] **DB-01**: Drizzle migrations consolidated -- single clean migration from baseline to v3.0 schema
+- [x] **DB-02**: Production database seeded with initial data (artist profile, default settings, consent form)
 - [ ] **INFRA-01**: n8n workflows configured at n8n.thehudsonfam.com (balance-due daily + no-show hourly cron)
 - [ ] **INFRA-02**: CSP tightened -- replace unsafe-inline/unsafe-eval with nonce-based CSP where possible
-- [ ] **INFRA-03**: Rate limiting added to admin API routes (/api/admin/*, /api/upload/*)
-- [ ] **INFRA-04**: Production environment variables documented and audited in Vercel dashboard
+- [x] **INFRA-03**: Rate limiting added to admin API routes (/api/admin/*, /api/upload/*)
+- [x] **INFRA-04**: Production environment variables documented and audited in Vercel dashboard
 
 ### Documentation
 
@@ -263,32 +263,32 @@ Requirements for production launch. Derived from comprehensive project audit (20
 | DEBT-02 | Phase 22 | Complete |
 | DEBT-03 | Phase 22 | Complete |
 | DEBT-04 | Phase 22 | Complete |
-| GIT-01 | Phase 23 | Pending |
-| GIT-02 | Phase 23 | Pending |
-| GIT-03 | Phase 23 | Pending |
-| CICD-01 | Phase 23 | Pending |
-| CICD-02 | Phase 23 | Pending |
-| CICD-03 | Phase 23 | Pending |
+| GIT-01 | Phase 23 | Complete |
+| GIT-02 | Phase 23 | Complete |
+| GIT-03 | Phase 23 | Complete |
+| CICD-01 | Phase 23 | Complete |
+| CICD-02 | Phase 23 | Complete |
+| CICD-03 | Phase 23 | Complete |
 | MON-01 | Phase 24 | Complete |
 | MON-02 | Phase 24 | Complete |
 | MON-03 | Phase 24 | Complete |
 | MON-04 | Phase 24 | Complete |
-| DB-01 | Phase 25 | Pending |
-| DB-02 | Phase 25 | Pending |
-| INFRA-02 | Phase 25 | Pending |
-| INFRA-03 | Phase 25 | Pending |
-| ASSET-01 | Phase 26 | Pending |
-| ASSET-02 | Phase 26 | Pending |
-| ASSET-03 | Phase 26 | Pending |
-| INFRA-01 | Phase 26 | Pending |
-| INFRA-04 | Phase 26 | Pending |
-| DOC-01 | Phase 27 | Complete |
+| DB-01 | Phase 25 | Complete |
+| DB-02 | Phase 25 | Complete |
+| INFRA-02 | Phase 30 | Pending |
+| INFRA-03 | Phase 25 | Complete |
+| ASSET-01 | Phase 26 | Complete |
+| ASSET-02 | Phase 26 | Complete |
+| ASSET-03 | Phase 26 | Complete |
+| INFRA-01 | Phase 26/31 | Pending |
+| INFRA-04 | Phase 26 | Complete |
+| DOC-01 | Phase 27/31 | Complete |
 | DOC-02 | Phase 27 | Complete |
 
 **Coverage:**
 - v2.0 requirements: 75 total, mapped: 75, unmapped: 0
-- v3.0 requirements: 21 total, mapped: 21, unmapped: 0
+- v3.0 requirements: 21 total, mapped: 21, unmapped: 0 (2 reassigned to gap closure phases 30-31)
 
 ---
 *Requirements defined: 2026-03-27*
-*Last updated: 2026-03-31 after Phase 27 Documentation completion*
+*Last updated: 2026-04-05 after v3.0 milestone audit gap closure planning*
