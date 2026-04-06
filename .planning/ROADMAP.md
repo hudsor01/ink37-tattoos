@@ -350,7 +350,7 @@ Plans:
 | 23. Git Merge + CI/CD Pipeline | v3.0 | 2/2 | Complete    | 2026-04-06 |
 | 24. Monitoring + Observability | v3.0 | 2/2 | Complete   | 2026-03-31 |
 | 25. Database + Security Hardening | v3.0 | 2/2 | Complete    | 2026-04-06 |
-| 26. Assets + Infrastructure | v3.0 | 0/? | Not started | - |
+| 26. Assets + Infrastructure | v3.0 | 3/3 | Complete    | 2026-04-06 |
 | 27. Documentation | v3.0 | 1/1 | Complete    | 2026-03-31 |
 | 28. Fix PR #5 Cron Issues | v3.0 | 2/2 | Complete    | 2026-04-02 |
 
@@ -359,7 +359,7 @@ Plans:
 **Goal:** Self-hosted secret scanning on k3s with webhook-triggered + scheduled scans, dashboard, and notifications
 **Requirements**: TBD
 **Depends on:** Phase 28
-**Plans:** 2/2 plans complete
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] TBD (run /gsd:plan-phase 29 to break down)
