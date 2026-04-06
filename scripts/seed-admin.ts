@@ -16,7 +16,7 @@ neonConfig.webSocketConstructor = ws;
 
 const ADMIN_NAME = process.env.SEED_ADMIN_NAME ?? 'Fernando Govea';
 const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL ?? 'fennyg83@gmail.com';
-const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD;
+const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD as string;
 
 if (!ADMIN_PASSWORD) {
   console.error('SEED_ADMIN_PASSWORD environment variable is required');
