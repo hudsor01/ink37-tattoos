@@ -44,7 +44,6 @@ const mockDbUpdateSetWhere = vi.fn().mockResolvedValue(undefined);
 const mockDbInsertValuesReturning = vi.fn();
 const mockDbInsertValues = vi.fn().mockReturnThis();
 const mockProductFindMany = vi.fn();
-const mockOrderInsertReturning = vi.fn();
 const mockStripeEventFindFirst = vi.fn();
 const mockPaymentFindFirst = vi.fn();
 const mockDbTransaction = vi.fn();
@@ -215,18 +214,6 @@ vi.mock('@/lib/store-helpers', () => ({
 }));
 
 vi.mock('@/lib/db', () => {
-  const txProxy = {
-    update: vi.fn(() => ({
-      set: vi.fn(() => ({
-        where: vi.fn().mockResolvedValue(undefined),
-      })),
-    })),
-    insert: vi.fn(() => ({
-      values: vi.fn().mockReturnThis(),
-      returning: vi.fn().mockResolvedValue([{ id: 'new-order-1' }]),
-    })),
-  };
-
   return {
     db: {
       query: {

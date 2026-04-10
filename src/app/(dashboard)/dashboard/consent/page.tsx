@@ -2,7 +2,6 @@ import { connection } from 'next/server';
 import {
   getSignedConsentsWithExpiration,
   getConsentForms,
-  getActiveConsentForm,
 } from '@/lib/dal/consent';
 import { ConsentPageClient } from './consent-page-client';
 
@@ -26,7 +25,7 @@ export default async function ConsentPage({ searchParams }: ConsentPageProps) {
   const search = params.search || '';
   const filter = (params.filter || 'all') as 'all' | 'active' | 'expired' | 'pending';
 
-  const [consents, consentForms, activeForm] = await Promise.all([
+  const [consents, consentForms] = await Promise.all([
     getSignedConsentsWithExpiration({
       page: isNaN(page) ? 1 : page,
       pageSize: 20,
@@ -34,7 +33,6 @@ export default async function ConsentPage({ searchParams }: ConsentPageProps) {
       filter,
     }),
     getConsentForms(),
-    getActiveConsentForm(),
   ]);
 
   // Serialize dates for client component
@@ -54,14 +52,6 @@ export default async function ConsentPage({ searchParams }: ConsentPageProps) {
     updatedAt: f.updatedAt.toISOString(),
   }));
 
-  const serializedActiveForm = activeForm
-    ? {
-        ...activeForm,
-        createdAt: activeForm.createdAt.toISOString(),
-        updatedAt: activeForm.updatedAt.toISOString(),
-      }
-    : null;
-
   return (
     <div className="space-y-6">
       <div>
@@ -73,7 +63,6 @@ export default async function ConsentPage({ searchParams }: ConsentPageProps) {
       <ConsentPageClient
         consents={serializedConsents}
         consentForms={serializedForms}
-        activeForm={serializedActiveForm}
         searchQuery={search}
         filterValue={filter}
       />

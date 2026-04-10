@@ -43,7 +43,7 @@ export function ConsentForm({ sessionId }: { sessionId: string }) {
   const [signedName, setSignedName] = useState('');
   const [isPending, startTransition] = useTransition();
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
 
     if (!acknowledged) {

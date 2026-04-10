@@ -81,7 +81,7 @@ export const getMediaItems = cache(async (
   const total = results[0]?.total ?? 0;
 
   return {
-    data: results.map(({ total: _, ...row }) => row),
+    data: results.map(({ total: _total, ...row }) => ({ ...row })),
     total,
     page: params.page,
     pageSize: params.pageSize,

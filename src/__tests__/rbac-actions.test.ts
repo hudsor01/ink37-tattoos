@@ -25,7 +25,7 @@ const BELOW_ADMIN: Role[] = ['user', 'staff', 'manager'];
 // Module-scope mocks
 // ---------------------------------------------------------------------------
 const mockGetCurrentSession = vi.fn();
-const mockRedirect = vi.fn(() => {
+const mockRedirect = vi.fn((_url: string, _type?: 'push' | 'replace') => {
   throw new Error('NEXT_REDIRECT');
 });
 
@@ -92,7 +92,7 @@ vi.mock('@/lib/auth', () => ({
 }));
 
 vi.mock('next/navigation', () => ({
-  redirect: (...args: unknown[]) => mockRedirect(...args),
+  redirect: (url: string, type?: 'push' | 'replace') => mockRedirect(url, type),
 }));
 
 vi.mock('next/headers', () => ({

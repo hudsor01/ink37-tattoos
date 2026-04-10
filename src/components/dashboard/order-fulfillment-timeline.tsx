@@ -1,7 +1,7 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
-import { Check, Package, Truck, PackageCheck, Copy } from 'lucide-react';
+import { Check, Truck, PackageCheck, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -77,7 +77,6 @@ export function OrderFulfillmentTimeline({
           {TIMELINE_STEPS.map((step, index) => {
             const isCompleted = index < currentIndex;
             const isCurrent = index === currentIndex;
-            const isFuture = index > currentIndex;
             const Icon = step.icon;
 
             return (

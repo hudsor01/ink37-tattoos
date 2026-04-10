@@ -9,7 +9,7 @@ const mockStripeFindFirst = vi.fn();
 const mockInsertValues = vi.fn().mockReturnThis();
 const mockInsertReturning = vi.fn();
 const mockOnConflictDoNothing = vi.fn();
-const mockInsert = vi.fn((_table?: unknown) => ({
+const mockInsert = vi.fn(() => ({
   values: (...args: unknown[]) => {
     mockInsertValues(...args);
     return {
@@ -30,8 +30,6 @@ const mockInsert = vi.fn((_table?: unknown) => ({
 const mockVerifyCalSignature = vi.fn();
 const mockCustomerFindFirst = vi.fn();
 const mockSettingsFindFirst = vi.fn();
-const mockCalInsertValues = vi.fn();
-const mockCalInsertOnConflict = vi.fn();
 const mockCalInsertReturning = vi.fn();
 const mockCalUpdateSet = vi.fn();
 const mockCalUpdateWhere = vi.fn();
@@ -122,7 +120,7 @@ vi.mock('@/lib/db', () => ({
         findFirst: (...args: unknown[]) => mockSettingsFindFirst(...args),
       },
     },
-    insert: (table: unknown) => mockInsert(table),
+    insert: () => mockInsert(),
     update: vi.fn(() => ({
       set: (...args: unknown[]) => {
         mockCalUpdateSet(...args);

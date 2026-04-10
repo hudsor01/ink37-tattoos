@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import {
   AreaChart,
   Area,
@@ -360,7 +361,7 @@ export function RevenueByStyleChart({ data }: RevenueByStyleChartProps) {
             content={
               <ChartTooltipContent
                 formatter={(value, name, item) =>
-                  `$${(value as number).toLocaleString()} (${item.payload.count} sessions)`
+                  `$${(value as number).toLocaleString()} (${(item as { payload?: { count?: number } }).payload?.count ?? 0} sessions)`
                 }
               />
             }
@@ -399,7 +400,7 @@ export function RevenueBySizeChart({ data }: RevenueBySizeChartProps) {
             content={
               <ChartTooltipContent
                 formatter={(value, name, item) =>
-                  `$${(value as number).toLocaleString()} (${item.payload.count} sessions)`
+                  `$${(value as number).toLocaleString()} (${(item as { payload?: { count?: number } }).payload?.count ?? 0} sessions)`
                 }
                 nameKey="size"
               />
@@ -617,7 +618,7 @@ export function CustomerCLVChart({ data }: CustomerCLVChartProps) {
             content={
               <ChartTooltipContent
                 formatter={(value, name, item) =>
-                  `$${(value as number).toLocaleString()} (${item.payload.sessions} sessions)`
+                  `$${(value as number).toLocaleString()} (${(item as { payload?: { sessions?: number } }).payload?.sessions ?? 0} sessions)`
                 }
               />
             }
@@ -638,6 +639,27 @@ interface ChurnRiskTableProps {
 }
 
 export function ChurnRiskTable({ data }: ChurnRiskTableProps) {
+  const enrichedData = useMemo(
+    () => {
+      // eslint-disable-next-line react-hooks/purity
+      const now = Date.now();
+      return data.map((row) => {
+        const daysInactive = row.lastActivity
+          ? Math.floor((now - new Date(row.lastActivity).getTime()) / (1000 * 60 * 60 * 24))
+          : null;
+        const colorClass = daysInactive === null
+          ? 'text-red-600'
+          : daysInactive > 180
+            ? 'text-red-600'
+            : daysInactive > 90
+              ? 'text-amber-600'
+              : 'text-foreground';
+        return { ...row, daysInactive, colorClass };
+      });
+    },
+    [data],
+  );
+
   return (
     <figure role="img" aria-label={`Churn risk table showing ${data.length} at-risk customers`}>
       <div className="overflow-x-auto">
@@ -651,39 +673,27 @@ export function ChurnRiskTable({ data }: ChurnRiskTableProps) {
             </tr>
           </thead>
           <tbody>
-            {data.length === 0 ? (
+            {enrichedData.length === 0 ? (
               <tr>
                 <td colSpan={4} className="px-3 py-8 text-center text-muted-foreground">
                   No at-risk customers found
                 </td>
               </tr>
             ) : (
-              data.map((row) => {
-                const daysInactive = row.lastActivity
-                  ? Math.floor((Date.now() - new Date(row.lastActivity).getTime()) / (1000 * 60 * 60 * 24))
-                  : null;
-                const colorClass = daysInactive === null
-                  ? 'text-red-600'
-                  : daysInactive > 180
-                    ? 'text-red-600'
-                    : daysInactive > 90
-                      ? 'text-amber-600'
-                      : 'text-foreground';
-                return (
-                  <tr key={row.customerId} className="border-b last:border-0">
-                    <td className={`px-3 py-2 ${colorClass}`}>{row.name}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{row.email ?? '-'}</td>
-                    <td className={`px-3 py-2 ${colorClass}`}>
-                      {row.lastActivity
-                        ? formatDistance(new Date(row.lastActivity), new Date(), { addSuffix: true })
-                        : 'Never'}
-                    </td>
-                    <td className={`px-3 py-2 font-medium ${colorClass}`}>
-                      {daysInactive !== null ? daysInactive : 'N/A'}
-                    </td>
-                  </tr>
-                );
-              })
+              enrichedData.map((row) => (
+                <tr key={row.customerId} className="border-b last:border-0">
+                  <td className={`px-3 py-2 ${row.colorClass}`}>{row.name}</td>
+                  <td className="px-3 py-2 text-muted-foreground">{row.email ?? '-'}</td>
+                  <td className={`px-3 py-2 ${row.colorClass}`}>
+                    {row.lastActivity
+                      ? formatDistance(new Date(row.lastActivity), new Date(), { addSuffix: true })
+                      : 'Never'}
+                  </td>
+                  <td className={`px-3 py-2 font-medium ${row.colorClass}`}>
+                    {row.daysInactive !== null ? row.daysInactive : 'N/A'}
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>
@@ -732,7 +742,7 @@ export function DurationByTypeChart({ data }: DurationByTypeChartProps) {
             content={
               <ChartTooltipContent
                 formatter={(value, name, item) =>
-                  `${Number(value).toFixed(1)}h avg (${item.payload.count} sessions)`
+                  `${Number(value).toFixed(1)}h avg (${(item as { payload?: { count?: number } }).payload?.count ?? 0} sessions)`
                 }
               />
             }

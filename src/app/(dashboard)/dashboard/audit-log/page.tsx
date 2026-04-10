@@ -1,5 +1,5 @@
 import { connection } from 'next/server';
-import { getAuditLogs, getAuditLogUsers } from '@/lib/dal/audit';
+import { getAuditLogs } from '@/lib/dal/audit';
 import { AuditLogClient } from './audit-log-client';
 
 interface AuditLogPageProps {
@@ -22,19 +22,16 @@ export default async function AuditLogPage({ searchParams }: AuditLogPageProps) 
   const dateFrom = params.dateFrom ? new Date(params.dateFrom) : undefined;
   const dateTo = params.dateTo ? new Date(params.dateTo) : undefined;
 
-  const [logsResult, auditUsers] = await Promise.all([
-    getAuditLogs({
-      page,
-      pageSize: 25,
-      action: params.action || undefined,
-      resource: params.resource || undefined,
-      userId: params.userId || undefined,
-      search: params.search || undefined,
-      dateFrom,
-      dateTo,
-    }),
-    getAuditLogUsers(),
-  ]);
+  const logsResult = await getAuditLogs({
+    page,
+    pageSize: 25,
+    action: params.action || undefined,
+    resource: params.resource || undefined,
+    userId: params.userId || undefined,
+    search: params.search || undefined,
+    dateFrom,
+    dateTo,
+  });
 
   return (
     <div className="space-y-6">

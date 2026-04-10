@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { stripe } from '@/lib/stripe';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { eq, and, sql, desc, count } from 'drizzle-orm';
+import { eq, sql, desc, count } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 import type { PaginationParams, PaginatedResult } from './types';
 import { DEFAULT_PAGE_SIZE } from './types';

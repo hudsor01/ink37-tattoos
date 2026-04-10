@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -101,12 +101,11 @@ export function CalendarClient({ initialAppointments, initialStart, initialEnd }
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [dateRange, setDateRange] = useState({ start: initialStart, end: initialEnd });
-  const isInitialRender = useRef(true);
 
   const { data: appointments = initialAppointments } = useQuery({
     queryKey: ['calendar', dateRange.start, dateRange.end],
     queryFn: () => fetchCalendarAppointments(dateRange.start, dateRange.end),
-    initialData: isInitialRender.current ? initialAppointments : undefined,
+    initialData: initialAppointments,
     staleTime: 60 * 1000,
   });
 
@@ -119,15 +118,7 @@ export function CalendarClient({ initialAppointments, initialStart, initialEnd }
 
   const handleDatesSet = useCallback(
     (arg: DatesSetArg) => {
-      const newStart = arg.startStr;
-      const newEnd = arg.endStr;
-
-      if (isInitialRender.current) {
-        isInitialRender.current = false;
-        return;
-      }
-
-      setDateRange({ start: newStart, end: newEnd });
+      setDateRange({ start: arg.startStr, end: arg.endStr });
     },
     []
   );

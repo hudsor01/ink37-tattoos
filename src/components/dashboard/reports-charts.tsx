@@ -68,9 +68,10 @@ export function PaymentBreakdownChart({ data }: PaymentBreakdownChartProps) {
           cy="50%"
           innerRadius={60}
           outerRadius={90}
-          label={({ type, total: amount }) => {
-            const pct = total > 0 ? ((amount / total) * 100).toFixed(1) : '0';
-            return `${formatPaymentType(type)} ${pct}%`;
+          label={(props) => {
+            const { type, total: amount } = props as { type?: string; total?: number };
+            const pct = total > 0 ? ((amount! / total) * 100).toFixed(1) : '0';
+            return `${formatPaymentType(type ?? '')} ${pct}%`;
           }}
           labelLine={true}
         >

@@ -65,7 +65,7 @@ vi.mock('@/lib/db', () => ({
       customer: { findFirst: (...args: unknown[]) => mockCustomerFindFirst(...args) },
       settings: { findFirst: (...args: unknown[]) => mockSettingsFindFirst(...args) },
     },
-    insert: vi.fn((table: unknown) => ({
+    insert: vi.fn(() => ({
       values: (...args: unknown[]) => {
         mockInsertValues(...args);
         return {

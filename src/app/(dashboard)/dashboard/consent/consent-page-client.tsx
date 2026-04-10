@@ -22,9 +22,6 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
 } from '@/components/ui/card';
 import {
   Dialog,
@@ -79,7 +76,6 @@ interface ConsentPageClientProps {
     totalPages: number;
   };
   consentForms: ConsentForm[];
-  activeForm: ConsentForm | null;
   searchQuery: string;
   filterValue: string;
 }
@@ -107,7 +103,6 @@ const FILTER_OPTIONS = [
 export function ConsentPageClient({
   consents,
   consentForms,
-  activeForm,
   searchQuery,
   filterValue,
 }: ConsentPageClientProps) {
@@ -175,7 +170,6 @@ export function ConsentPageClient({
         </div>
         <VersionManagementButton
           consentForms={consentForms}
-          activeForm={activeForm}
           open={versionDialogOpen}
           onOpenChange={setVersionDialogOpen}
           createFormOpen={createFormOpen}
@@ -213,7 +207,6 @@ export function ConsentPageClient({
         </div>
         <VersionManagementButton
           consentForms={consentForms}
-          activeForm={activeForm}
           open={versionDialogOpen}
           onOpenChange={setVersionDialogOpen}
           createFormOpen={createFormOpen}
@@ -332,7 +325,6 @@ export function ConsentPageClient({
 
 function VersionManagementButton({
   consentForms,
-  activeForm,
   open,
   onOpenChange,
   createFormOpen,
@@ -341,7 +333,6 @@ function VersionManagementButton({
   isPending,
 }: {
   consentForms: ConsentForm[];
-  activeForm: ConsentForm | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   createFormOpen: boolean;

@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { eq, gte, lte, and, between, sql, desc, asc, count, sum } from 'drizzle-orm';
-import { startOfWeek, startOfDay, endOfDay, startOfWeek as _sow, endOfWeek, subDays, format, eachDayOfInterval } from 'date-fns';
+import { startOfWeek, startOfDay, endOfDay, endOfWeek, format, eachDayOfInterval } from 'date-fns';
 import { customer, appointment, tattooSession, payment, contact, settings } from '@/lib/db/schema';
 
 const STAFF_ROLES = ['staff', 'manager', 'admin', 'super_admin'];

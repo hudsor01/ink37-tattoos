@@ -1,7 +1,6 @@
 import { drizzle } from 'drizzle-orm/neon-serverless';
-import { Pool } from '@neondatabase/serverless';
+import { Pool, neonConfig } from '@neondatabase/serverless';
 import ws from 'ws';
-import { neonConfig } from '@neondatabase/serverless';
 import { tattooArtist, settings, consentForm } from './schema';
 
 // Required for WebSocket connections in Node.js/Bun

@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bun *)",
+      "Bash(npx *)",
+      "Bash(npm ls *)",
+      "Bash(grep *)",
+      "Bash(node *)",
+      "Bash(find *)",
+      "Bash(cat *)",
+      "Bash(ls *)"
+    ]
+  },
+  "$version": 3
+}

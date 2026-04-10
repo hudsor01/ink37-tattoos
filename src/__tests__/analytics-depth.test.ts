@@ -22,7 +22,7 @@ function createChainableMock() {
   };
 
   for (const method of methods) {
-    chain[method] = vi.fn((..._args: unknown[]) => chain);
+    chain[method] = vi.fn(() => chain);
   }
 
   // Support prepare for existing prepared statements
@@ -32,13 +32,13 @@ function createChainableMock() {
 }
 
 vi.mock('server-only', () => ({}));
-vi.mock('react', () => ({ cache: (fn: Function) => fn }));
+vi.mock('react', () => ({ cache: (fn: (...args: unknown[]) => unknown) => fn }));
 vi.mock('@/lib/auth', () => ({ getCurrentSession: (...args: unknown[]) => mockGetCurrentSession(...args) }));
 vi.mock('next/navigation', () => ({ redirect: (url: string) => mockRedirect(url) }));
 
 vi.mock('@/lib/db', () => ({
   db: {
-    select: vi.fn((..._args: unknown[]) => createChainableMock()),
+    select: vi.fn(() => createChainableMock()),
     query: {
       appointment: {
         findMany: vi.fn().mockResolvedValue([]),
@@ -68,10 +68,10 @@ vi.mock('drizzle-orm', () => ({
   lt: vi.fn((...args: unknown[]) => args),
   desc: vi.fn((col: unknown) => col),
   asc: vi.fn((col: unknown) => col),
-  sql: Object.assign(vi.fn((...args: unknown[]) => 'sql_expr'), { raw: vi.fn() }),
+  sql: Object.assign(vi.fn(() => 'sql_expr'), { raw: vi.fn() }),
   not: vi.fn((arg: unknown) => arg),
-  inArray: vi.fn((...args: unknown[]) => args),
-  between: vi.fn((...args: unknown[]) => args),
+  inArray: vi.fn(() => []),
+  between: vi.fn(() => []),
   count: vi.fn(() => 'count_fn'),
   sum: vi.fn(() => 'sum_fn'),
   avg: vi.fn(() => 'avg_fn'),
@@ -80,10 +80,10 @@ vi.mock('drizzle-orm', () => ({
 }));
 
 vi.mock('date-fns', () => ({
-  startOfWeek: vi.fn((date: Date, _opts: unknown) => date),
-  format: vi.fn((_date: Date, fmt: string) => 'Jan 1'),
-  differenceInDays: vi.fn((_a: Date, _b: Date) => 30),
-  eachDayOfInterval: vi.fn((_interval: { start: Date; end: Date }) => {
+  startOfWeek: vi.fn((date: Date) => date),
+  format: vi.fn(() => 'Jan 1'),
+  differenceInDays: vi.fn(() => 30),
+  eachDayOfInterval: vi.fn(() => {
     // Return Mon-Sat days for capacity calculation
     const days: Date[] = [];
     for (let i = 0; i < 26; i++) {

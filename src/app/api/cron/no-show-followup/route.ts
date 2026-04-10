@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import * as schema from '@/lib/db/schema';
-import { eq, and, gte, sql } from 'drizzle-orm';
+import { eq, and, gte } from 'drizzle-orm';
 import { format } from 'date-fns';
 import { sendNoShowFollowUp } from '@/lib/email/resend';
 import { createNotificationForAdmins } from '@/lib/dal/notifications';

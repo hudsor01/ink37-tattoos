@@ -15,7 +15,6 @@ export function WebVitals() {
   useReportWebVitals((metric) => {
     // In development, log to console for debugging
     if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
       console.debug(`[Web Vital] ${metric.name}: ${metric.value.toFixed(2)} (${metric.rating})`);
     }
 

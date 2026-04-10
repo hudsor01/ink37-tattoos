@@ -254,13 +254,13 @@ export function SettingsPageClient({ initialSettings }: SettingsPageClientProps)
   const hoursDirty = useTabDirty(settings, initialSettings, HOURS_KEYS as unknown as string[]);
   const legalDirty = useTabDirty(settings, initialSettings, LEGAL_KEYS as unknown as string[]);
 
-  const dirtyMap: Record<TabId, boolean> = {
+  const dirtyMap: Record<TabId, boolean> = useMemo(() => ({
     studio: studioDirty,
     email: emailDirty,
     payment: paymentDirty,
     hours: hoursDirty,
     legal: legalDirty,
-  };
+  }), [studioDirty, emailDirty, paymentDirty, hoursDirty, legalDirty]);
 
   const anyDirty = Object.values(dirtyMap).some(Boolean);
 

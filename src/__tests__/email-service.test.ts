@@ -14,12 +14,13 @@ vi.mock('@/lib/env', () => ({
   env: () => mockEnv(),
 }));
 
-vi.mock('resend', () => ({
-  Resend: vi.fn().mockImplementation(() => ({
-    emails: { send: (...args: unknown[]) => mockSend(...args) },
-    batch: { send: (...args: unknown[]) => mockBatchSend(...args) },
-  })),
-}));
+vi.mock('resend', () => {
+  class ResendMock {
+    emails = { send: (...args: unknown[]) => mockSend(...args) };
+    batch = { send: (...args: unknown[]) => mockBatchSend(...args) };
+  }
+  return { Resend: ResendMock };
+});
 
 vi.mock('@/lib/email/templates', () => ({
   contactAdminTemplate: vi.fn(() => '<admin>'),

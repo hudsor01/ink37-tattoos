@@ -88,7 +88,7 @@ export const getProducts = cache(async (
   const total = results[0]?.total ?? 0;
 
   return {
-    data: results.map(({ total: _, orderItemCount, ...row }) => ({
+    data: results.map(({ total: _total, orderItemCount, ...row }) => ({
       ...row,
       _count: { orderItems: orderItemCount },
     })),

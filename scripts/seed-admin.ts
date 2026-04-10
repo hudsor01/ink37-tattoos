@@ -5,9 +5,8 @@
  */
 
 import { drizzle } from 'drizzle-orm/neon-serverless';
-import { Pool } from '@neondatabase/serverless';
+import { Pool, neonConfig } from '@neondatabase/serverless';
 import ws from 'ws';
-import { neonConfig } from '@neondatabase/serverless';
 import { eq } from 'drizzle-orm';
 import { user, account, customer } from '../src/lib/db/schema';
 import { hashPassword } from 'better-auth/crypto';

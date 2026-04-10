@@ -17,9 +17,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const ROLES = ['user', 'staff', 'manager', 'admin', 'super_admin'] as const;
 type Role = (typeof ROLES)[number];
 
-const STAFF_PLUS: Role[] = ['staff', 'manager', 'admin', 'super_admin'];
-const BELOW_STAFF: Role[] = ['user'];
-
 // ---------------------------------------------------------------------------
 // Module-scope mocks
 // ---------------------------------------------------------------------------
@@ -272,7 +269,7 @@ describe('RBAC Route Enforcement', () => {
           mockStripeBillingPortalCreate.mockResolvedValue({ url: 'https://billing.stripe.test' });
 
           const { POST } = await import('@/app/api/portal/billing/route');
-          const response = await POST();
+          const response = await POST(new Request('http://localhost/api/portal/billing', { method: 'POST' }));
           const data = await response.json();
           expect(response.status).toBe(200);
           expect(data.url).toBe('https://billing.stripe.test');

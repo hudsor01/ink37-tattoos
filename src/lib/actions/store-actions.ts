@@ -1,6 +1,7 @@
 'use server';
 
 import { stripe, dollarsToStripeCents } from '@/lib/stripe';
+import type Stripe from 'stripe';
 import { db } from '@/lib/db';
 import { eq, and, inArray } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
@@ -13,7 +14,6 @@ import { SHIPPING_RATE_CENTS, FREE_SHIPPING_THRESHOLD } from '@/lib/store-helper
 import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { env } from '@/lib/env';
-import type Stripe from 'stripe';
 
 /**
  * Store checkout action (D-05, D-08). No auth required -- guest checkout.
@@ -41,7 +41,10 @@ export async function storeCheckoutAction(data: {
     // Build line items and determine cart composition
     let hasPhysicalItems = false;
     let cartTotal = 0;
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
+    const lineItems: Array<{
+      price: string;
+      quantity: number;
+    }> = [];
     const orderItems: Array<{
       productId: string;
       productName: string;

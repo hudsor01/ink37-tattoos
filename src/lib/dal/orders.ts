@@ -69,9 +69,9 @@ export const getOrders = cache(async (
   const total = results[0]?.totalCount ?? 0;
 
   return {
-    data: results.map(({ totalCount: _, itemCount, ...row }) => ({
+    data: results.map(({ totalCount: _tc, itemCount: _ic, ...row }) => ({
       ...row,
-      items: Array.from({ length: itemCount }, (__, i) => ({ id: String(i) })),
+      items: Array.from({ length: _ic }, (_v, i) => ({ id: String(i) })),
     })),
     total,
     page: params.page,

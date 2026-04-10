@@ -33,7 +33,6 @@ export function renderAnalyticsReportHtml(data: AnalyticsReportData): string {
 
   // Revenue data for bars
   const maxRevenue = Math.max(...data.revenueData.map((d) => d.revenue), 1);
-  const maxSessions = Math.max(...data.revenueData.map((d) => d.count), 1);
 
   // Appointment type totals for percentages
   const totalAppointments = data.appointmentTypes.reduce((acc, t) => acc + t.count, 0);

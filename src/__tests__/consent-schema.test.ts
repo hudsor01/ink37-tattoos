@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { z } from 'zod';
 
 describe('Consent Form Schema', () => {
   it('schema exports consentForm table', async () => {
@@ -64,8 +65,6 @@ describe('ConsentFormSchema validation', () => {
 
 describe('Env schema - CRON_SECRET', () => {
   it('CRON_SECRET is accepted as optional in env schema', () => {
-    // Replicate the relevant part of env schema to test without server-only import
-    const { z } = require('zod');
     const testSchema = z.object({
       CRON_SECRET: z.string().optional(),
     });

@@ -136,7 +136,7 @@ describe('Portal Billing API Route', () => {
     mockBillingPortalCreate.mockResolvedValue({ url: 'https://billing.stripe.com/session/yyy' });
 
     const { POST } = await import('@/app/api/portal/billing/route');
-    await POST();
+    await POST(new Request('http://localhost/api/portal/billing', { method: 'POST' }));
 
     expect(mockBillingPortalCreate).toHaveBeenCalledWith(
       expect.objectContaining({

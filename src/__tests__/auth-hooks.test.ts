@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
 // Module-scope mocks (replaces vi.hoisted)
 const mockSelectLimit = vi.fn().mockResolvedValue([]);
 const mockUpdateWhere = vi.fn().mockResolvedValue(undefined);
-const mockSetFn = vi.fn((_arg?: unknown) => ({ where: mockUpdateWhere }));
+const mockSetFn = vi.fn((_arg: unknown) => ({ where: mockUpdateWhere }));
 const mockInsertValues = vi.fn().mockResolvedValue(undefined);
 const mockBetterAuth = vi.fn().mockReturnValue({
   api: { getSession: vi.fn() },

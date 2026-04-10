@@ -6,12 +6,13 @@ const mockPaymentMethodsList = vi.fn();
 
 vi.mock('server-only', () => ({}));
 
-vi.mock('stripe', () => ({
-  default: vi.fn().mockImplementation(() => ({
-    setupIntents: { create: (...args: unknown[]) => mockSetupIntentsCreate(...args) },
-    paymentMethods: { list: (...args: unknown[]) => mockPaymentMethodsList(...args) },
-  })),
-}));
+vi.mock('stripe', () => {
+  class StripeMock {
+    setupIntents = { create: (...args: unknown[]) => mockSetupIntentsCreate(...args) };
+    paymentMethods = { list: (...args: unknown[]) => mockPaymentMethodsList(...args) };
+  }
+  return { default: StripeMock };
+});
 
 describe('Stripe SDK Wrappers', () => {
   beforeEach(() => {

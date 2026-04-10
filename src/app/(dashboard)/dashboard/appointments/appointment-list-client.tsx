@@ -116,12 +116,12 @@ export function AppointmentListClient() {
     'status',
     parseAsString.withDefault('ALL')
   );
-  const [search, setSearch] = useQueryState(
+  const [search] = useQueryState(
     'q',
     parseAsString.withDefault('')
   );
 
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   const { data: appointments = [] } = useQuery(appointmentsQueryOptions);
 

@@ -11,7 +11,7 @@ const mockAppointmentFindMany = vi.fn().mockResolvedValue([]);
 const mockCustomerFindFirst = vi.fn().mockResolvedValue(null);
 
 vi.mock('server-only', () => ({}));
-vi.mock('react', () => ({ cache: (fn: Function) => fn }));
+vi.mock('react', () => ({ cache: (fn: (...args: unknown[]) => unknown) => fn }));
 vi.mock('@/lib/auth', () => ({ getCurrentSession: (...args: unknown[]) => mockGetCurrentSession(...args) }));
 vi.mock('next/navigation', () => ({ redirect: (url: string) => mockRedirect(url) }));
 
