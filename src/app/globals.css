@@ -32,6 +32,7 @@
 
   /* Chart min heights */
   --chart-height: 250px;
+  --chart-height-lg: 300px;
 }
 
 @theme inline {
@@ -71,6 +72,7 @@
   --color-brand-accent: var(--brand-accent);
   --color-brand-accent-foreground: var(--brand-accent-foreground);
   --min-height-chart: var(--chart-height);
+  --min-height-chart-lg: var(--chart-height-lg);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);

@@ -217,7 +217,7 @@ function formatMonth(value: string) {
 export function RevenueComposedChart({ data }: RevenueComposedChartProps) {
   return (
     <figure role="img" aria-label={`Revenue and session count over ${data.length} months`}>
-      <ChartContainer config={composedConfig} className="min-h-[300px] w-full">
+      <ChartContainer config={composedConfig} className="min-h-chart-lg w-full">
         <ComposedChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
           <XAxis
@@ -598,7 +598,7 @@ export function CustomerCLVChart({ data }: CustomerCLVChartProps) {
 
   return (
     <figure role="img" aria-label={`Top ${topData.length} customers by lifetime value`}>
-      <ChartContainer config={clvConfig} className="min-h-[300px] w-full">
+      <ChartContainer config={clvConfig} className="min-h-chart-lg w-full">
         <BarChart data={topData} layout="vertical" margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
           <XAxis
@@ -770,7 +770,7 @@ const noShowConfig: ChartConfig = {
 export function NoShowTrendsChart({ data }: NoShowTrendsChartProps) {
   return (
     <figure role="img" aria-label={`No-show trends over ${data.length} months`}>
-      <ChartContainer config={noShowConfig} className="min-h-[300px] w-full">
+      <ChartContainer config={noShowConfig} className="min-h-chart-lg w-full">
         <ComposedChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
           <XAxis

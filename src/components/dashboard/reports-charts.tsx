@@ -50,7 +50,7 @@ export function PaymentBreakdownChart({ data }: PaymentBreakdownChartProps) {
   const total = data.reduce((sum, d) => sum + d.total, 0);
 
   return (
-    <ChartContainer config={config} className="min-h-[300px] w-full">
+    <ChartContainer config={config} className="min-h-chart-lg w-full">
       <PieChart>
         <ChartTooltip
           content={
