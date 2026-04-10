@@ -102,12 +102,12 @@ function SortableItem({
       {/* Badges */}
       <div className="absolute top-1 right-1 z-10 flex gap-1">
         {isPrimary && (
-          <Badge variant="default" className="text-[10px] px-1.5 py-0">
+          <Badge variant="default" className="text-micro px-1.5 py-0">
             Primary
           </Badge>
         )}
         {!image.isVisible && (
-          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+          <Badge variant="secondary" className="text-micro px-1.5 py-0">
             Hidden
           </Badge>
         )}

@@ -40,7 +40,7 @@ export const columns: ColumnDef<PaymentRow, unknown>[] = [
     header: 'Session',
     accessorFn: (row) => row.tattooSession.designDescription,
     cell: ({ row }) => (
-      <span className="max-w-[200px] truncate block">
+      <span className="max-w-col truncate block">
         {row.original.tattooSession.designDescription}
       </span>
     ),

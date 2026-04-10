@@ -92,12 +92,12 @@ export function DesignApprovalCard({
         {design.tags && design.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-1.5">
             {design.tags.slice(0, 3).map((tag) => (
-              <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0">
+              <Badge key={tag} variant="secondary" className="text-micro px-1.5 py-0">
                 {tag}
               </Badge>
             ))}
             {design.tags.length > 3 && (
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+              <Badge variant="outline" className="text-micro px-1.5 py-0">
                 +{design.tags.length - 3}
               </Badge>
             )}
@@ -162,7 +162,7 @@ export function DesignApprovalCard({
                   value={rejectionNotes}
                   onChange={(e) => setRejectionNotes(e.target.value)}
                   rows={3}
-                  className="min-h-[80px]"
+                  className="min-h-textarea"
                 />
                 <DialogFooter>
                   <DialogClose render={<Button variant="outline" />}>

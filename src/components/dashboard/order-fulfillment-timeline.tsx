@@ -114,7 +114,7 @@ export function OrderFulfillmentTimeline({
                 {/* Connector line (not after last step) */}
                 {index < TIMELINE_STEPS.length - 1 && (
                   <div
-                    className={`flex-1 h-0.5 mx-2 mt-[-1.25rem] ${
+                    className={`flex-1 h-0.5 mx-2 -mt-5 ${
                       index < currentIndex
                         ? 'bg-green-500'
                         : 'bg-muted-foreground/20'

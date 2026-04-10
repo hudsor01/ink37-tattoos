@@ -10,7 +10,7 @@ export default function ReportsLoading() {
           <Skeleton className="h-4 w-72" />
         </div>
         <div className="flex items-center gap-3">
-          <Skeleton className="h-8 w-[280px]" />
+          <Skeleton className="h-8 w-skeleton" />
           <Skeleton className="h-8 w-28" />
         </div>
       </div>

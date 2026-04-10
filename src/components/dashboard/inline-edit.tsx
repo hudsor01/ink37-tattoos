@@ -101,7 +101,7 @@ export function InlineEdit({
           onChange={(e) => setEditValue(e.target.value)}
           onKeyDown={handleKeyDown}
           aria-label={label}
-          className="min-h-[60px] text-sm"
+          className="min-h-textarea-sm text-sm"
         />
       ) : type === 'select' && options ? (
         <Select

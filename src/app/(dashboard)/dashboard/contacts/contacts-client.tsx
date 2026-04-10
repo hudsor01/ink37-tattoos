@@ -158,7 +158,7 @@ export function ContactsClient({
       accessorKey: 'email',
       header: 'Email',
       cell: ({ row }) => (
-        <span className="truncate max-w-[180px] block text-muted-foreground">
+        <span className="truncate max-w-col-narrow block text-muted-foreground">
           {row.original.email}
         </span>
       ),
@@ -171,7 +171,7 @@ export function ContactsClient({
         const truncated = msg.length > 80 ? msg.slice(0, 80) + '...' : msg;
         if (msg.length <= 80) {
           return (
-            <span className="text-sm text-muted-foreground max-w-[250px] block truncate">
+            <span className="text-sm text-muted-foreground max-w-col-wide block truncate">
               {msg}
             </span>
           );
@@ -181,7 +181,7 @@ export function ContactsClient({
             <Tooltip>
               <TooltipTrigger
                 render={
-                  <span className="text-sm text-muted-foreground cursor-default max-w-[250px] block truncate" />
+                  <span className="text-sm text-muted-foreground cursor-default max-w-col-wide block truncate" />
                 }
               >
                 {truncated}
@@ -227,7 +227,7 @@ export function ContactsClient({
               value={contact.status}
               onValueChange={(val) => val && handleStatusChange(contact.id, val)}
             >
-              <SelectTrigger className="w-[120px] h-8">
+              <SelectTrigger className="w-select-xs h-8">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -277,7 +277,7 @@ export function ContactsClient({
           value={statusFilter || 'ALL'}
           onValueChange={(val) => val && handleStatusFilter(val)}
         >
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="w-select">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
@@ -419,7 +419,7 @@ function InlineNotes({
         onChange={(e) => setNotes(e.target.value)}
         onBlur={saveNotes}
         onKeyDown={handleKeyDown}
-        className="min-h-[60px] text-sm"
+        className="min-h-textarea-sm text-sm"
         disabled={isPending}
         maxLength={2000}
       />
@@ -430,7 +430,7 @@ function InlineNotes({
     <button
       type="button"
       onClick={() => setIsEditing(true)}
-      className="text-left text-sm w-full max-w-[200px] truncate cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5 transition-colors"
+      className="text-left text-sm w-full max-w-col truncate cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5 transition-colors"
     >
       {notes ? (
         <span>{notes}</span>

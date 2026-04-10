@@ -385,12 +385,12 @@ export function MediaPageClient() {
                 <div className="flex flex-wrap gap-1">
                   {item.tags && item.tags.length > 0 ? (
                     item.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0 capitalize">
+                      <Badge key={tag} variant="secondary" className="text-micro px-1.5 py-0 capitalize">
                         {tag}
                       </Badge>
                     ))
                   ) : (
-                    <span className="text-[10px] text-muted-foreground">No tags</span>
+                    <span className="text-micro text-muted-foreground">No tags</span>
                   )}
                 </div>
 

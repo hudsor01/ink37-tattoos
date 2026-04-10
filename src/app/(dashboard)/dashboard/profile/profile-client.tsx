@@ -276,7 +276,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                 <FormControl>
                   <Textarea
                     placeholder="Tell clients about yourself, your style, and your experience..."
-                    className="min-h-[120px]"
+                    className="min-h-textarea-md"
                     {...field}
                     value={field.value ?? ''}
                   />

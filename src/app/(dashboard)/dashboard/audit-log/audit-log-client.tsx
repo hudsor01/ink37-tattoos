@@ -61,7 +61,7 @@ export function AuditLogClient({ initialLogs }: AuditLogClientProps) {
           value={resourceFilter}
           onValueChange={(val) => val && setResourceFilter(val)}
         >
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="w-select">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -76,7 +76,7 @@ export function AuditLogClient({ initialLogs }: AuditLogClientProps) {
           value={actionFilter}
           onValueChange={(val) => val && setActionFilter(val)}
         >
-          <SelectTrigger className="w-[140px]">
+          <SelectTrigger className="w-select-sm">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

@@ -30,7 +30,7 @@ export default function BookingPage() {
         Ready for your next piece? Start with a free consultation.
       </p>
 
-      <div className="min-h-[600px] rounded-lg border bg-card">
+      <div className="min-h-textarea-xl rounded-lg border bg-card">
         <CalEmbed calLink={calLink} />
       </div>
 

@@ -647,7 +647,7 @@ export function SettingsPageClient({ initialSettings }: SettingsPageClientProps)
                 value={getVal(settings, 'default_currency', 'USD')}
                 onValueChange={(val) => val && updateLocal('default_currency', val)}
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-select-md">
                   <SelectValue placeholder="Select currency" />
                 </SelectTrigger>
                 <SelectContent>

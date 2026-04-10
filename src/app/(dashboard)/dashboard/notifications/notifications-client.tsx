@@ -167,7 +167,7 @@ export function NotificationsClient({ result }: NotificationsClientProps) {
                     <p className={cn('text-sm', !n.isRead && 'font-semibold')}>
                       {n.title}
                     </p>
-                    <Badge variant="secondary" className="text-[10px]">
+                    <Badge variant="secondary" className="text-micro">
                       {typeLabels[n.type]}
                     </Badge>
                   </div>

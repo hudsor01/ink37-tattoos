@@ -33,6 +33,35 @@
   /* Chart min heights */
   --chart-height: 250px;
   --chart-height-lg: 300px;
+
+  /* Textarea/input heights */
+  --textarea-height-sm: 60px;
+  --textarea-height: 80px;
+  --textarea-height-md: 120px;
+  --textarea-height-lg: 160px;
+  --textarea-height-xl: 600px;
+
+  /* Column truncation widths */
+  --col-width-narrow: 180px;
+  --col-width: 200px;
+  --col-width-wide: 250px;
+
+  /* Select/dropdown widths */
+  --select-width-xs: 120px;
+  --select-width-sm: 140px;
+  --select-width: 160px;
+  --select-width-md: 180px;
+  --select-width-lg: 280px;
+
+  /* Micro text size */
+  --text-micro: 10px;
+
+  /* Loading skeleton dimensions */
+  --skeleton-height: 120px;
+  --skeleton-width: 280px;
+
+  /* Scroll container max height */
+  --scroll-container-height: 300px;
 }
 
 @theme inline {
@@ -73,6 +102,22 @@
   --color-brand-accent-foreground: var(--brand-accent-foreground);
   --min-height-chart: var(--chart-height);
   --min-height-chart-lg: var(--chart-height-lg);
+  --min-height-textarea-sm: var(--textarea-height-sm);
+  --min-height-textarea: var(--textarea-height);
+  --min-height-textarea-md: var(--textarea-height-md);
+  --min-height-textarea-lg: var(--textarea-height-lg);
+  --min-height-textarea-xl: var(--textarea-height-xl);
+  --max-width-col-narrow: var(--col-width-narrow);
+  --max-width-col: var(--col-width);
+  --max-width-col-wide: var(--col-width-wide);
+  --width-select-xs: var(--select-width-xs);
+  --width-select-sm: var(--select-width-sm);
+  --width-select: var(--select-width);
+  --width-select-md: var(--select-width-md);
+  --width-select-lg: var(--select-width-lg);
+  --height-skeleton: var(--skeleton-height);
+  --width-skeleton: var(--skeleton-width);
+  --max-height-scroll: var(--scroll-container-height);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);

@@ -57,7 +57,7 @@ export default function ProfileLoading() {
         {/* Bio */}
         <div className="space-y-2">
           <Skeleton className="h-4 w-8" />
-          <Skeleton className="h-[120px] w-full" />
+          <Skeleton className="h-skeleton w-full" />
         </div>
 
         {/* Specialties */}

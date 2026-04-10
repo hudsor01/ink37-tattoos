@@ -403,7 +403,7 @@ export function AppointmentListClient() {
           value={statusFilter}
           onValueChange={(val) => setStatusFilter(val === 'ALL' ? null : val)}
         >
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-select-md">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>

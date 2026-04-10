@@ -358,7 +358,7 @@ function VersionManagementButton({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="max-h-[300px] overflow-y-auto space-y-2">
+        <div className="max-h-scroll overflow-y-auto space-y-2">
           {consentForms.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
               No consent form versions yet. Create one to get started.
@@ -486,7 +486,7 @@ function CreateConsentFormDialog({
             placeholder="Enter the consent form text..."
             required
             rows={8}
-            className="min-h-[160px]"
+            className="min-h-textarea-lg"
           />
         </div>
       </div>

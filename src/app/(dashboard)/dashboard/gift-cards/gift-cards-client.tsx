@@ -168,7 +168,7 @@ export function GiftCardsClient({ initialData }: GiftCardsClientProps) {
       id: 'recipient',
       header: 'Recipient',
       cell: ({ row }) => (
-        <span className="truncate max-w-[200px] block">
+        <span className="truncate max-w-col block">
           {row.original.recipientName || row.original.recipientEmail}
         </span>
       ),

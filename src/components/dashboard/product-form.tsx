@@ -284,7 +284,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
                   className="rounded object-cover"
                 />
                 <div className="flex flex-col gap-2">
-                  <p className="text-sm text-muted-foreground truncate max-w-[200px]">
+                  <p className="text-sm text-muted-foreground truncate max-w-col">
                     Image uploaded
                   </p>
                   <Button
