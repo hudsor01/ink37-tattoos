@@ -16,7 +16,6 @@ const navigationLinks = [
 export function PublicNav() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [prevPathname, setPrevPathname] = useState<string | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -29,10 +28,9 @@ export function PublicNav() {
   }, []);
 
   // Close mobile menu when route changes
-  if (prevPathname !== pathname) {
-    setPrevPathname(pathname);
+  useEffect(() => {
     setMobileMenuOpen(false);
-  }
+  }, [pathname]);
 
   return (
     <>
