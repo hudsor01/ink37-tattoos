@@ -72,7 +72,7 @@
     "@eslint/js": "10.0.1",
     "@next/eslint-plugin-next": "16.2.3",
     "@tailwindcss/postcss": "4.2.2",
-    "@types/node": "^25.5.2",
+    "@types/node": "25.6.0",
     "@types/papaparse": "5.5.2",
     "@types/pg": "8.20.0",
     "@types/react": "19.2.14",
@@ -96,6 +96,12 @@
     "vitest": "4.1.4"
   },
   "overrides": {
-    "esbuild": ">=0.28.0"
+    "esbuild": ">=0.28.0",
+    "path-to-regexp": ">=8.0.0",
+    "braces": ">=3.0.3",
+    "micromatch": ">=4.0.8",
+    "undici": ">=6.21.0",
+    "cookie": ">=1.0.2",
+    "cross-spawn": ">=7.0.6"
   }
 }
