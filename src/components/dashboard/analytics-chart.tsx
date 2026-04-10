@@ -55,7 +55,7 @@ const revenueConfig: ChartConfig = {
 export function RevenueChart({ data }: RevenueChartProps) {
   return (
     <figure role="img" aria-label={`Revenue chart showing ${data.length} months of data`}>
-      <ChartContainer config={revenueConfig} className="min-h-[250px] w-full">
+      <ChartContainer config={revenueConfig} className="min-h-chart w-full">
         <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
           <XAxis
@@ -122,7 +122,7 @@ export function AppointmentTypeChart({ data }: AppointmentTypeChartProps) {
 
   return (
     <figure role="img" aria-label={`Appointment types breakdown: ${data.map(d => d.type.replace(/_/g, ' ')).join(', ')}`}>
-      <ChartContainer config={config} className="min-h-[250px] w-full">
+      <ChartContainer config={config} className="min-h-chart w-full">
         <PieChart>
           <ChartTooltip content={<ChartTooltipContent nameKey="type" />} />
           <Pie
@@ -166,7 +166,7 @@ const acquisitionConfig: ChartConfig = {
 export function ClientAcquisitionChart({ data }: ClientAcquisitionChartProps) {
   return (
     <figure role="img" aria-label={`Client acquisition over ${data.length} months`}>
-      <ChartContainer config={acquisitionConfig} className="min-h-[250px] w-full">
+      <ChartContainer config={acquisitionConfig} className="min-h-chart w-full">
         <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
           <XAxis
@@ -291,7 +291,7 @@ const trendsConfig: ChartConfig = {
 export function BookingTrendsChart({ data }: BookingTrendsChartProps) {
   return (
     <figure role="img" aria-label={`Booking trends over ${data.length} weeks`}>
-      <ChartContainer config={trendsConfig} className="min-h-[250px] w-full">
+      <ChartContainer config={trendsConfig} className="min-h-chart w-full">
         <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
           <XAxis dataKey="week" tickLine={false} axisLine={false} tickMargin={8} />
@@ -341,7 +341,7 @@ const revenueByStyleConfig: ChartConfig = {
 export function RevenueByStyleChart({ data }: RevenueByStyleChartProps) {
   return (
     <figure role="img" aria-label={`Revenue by tattoo style: ${data.length} styles`}>
-      <ChartContainer config={revenueByStyleConfig} className="min-h-[250px] w-full">
+      <ChartContainer config={revenueByStyleConfig} className="min-h-chart w-full">
         <BarChart data={data} layout="vertical" margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
           <XAxis
@@ -394,7 +394,7 @@ export function RevenueBySizeChart({ data }: RevenueBySizeChartProps) {
 
   return (
     <figure role="img" aria-label={`Revenue distribution by tattoo size: ${data.map(d => d.size).join(', ')}`}>
-      <ChartContainer config={config} className="min-h-[250px] w-full">
+      <ChartContainer config={config} className="min-h-chart w-full">
         <PieChart>
           <ChartTooltip
             content={
@@ -452,7 +452,7 @@ export function PaymentRatesChart({ data }: PaymentRatesChartProps) {
 
   return (
     <figure role="img" aria-label={`Payment rates: ${data.successRate}% success, ${data.refundRate}% refund, ${data.failureRate}% failed`}>
-      <ChartContainer config={paymentRatesConfig} className="min-h-[250px] w-full">
+      <ChartContainer config={paymentRatesConfig} className="min-h-chart w-full">
         <PieChart>
           <ChartTooltip
             content={
@@ -507,7 +507,7 @@ export function BookingFunnelChart({ data }: BookingFunnelChartProps) {
 
   return (
     <figure role="img" aria-label={`Booking funnel: ${data.map(d => `${d.stage} (${d.value})`).join(' > ')}`}>
-      <ChartContainer config={config} className="min-h-[250px] w-full">
+      <ChartContainer config={config} className="min-h-chart w-full">
         <FunnelChart>
           <ChartTooltip content={<ChartTooltipContent nameKey="stage" />} />
           <Funnel dataKey="value" data={data} isAnimationActive>
@@ -724,7 +724,7 @@ const durationConfig: ChartConfig = {
 export function DurationByTypeChart({ data }: DurationByTypeChartProps) {
   return (
     <figure role="img" aria-label={`Average session duration by type for ${data.length} styles`}>
-      <ChartContainer config={durationConfig} className="min-h-[250px] w-full">
+      <ChartContainer config={durationConfig} className="min-h-chart w-full">
         <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
           <XAxis
