@@ -19,13 +19,13 @@ bunx tsc --noEmit    # Typecheck — there is no `typecheck` script
 
 - Single app with route groups: `(public)`, `(auth)`, `(dashboard)`, `(portal)`, `(store)`
 - DAL pattern in `src/lib/dal/` — server-only DB functions enforce auth/role checks (see `appointments.ts` for the canonical `requireStaffRole` shape)
-- Server Actions for mutations; route handlers in `src/app/api/` include webhooks (Stripe, Cal.com, Resend), Better Auth (`[...all]`), cron jobs, uploads, admin APIs, and health checks
+- Server Actions for mutations, wrapped in `safeAction` (`src/lib/actions/safe-action.ts`) for consistent Zod-error/exception handling; route handlers in `src/app/api/` include webhooks (Stripe, Cal.com, Resend), Better Auth (`[...all]`), cron jobs, uploads, admin APIs, and health checks
 - Drizzle ORM with `neon-serverless` driver; schema in `src/lib/db/schema.ts`, client in `src/lib/db/index.ts`
 - Better Auth (`src/lib/auth.ts`) with 5-tier RBAC stored as lowercase strings on `user.role`: `user`, `staff`, `manager`, `admin`, `super_admin`
 
 ## Tech Stack
 
-Next.js 16, React 19, TypeScript, Tailwind 4, shadcn/ui, Drizzle ORM, Neon Postgres, Better Auth, Stripe, Resend, Cal.com embed, Vercel Blob, Upstash Redis (rate limit), Sentry, Zustand, TanStack Query, react-hook-form, Zod, pino, Vitest + MSW. Deployed on Vercel.
+Next.js 16, React 19, TypeScript, Tailwind 4, shadcn/ui, Drizzle ORM, Neon Postgres, Better Auth, Stripe, Resend, Cal.com embed, Vercel Blob, Upstash Redis (rate limit), Sentry, Zustand, TanStack Query, nuqs (URL state), Framer Motion, react-hook-form, Zod, pino, Vitest + MSW. Deployed on Vercel.
 
 ## Key Patterns
 
