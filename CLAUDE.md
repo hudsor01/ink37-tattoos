@@ -9,7 +9,7 @@ bun run dev          # Dev server (Turbopack)
 bun run build
 bun run lint         # ESLint
 bun run test         # Vitest + MSW — no Playwright E2E suite
-bun run db:push      # Drizzle (also: pull, generate, migrate, studio, seed)
+bun run db:push      # Drizzle (also: db:pull, db:generate, db:migrate, db:studio, db:seed)
 bunx tsc --noEmit    # Typecheck — there is no `typecheck` script
 ```
 
