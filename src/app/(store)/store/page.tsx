@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { connection } from 'next/server';
 import { Suspense } from 'react';
 import { getActiveProducts } from '@/lib/dal/products';
 import { ProductGrid } from '@/components/store/product-grid';
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
 };
 
 async function Products() {
+  await connection();
   const products = await getActiveProducts();
 
   if (products.length === 0) {

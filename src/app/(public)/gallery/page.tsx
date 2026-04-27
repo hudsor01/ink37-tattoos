@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { connection } from 'next/server';
 import { Suspense } from 'react';
 import { getPublicDesigns } from '@/lib/dal/designs';
 import { GalleryClient } from '@/components/public/gallery-grid';
@@ -16,6 +17,7 @@ export const metadata: Metadata = {
 };
 
 async function Designs() {
+  await connection();
   const designs = await getPublicDesigns();
   return <GalleryClient initialDesigns={designs} />;
 }

@@ -27,11 +27,6 @@ export function PublicNav() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close mobile menu when route changes
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [pathname]);
-
   return (
     <>
       {/* Spacer to prevent content from being hidden under fixed navbar */}

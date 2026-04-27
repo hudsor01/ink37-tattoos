@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Module-scope mocks
 const mockGetCurrentSession = vi.fn();
-const mockRedirect = vi.fn();
+const mockUnauthorized = vi.fn();
 const mockMarkAsRead = vi.fn();
 const mockMarkAllAsRead = vi.fn();
 const mockRevalidatePath = vi.fn();
@@ -14,9 +14,9 @@ vi.mock('@/lib/auth', () => ({
 }));
 
 vi.mock('next/navigation', () => ({
-  redirect: (...args: unknown[]) => {
-    mockRedirect(...args);
-    throw new Error('NEXT_REDIRECT');
+  unauthorized: () => {
+    mockUnauthorized();
+    throw new Error('UNAUTHORIZED');
   },
 }));
 
@@ -36,11 +36,11 @@ describe('Notification Actions - markNotificationReadAction', () => {
     vi.clearAllMocks();
   });
 
-  it('redirects to /login when no session', async () => {
+  it('throws unauthorized when no session', async () => {
     mockGetCurrentSession.mockResolvedValue(null);
     const { markNotificationReadAction } = await import('@/lib/actions/notification-actions');
-    await expect(markNotificationReadAction('notif-1')).rejects.toThrow('NEXT_REDIRECT');
-    expect(mockRedirect).toHaveBeenCalledWith('/login');
+    await expect(markNotificationReadAction('notif-1')).rejects.toThrow('UNAUTHORIZED');
+    expect(mockUnauthorized).toHaveBeenCalled();
   });
 
   it('returns error when markAsRead throws', async () => {
@@ -70,11 +70,11 @@ describe('Notification Actions - markAllNotificationsReadAction', () => {
     vi.clearAllMocks();
   });
 
-  it('redirects to /login when no session', async () => {
+  it('throws unauthorized when no session', async () => {
     mockGetCurrentSession.mockResolvedValue(null);
     const { markAllNotificationsReadAction } = await import('@/lib/actions/notification-actions');
-    await expect(markAllNotificationsReadAction()).rejects.toThrow('NEXT_REDIRECT');
-    expect(mockRedirect).toHaveBeenCalledWith('/login');
+    await expect(markAllNotificationsReadAction()).rejects.toThrow('UNAUTHORIZED');
+    expect(mockUnauthorized).toHaveBeenCalled();
   });
 
   it('returns error when markAllAsRead throws', async () => {

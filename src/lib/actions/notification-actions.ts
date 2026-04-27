@@ -1,14 +1,14 @@
 'use server';
 
 import { getCurrentSession } from '@/lib/auth';
-import { redirect } from 'next/navigation';
+import { unauthorized } from 'next/navigation';
 import { markAsRead, markAllAsRead } from '@/lib/dal/notifications';
 import { revalidatePath } from 'next/cache';
 import { logger } from '@/lib/logger';
 
 export async function markNotificationReadAction(notificationId: string) {
   const session = await getCurrentSession();
-  if (!session?.user) redirect('/login');
+  if (!session?.user) unauthorized();
 
   try {
     const result = await markAsRead(notificationId, session.user.id);
@@ -22,7 +22,7 @@ export async function markNotificationReadAction(notificationId: string) {
 
 export async function markAllNotificationsReadAction() {
   const session = await getCurrentSession();
-  if (!session?.user) redirect('/login');
+  if (!session?.user) unauthorized();
 
   try {
     await markAllAsRead(session.user.id);

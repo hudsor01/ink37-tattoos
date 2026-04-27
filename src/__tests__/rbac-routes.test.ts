@@ -358,9 +358,10 @@ describe('RBAC Route Enforcement', () => {
       for (const file of staffDals) {
         const content = fs.readFileSync(file, 'utf-8');
 
-        // Pattern: redirect for unauthenticated, throw for wrong role
-        expect(content, `${file} must redirect unauthenticated users`).toContain("redirect('/login')");
-        expect(content, `${file} must throw for insufficient role`).toContain('Insufficient permissions');
+        // Pattern: unauthorized() for unauthenticated, forbidden() for wrong role.
+        // Migrated from redirect('/login') + throw 'Insufficient permissions' in Next 16.
+        expect(content, `${file} must call unauthorized() for unauthenticated users`).toContain('unauthorized()');
+        expect(content, `${file} must call forbidden() for insufficient role`).toContain('forbidden()');
       }
     });
 
@@ -374,8 +375,8 @@ describe('RBAC Route Enforcement', () => {
       for (const file of adminDals) {
         const content = fs.readFileSync(file, 'utf-8');
         expect(content, `${file} must have requireAdminRole`).toContain('requireAdminRole');
-        expect(content, `${file} must redirect unauthenticated users`).toContain("redirect('/login')");
-        expect(content, `${file} must throw for insufficient role`).toContain('Insufficient permissions');
+        expect(content, `${file} must call unauthorized() for unauthenticated users`).toContain('unauthorized()');
+        expect(content, `${file} must call forbidden() for insufficient role`).toContain('forbidden()');
       }
     });
   });

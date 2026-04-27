@@ -13,6 +13,11 @@ vi.mock('@/lib/auth', () => ({
   getCurrentSession: (...args: unknown[]) => mockGetCurrentSession(...args),
 }));
 
+vi.mock('next/navigation', () => ({
+  unauthorized: () => { throw new Error('UNAUTHORIZED'); },
+  forbidden: () => { throw new Error('FORBIDDEN'); },
+}));
+
 vi.mock('@/lib/dal/consent', () => ({
   createConsentFormVersion: (...args: unknown[]) => mockCreateConsentFormVersion(...args),
 }));
@@ -62,13 +67,13 @@ describe('Consent Actions - createConsentFormVersionAction', () => {
     vi.clearAllMocks();
   });
 
-  it('throws Unauthorized when no session', async () => {
+  it('throws UNAUTHORIZED when no session', async () => {
     mockGetCurrentSession.mockResolvedValue(null);
     const { createConsentFormVersionAction } = await import('@/lib/actions/consent-actions');
     const formData = new FormData();
     formData.set('title', 'Test Form');
     formData.set('content', 'Test content that is long enough');
-    await expect(createConsentFormVersionAction(formData)).rejects.toThrow('Unauthorized');
+    await expect(createConsentFormVersionAction(formData)).rejects.toThrow('UNAUTHORIZED');
   });
 
   it('throws validation error with invalid data', async () => {
@@ -99,10 +104,10 @@ describe('Consent Actions - deactivateConsentFormAction', () => {
     vi.clearAllMocks();
   });
 
-  it('throws Unauthorized when no session', async () => {
+  it('throws UNAUTHORIZED when no session', async () => {
     mockGetCurrentSession.mockResolvedValue(null);
     const { deactivateConsentFormAction } = await import('@/lib/actions/consent-actions');
-    await expect(deactivateConsentFormAction('cf-1')).rejects.toThrow('Unauthorized');
+    await expect(deactivateConsentFormAction('cf-1')).rejects.toThrow('UNAUTHORIZED');
   });
 
   it('throws when consent form not found', async () => {

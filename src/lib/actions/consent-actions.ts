@@ -6,6 +6,7 @@ import { logAudit } from '@/lib/dal/audit';
 import { getCurrentSession } from '@/lib/auth';
 import { after } from 'next/server';
 import { headers } from 'next/headers';
+import { forbidden, unauthorized } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
 import { eq } from 'drizzle-orm';
@@ -16,9 +17,9 @@ const ADMIN_ROLES = ['admin', 'super_admin'];
 function requireRole(role: 'admin') {
   return async () => {
     const session = await getCurrentSession();
-    if (!session?.user) throw new Error('Unauthorized');
+    if (!session?.user) unauthorized();
     if (role === 'admin' && !ADMIN_ROLES.includes(session.user.role)) {
-      throw new Error('Insufficient permissions: requires admin role');
+      forbidden();
     }
     return session;
   };

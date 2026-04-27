@@ -124,5 +124,5 @@ export async function requireRole(minimumRole: Role) {
   if (userLevel < requiredLevel) {
     forbidden();
   }
-  return session as NonNullable<typeof session>;
+  return session;
 }
