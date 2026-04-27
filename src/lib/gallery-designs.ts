@@ -8,6 +8,10 @@
  * `getPublicDesigns` in src/lib/dal/designs.ts) — when designs are
  * uploaded and approved, they can be folded back in or this file
  * can be retired.
+ *
+ * Note: `popularity` and `createdAt` are present only to keep the type
+ * shape-compatible with the DB row; neither is currently sorted/rendered
+ * by GalleryClient.
  */
 export interface GalleryDesign {
   id: string;

@@ -40,11 +40,11 @@ const nextConfig: NextConfig = {
   output: 'standalone',
 
   /**
-   * `next/image` configuration. In Next 16, any `<Image quality={N}>` value
-   * other than 75 must be enumerated in `images.qualities` -- otherwise the
-   * Image Optimization API rejects the request.
-   * Quality values currently used: 90 (home-client), 95 (about-client). 75 is
-   * the default and is implicitly allowed but listed here for clarity.
+   * `next/image` configuration. In Next 16, declaring `images.qualities`
+   * locks the Image Optimization API to ONLY the listed values: any
+   * `<Image quality={N}>` not in this array is rejected, including the
+   * default 75. So 75 is load-bearing here, not decorative.
+   * Currently used non-default values: 90 (home-client), 95 (about-client).
    * Docs: https://nextjs.org/docs/app/api-reference/components/image#qualities
    */
   images: {
@@ -52,13 +52,29 @@ const nextConfig: NextConfig = {
   },
 
   /**
-   * Allow dev-server cross-origin requests from any origin. Next 16 blocks
-   * `_next/webpack-hmr` and other dev-only resources from non-localhost
-   * origins by default. Wildcard `'*'` opens this up for LAN, Tailscale,
-   * tunneled subdomains, etc. -- DEV ONLY, no effect on production builds.
+   * Allow dev-server cross-origin requests from these origins. Next 16
+   * blocks `_next/webpack-hmr` and other dev-only resources from any host
+   * other than the one the server bound to (default `localhost`).
+   *
+   * Per Next's csrf-protection.js, a bare `'*'` is explicitly rejected --
+   * patterns must have >=2 segments. So we enumerate typical dev networks:
+   *   - 100.*.*.*           Tailscale CGNAT range (100.64.0.0/10)
+   *   - 192.168.*.*         RFC1918 LAN
+   *   - 10.*.*.*            RFC1918 LAN
+   *   - *.tail367f2e.ts.net Tailscale MagicDNS for this tailnet
+   *   - *.thehudsonfam.com  Cloudflare-tunneled subdomains
+   *
+   * DEV ONLY -- no effect on production builds (the gate only runs in
+   * `next dev`).
    * Docs: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
    */
-  allowedDevOrigins: ['*'],
+  allowedDevOrigins: [
+    '100.*.*.*',
+    '192.168.*.*',
+    '10.*.*.*',
+    '*.tail367f2e.ts.net',
+    '*.thehudsonfam.com',
+  ],
 
   /**
    * Experimental flags. Subject to change between minor releases per the

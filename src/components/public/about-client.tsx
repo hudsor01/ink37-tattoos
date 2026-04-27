@@ -247,7 +247,7 @@ export default function AboutClient() {
                     <div className="hidden lg:block absolute top-12 left-full w-full h-0.5 bg-linear-to-r from-fernando-red/50 to-fernando-orange/50 z-0" />
                   )}
 
-                  <Card className="relative z-10 p-6 h-full hover:shadow-lg transition-all duration-300 border-white/10">
+                  <Card className="relative z-10 p-6 h-full hover:shadow-lg transition-all duration-300 border-white/10 bg-linear-to-br from-ink-black via-charcoal/95 to-charcoal/20">
                     <CardContent className="space-y-4 text-center">
                       <div className="w-16 h-16 mx-auto bg-linear-to-r from-fernando-red to-fernando-orange rounded-full flex items-center justify-center">
                         <IconComponent className="w-8 h-8 text-white" />
@@ -303,7 +303,7 @@ export default function AboutClient() {
 
               return (
                 <motion.div key={spec.title} variants={fadeInUp}>
-                  <Card className="p-6 h-full hover:shadow-xl transition-all duration-300 border-white/10 group">
+                  <Card className="p-6 h-full hover:shadow-xl transition-all duration-300 border-white/10 group bg-linear-to-br from-ink-black via-charcoal/95 to-charcoal/20">
                     <CardHeader className="pb-4">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-fernando-red/20 rounded-full flex items-center justify-center group-hover:bg-fernando-red/30 transition-colors">
@@ -453,7 +453,7 @@ export default function AboutClient() {
 
               return (
                 <motion.div key={value.title} variants={fadeInUp} className="h-full">
-                  <Card className="h-full text-center p-6 md:p-8 border-white/10 hover:shadow-xl hover:border-fernando-red/30 transition-all duration-300 group">
+                  <Card className="h-full text-center p-6 md:p-8 border-white/10 hover:shadow-xl hover:border-fernando-red/30 transition-all duration-300 group bg-linear-to-br from-ink-black via-charcoal/95 to-charcoal/20">
                     <CardContent className="space-y-6">
                       <div className="w-20 h-20 mx-auto rounded-full bg-linear-to-r from-fernando-red to-fernando-orange flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                         <IconComponent className="h-10 w-10 text-white" />

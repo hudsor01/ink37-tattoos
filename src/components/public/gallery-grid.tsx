@@ -9,6 +9,7 @@ import { Calendar } from 'lucide-react';
 import { GalleryFilterBar, galleryFilterParsers } from '@/components/public/gallery-filter-bar';
 import { GalleryVideoCard } from '@/components/public/gallery-video-card';
 import { GALLERY_VIDEOS } from '@/lib/gallery-videos';
+import type { GalleryDesign } from '@/lib/gallery-designs';
 import dynamic from 'next/dynamic';
 
 const containerVariants = {
@@ -31,19 +32,10 @@ const itemVariants = {
 
 const GalleryLightbox = dynamic(() => import('@/components/public/gallery-lightbox').then(mod => mod.GalleryLightbox));
 
-interface Design {
-  id: string;
-  name: string;
-  description: string | null;
-  fileUrl: string;
-  thumbnailUrl: string | null;
-  designType: string | null;
-  size: string | null;
-  style: string | null;
-  tags: string[] | null;
-  popularity: number;
-  createdAt: Date;
-}
+// `Design` is the row shape shared with src/lib/gallery-designs.ts (and
+// originally with the DB-backed `tattoo_design` row). Re-aliased locally
+// so call sites within this file keep their short name.
+type Design = GalleryDesign;
 
 interface GalleryClientProps {
   initialDesigns: Design[];

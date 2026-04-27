@@ -11,18 +11,14 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import type { GalleryDesign } from '@/lib/gallery-designs';
 
-interface Design {
-  id: string;
-  name: string;
-  description: string | null;
-  fileUrl: string;
-  thumbnailUrl: string | null;
-  designType: string | null;
-  size: string | null;
-  style: string | null;
-  tags: string[] | null;
-}
+// Lightbox only needs a subset of the GalleryDesign shape (no popularity
+// or createdAt). Pick keeps the two type definitions in lockstep.
+type Design = Pick<
+  GalleryDesign,
+  'id' | 'name' | 'description' | 'fileUrl' | 'thumbnailUrl' | 'designType' | 'size' | 'style' | 'tags'
+>;
 
 interface GalleryLightboxProps {
   designs: Design[];
