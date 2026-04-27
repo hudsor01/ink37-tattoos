@@ -187,7 +187,7 @@ function HomeClient() {
                                 className="object-cover"
                                 draggable={false}
                               />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent z-10" />
+                              <div className="absolute inset-0 bg-linear-to-t from-black/30 via-transparent to-transparent z-10" />
                             </div>
                           </div>
                         </motion.div>

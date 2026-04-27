@@ -176,7 +176,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
               </Avatar>
               <button
                 type="button"
-                className="absolute -bottom-1 -right-1 flex size-7 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
+                className="absolute -bottom-1 -right-1 flex size-7 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
               >

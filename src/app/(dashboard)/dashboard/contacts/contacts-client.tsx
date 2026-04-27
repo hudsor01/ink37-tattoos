@@ -430,7 +430,7 @@ function InlineNotes({
     <button
       type="button"
       onClick={() => setIsEditing(true)}
-      className="text-left text-sm w-full max-w-col truncate cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5 transition-colors"
+      className="text-left text-sm w-full max-w-col truncate cursor-pointer hover:bg-muted/50 rounded-sm px-1 py-0.5 transition-colors"
     >
       {notes ? (
         <span>{notes}</span>

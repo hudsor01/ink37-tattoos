@@ -348,7 +348,7 @@ export function MediaPageClient() {
                 <Checkbox
                   checked={selectedIds.has(item.id)}
                   onCheckedChange={() => handleToggleSelect(item.id)}
-                  className="bg-background/80 backdrop-blur-sm"
+                  className="bg-background/80 backdrop-blur-xs"
                 />
               </div>
 
@@ -356,7 +356,7 @@ export function MediaPageClient() {
               <div className="absolute top-2 right-2 z-10">
                 <button
                   onClick={() => handleToggleApproval(item.id, item.isApproved)}
-                  className="rounded-full bg-background/80 backdrop-blur-sm p-1"
+                  className="rounded-full bg-background/80 backdrop-blur-xs p-1"
                   title={item.isApproved ? 'Approved - click to revoke' : 'Pending - click to approve'}
                 >
                   {item.isApproved ? (

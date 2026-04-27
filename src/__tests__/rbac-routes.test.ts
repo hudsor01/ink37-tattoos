@@ -10,8 +10,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 //   - Admin API routes (/api/admin/*) delegate to DAL which uses requireStaffRole()
 //   - Portal routes (/api/portal/*) check getCurrentSession directly
 //   - Public routes (/api/store/*, /api/webhooks/*) have no session check
-//   - DAL functions throw "Insufficient permissions" for wrong roles
-//   - DAL functions call redirect('/login') for unauthenticated
+//   - DAL functions call forbidden() for wrong roles
+//   - DAL functions call unauthorized() for unauthenticated requests
 // ---------------------------------------------------------------------------
 
 const ROLES = ['user', 'staff', 'manager', 'admin', 'super_admin'] as const;
@@ -194,7 +194,12 @@ describe('RBAC Route Enforcement', () => {
 
       it('returns 401 when unauthenticated', async () => {
         mockGetCurrentSession.mockResolvedValue(null);
-        dalMock.mockRejectedValue(new Error('Insufficient permissions'));
+        // Route returns 401 from its own session check before the DAL is reached;
+        // mock kept as a defensive belt-and-suspenders so the assertion still
+        // fails loudly if a route ever stops checking session before the DAL call.
+        dalMock.mockRejectedValue(
+          Object.assign(new Error('NEXT_HTTP_ERROR_FALLBACK;401'), { digest: 'NEXT_HTTP_ERROR_FALLBACK;401' })
+        );
         const { GET } = await import(mod);
         let response;
         if (name === '/api/admin/media') {
@@ -358,9 +363,9 @@ describe('RBAC Route Enforcement', () => {
       for (const file of staffDals) {
         const content = fs.readFileSync(file, 'utf-8');
 
-        // Pattern: redirect for unauthenticated, throw for wrong role
-        expect(content, `${file} must redirect unauthenticated users`).toContain("redirect('/login')");
-        expect(content, `${file} must throw for insufficient role`).toContain('Insufficient permissions');
+        // Pattern: unauthorized() for unauthenticated, forbidden() for wrong role.
+        expect(content, `${file} must call unauthorized() for unauthenticated users`).toContain('unauthorized()');
+        expect(content, `${file} must call forbidden() for insufficient role`).toContain('forbidden()');
       }
     });
 
@@ -374,8 +379,8 @@ describe('RBAC Route Enforcement', () => {
       for (const file of adminDals) {
         const content = fs.readFileSync(file, 'utf-8');
         expect(content, `${file} must have requireAdminRole`).toContain('requireAdminRole');
-        expect(content, `${file} must redirect unauthenticated users`).toContain("redirect('/login')");
-        expect(content, `${file} must throw for insufficient role`).toContain('Insufficient permissions');
+        expect(content, `${file} must call unauthorized() for unauthenticated users`).toContain('unauthorized()');
+        expect(content, `${file} must call forbidden() for insufficient role`).toContain('forbidden()');
       }
     });
   });

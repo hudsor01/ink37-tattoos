@@ -5,6 +5,12 @@ const mockGetCurrentSession = vi.fn();
 const mockRedirect = vi.fn((url: string) => {
   throw new Error(`REDIRECT:${url}`);
 });
+const mockUnauthorized = vi.fn(() => {
+  throw new Error('UNAUTHORIZED');
+});
+const mockForbidden = vi.fn(() => {
+  throw new Error('FORBIDDEN');
+});
 const mockPreparedExecute = vi.fn();
 const mockSelectTerminal = vi.fn().mockResolvedValue([]);
 const mockAppointmentFindMany = vi.fn().mockResolvedValue([]);
@@ -13,7 +19,11 @@ const mockCustomerFindFirst = vi.fn().mockResolvedValue(null);
 vi.mock('server-only', () => ({}));
 vi.mock('react', () => ({ cache: (fn: (...args: unknown[]) => unknown) => fn }));
 vi.mock('@/lib/auth', () => ({ getCurrentSession: (...args: unknown[]) => mockGetCurrentSession(...args) }));
-vi.mock('next/navigation', () => ({ redirect: (url: string) => mockRedirect(url) }));
+vi.mock('next/navigation', () => ({
+  redirect: (url: string) => mockRedirect(url),
+  unauthorized: () => mockUnauthorized(),
+  forbidden: () => mockForbidden(),
+}));
 
 vi.mock('@/lib/db', () => ({
   db: {
@@ -230,10 +240,10 @@ describe('Portal Auth', () => {
     vi.clearAllMocks();
   });
 
-  it('redirects to /login when no session', async () => {
+  it('throws unauthorized when no session', async () => {
     mockGetCurrentSession.mockResolvedValue(null);
     const { getPortalAppointments } = await import('@/lib/dal/portal');
-    await expect(getPortalAppointments()).rejects.toThrow('REDIRECT:/login');
+    await expect(getPortalAppointments()).rejects.toThrow('UNAUTHORIZED');
   });
 
   it('redirects to /portal/no-account when no customer', async () => {

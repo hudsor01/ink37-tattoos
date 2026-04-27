@@ -2,8 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Module-scope mocks
 const mockGetCurrentSession = vi.fn();
-const mockRedirect = vi.fn((url: string) => {
-  throw new Error(`REDIRECT:${url}`);
+const mockUnauthorized = vi.fn(() => {
+  throw new Error('UNAUTHORIZED');
+});
+const mockForbidden = vi.fn(() => {
+  throw new Error('FORBIDDEN');
 });
 
 // Queue of results that select chains will resolve with
@@ -34,7 +37,10 @@ function createChainableMock() {
 vi.mock('server-only', () => ({}));
 vi.mock('react', () => ({ cache: (fn: (...args: unknown[]) => unknown) => fn }));
 vi.mock('@/lib/auth', () => ({ getCurrentSession: (...args: unknown[]) => mockGetCurrentSession(...args) }));
-vi.mock('next/navigation', () => ({ redirect: (url: string) => mockRedirect(url) }));
+vi.mock('next/navigation', () => ({
+  unauthorized: () => mockUnauthorized(),
+  forbidden: () => mockForbidden(),
+}));
 
 vi.mock('@/lib/db', () => ({
   db: {
@@ -111,28 +117,28 @@ describe('Analytics Depth DAL', () => {
   });
 
   describe('auth rejection', () => {
-    it('redirects to /login when no session for getRevenueByStyle', async () => {
+    it('throws unauthorized when no session for getRevenueByStyle', async () => {
       mockGetCurrentSession.mockResolvedValue(null);
       const { getRevenueByStyle } = await import('@/lib/dal/analytics');
-      await expect(getRevenueByStyle(new Date(), new Date())).rejects.toThrow('REDIRECT:/login');
+      await expect(getRevenueByStyle(new Date(), new Date())).rejects.toThrow('UNAUTHORIZED');
     });
 
-    it('redirects to /login when no session for getBookingFunnel', async () => {
+    it('throws unauthorized when no session for getBookingFunnel', async () => {
       mockGetCurrentSession.mockResolvedValue(null);
       const { getBookingFunnel } = await import('@/lib/dal/analytics');
-      await expect(getBookingFunnel(new Date(), new Date())).rejects.toThrow('REDIRECT:/login');
+      await expect(getBookingFunnel(new Date(), new Date())).rejects.toThrow('UNAUTHORIZED');
     });
 
-    it('redirects to /login when no session for getCustomerCLV', async () => {
+    it('throws unauthorized when no session for getCustomerCLV', async () => {
       mockGetCurrentSession.mockResolvedValue(null);
       const { getCustomerCLV } = await import('@/lib/dal/analytics');
-      await expect(getCustomerCLV(new Date(), new Date())).rejects.toThrow('REDIRECT:/login');
+      await expect(getCustomerCLV(new Date(), new Date())).rejects.toThrow('UNAUTHORIZED');
     });
 
-    it('redirects to /login when no session for getDurationByType', async () => {
+    it('throws unauthorized when no session for getDurationByType', async () => {
       mockGetCurrentSession.mockResolvedValue(null);
       const { getDurationByType } = await import('@/lib/dal/analytics');
-      await expect(getDurationByType(new Date(), new Date())).rejects.toThrow('REDIRECT:/login');
+      await expect(getDurationByType(new Date(), new Date())).rejects.toThrow('UNAUTHORIZED');
     });
   });
 

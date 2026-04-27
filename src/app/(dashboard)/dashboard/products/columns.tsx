@@ -84,7 +84,7 @@ function DeleteAction({ productId, productName }: { productId: string; productNa
     <AlertDialog>
       <AlertDialogTrigger
         render={
-          <button className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-destructive outline-none hover:bg-accent focus:bg-accent">
+          <button className="relative flex w-full cursor-default select-none items-center gap-2 rounded-xs px-2 py-1.5 text-sm text-destructive outline-hidden hover:bg-accent focus:bg-accent">
             <Trash2 className="h-4 w-4" />
             Delete
           </button>
@@ -124,10 +124,10 @@ export const productColumns: ColumnDef<ProductWithCount, unknown>[] = [
           alt={row.original.name}
           width={40}
           height={40}
-          className="rounded object-cover"
+          className="rounded-sm object-cover"
         />
       ) : (
-        <div className="h-10 w-10 rounded bg-muted flex items-center justify-center">
+        <div className="h-10 w-10 rounded-sm bg-muted flex items-center justify-center">
           <span className="text-xs text-muted-foreground">--</span>
         </div>
       );

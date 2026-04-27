@@ -105,7 +105,7 @@ export function ConsentForm({ sessionId }: { sessionId: string }) {
             id={`consent-ack-${sessionId}`}
             checked={acknowledged}
             onChange={(e) => setAcknowledged(e.target.checked)}
-            className="mt-1 size-4 rounded border-gray-300"
+            className="mt-1 size-4 rounded-sm border-gray-300"
           />
           <Label htmlFor={`consent-ack-${sessionId}`} className="text-sm leading-normal">
             I have read, understood, and agree to all terms above

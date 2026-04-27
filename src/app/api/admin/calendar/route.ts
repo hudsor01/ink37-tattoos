@@ -42,8 +42,15 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ appointments: serialized });
   } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    // Re-throw forbidden() / unauthorized() so Next maps them to 403 / 401.
+    // Match on the public digest shape, with message-prefix as a fallback for
+    // test contexts that throw a bare Error without setting digest.
+    const digest = (error as { digest?: string } | null)?.digest;
+    if (
+      (typeof digest === 'string' && digest.startsWith('NEXT_HTTP_ERROR_FALLBACK')) ||
+      (error instanceof Error && error.message.startsWith('NEXT_HTTP_ERROR_FALLBACK'))
+    ) {
+      throw error;
     }
     return NextResponse.json(
       { error: 'Failed to fetch appointments' },

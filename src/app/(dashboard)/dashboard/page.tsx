@@ -15,7 +15,6 @@ interface DashboardPageProps {
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   await connection();
   const params = await searchParams;
-
   const now = new Date();
   const from = params.from ? startOfDay(new Date(params.from)) : startOfDay(subDays(now, 30));
   const to = params.to ? endOfDay(new Date(params.to)) : endOfDay(now);

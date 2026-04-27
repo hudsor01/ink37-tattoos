@@ -8,6 +8,7 @@ import { db } from '@/lib/db';
 import * as schema from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { headers } from 'next/headers';
+import { forbidden, unauthorized } from 'next/navigation';
 import { logger } from '@/lib/logger';
 
 // WebSocket support for Node.js/Bun (not needed in Edge but harmless)
@@ -116,12 +117,12 @@ const ROLE_HIERARCHY: Record<Role, number> = {
 export async function requireRole(minimumRole: Role) {
   const session = await getCurrentSession();
   if (!session?.user) {
-    throw new Error('Unauthorized');
+    unauthorized();
   }
   const userLevel = ROLE_HIERARCHY[session.user.role as Role] ?? 0;
   const requiredLevel = ROLE_HIERARCHY[minimumRole];
   if (userLevel < requiredLevel) {
-    throw new Error('Forbidden');
+    forbidden();
   }
-  return session as NonNullable<typeof session>;
+  return session;
 }

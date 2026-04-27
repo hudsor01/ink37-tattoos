@@ -90,7 +90,7 @@ export function StatCardSkeleton() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-4 w-4 rounded" />
+        <Skeleton className="h-4 w-4 rounded-sm" />
       </CardHeader>
       <CardContent>
         <Skeleton className="h-7 w-20" />

@@ -1,5 +1,6 @@
-import { connection } from 'next/server';
 import type { Metadata } from 'next';
+import { connection } from 'next/server';
+import { Suspense } from 'react';
 import { getPublicDesigns } from '@/lib/dal/designs';
 import { GalleryClient } from '@/components/public/gallery-grid';
 import { BreadcrumbNav } from '@/components/public/breadcrumb-nav';
@@ -14,10 +15,30 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function GalleryPage() {
+async function Designs() {
   await connection();
   const designs = await getPublicDesigns();
+  return <GalleryClient initialDesigns={designs} />;
+}
 
+// Mirror the GalleryClient masonry layout (columns-1 md:columns-2 lg:columns-3
+// with break-inside-avoid items at varying aspect ratios) so the swap-in
+// doesn't cause a grid-to-masonry reflow on slow connections.
+function GallerySkeleton() {
+  const heights = ['h-64', 'h-48', 'h-72', 'h-56', 'h-80', 'h-44', 'h-60', 'h-52', 'h-68'];
+  return (
+    <div className="columns-1 md:columns-2 lg:columns-3 gap-3">
+      {heights.map((h, i) => (
+        <div
+          key={i}
+          className={`break-inside-avoid mb-3 ${h} animate-pulse rounded-lg bg-muted`}
+        />
+      ))}
+    </div>
+  );
+}
+
+export default function GalleryPage() {
   return (
     <>
       <BreadcrumbNav
@@ -31,7 +52,9 @@ export default async function GalleryPage() {
         <p className="text-muted-foreground mb-8">
           Browse our portfolio of custom tattoo art
         </p>
-        <GalleryClient initialDesigns={designs} />
+        <Suspense fallback={<GallerySkeleton />}>
+          <Designs />
+        </Suspense>
       </div>
     </>
   );

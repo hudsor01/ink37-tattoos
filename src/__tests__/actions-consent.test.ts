@@ -9,8 +9,23 @@ const mockDbUpdateSetWhereReturning = vi.fn();
 
 vi.mock('server-only', () => ({}));
 
+// Mirror auth.ts requireRole: 401 on no session, 403 on insufficient role.
+const ROLE_HIERARCHY: Record<string, number> = { user: 0, staff: 1, manager: 2, admin: 3, super_admin: 4 };
 vi.mock('@/lib/auth', () => ({
   getCurrentSession: (...args: unknown[]) => mockGetCurrentSession(...args),
+  requireRole: async (minimumRole: string) => {
+    const session = await mockGetCurrentSession();
+    if (!session?.user) throw new Error('UNAUTHORIZED');
+    const userLevel = ROLE_HIERARCHY[session.user.role] ?? 0;
+    const requiredLevel = ROLE_HIERARCHY[minimumRole] ?? 0;
+    if (userLevel < requiredLevel) throw new Error('FORBIDDEN');
+    return session;
+  },
+}));
+
+vi.mock('next/navigation', () => ({
+  unauthorized: () => { throw new Error('UNAUTHORIZED'); },
+  forbidden: () => { throw new Error('FORBIDDEN'); },
 }));
 
 vi.mock('@/lib/dal/consent', () => ({
@@ -62,13 +77,13 @@ describe('Consent Actions - createConsentFormVersionAction', () => {
     vi.clearAllMocks();
   });
 
-  it('throws Unauthorized when no session', async () => {
+  it('throws UNAUTHORIZED when no session', async () => {
     mockGetCurrentSession.mockResolvedValue(null);
     const { createConsentFormVersionAction } = await import('@/lib/actions/consent-actions');
     const formData = new FormData();
     formData.set('title', 'Test Form');
     formData.set('content', 'Test content that is long enough');
-    await expect(createConsentFormVersionAction(formData)).rejects.toThrow('Unauthorized');
+    await expect(createConsentFormVersionAction(formData)).rejects.toThrow('UNAUTHORIZED');
   });
 
   it('throws validation error with invalid data', async () => {
@@ -99,10 +114,10 @@ describe('Consent Actions - deactivateConsentFormAction', () => {
     vi.clearAllMocks();
   });
 
-  it('throws Unauthorized when no session', async () => {
+  it('throws UNAUTHORIZED when no session', async () => {
     mockGetCurrentSession.mockResolvedValue(null);
     const { deactivateConsentFormAction } = await import('@/lib/actions/consent-actions');
-    await expect(deactivateConsentFormAction('cf-1')).rejects.toThrow('Unauthorized');
+    await expect(deactivateConsentFormAction('cf-1')).rejects.toThrow('UNAUTHORIZED');
   });
 
   it('throws when consent form not found', async () => {

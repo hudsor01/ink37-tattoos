@@ -148,7 +148,7 @@ export default function FAQClient() {
             </div>
 
             {/* FAQ Items */}
-            <div className="bg-black/30 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
+            <div className="bg-black/30 backdrop-blur-xs rounded-xl border border-white/10 overflow-hidden">
               <Accordion>
                 {category.items.map((item, itemIndex) => (
                   <AccordionItem

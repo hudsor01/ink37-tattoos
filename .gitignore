@@ -46,6 +46,8 @@ next-env.d.ts
 src/generated/
 .env*.local
 .claude/worktrees/
+.claude/scheduled_tasks.lock
+.claude/projects/
 .vscode/
 .cline/
 .agents/

@@ -145,7 +145,7 @@ export default function AboutClient() {
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     quality={95}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent" />
                   <div className="absolute bottom-6 left-6 right-6 md:bottom-8 md:left-8 md:right-8">
                     <Card className="bg-black/80 backdrop-blur-md border-white/20 shadow-2xl rounded-lg">
                       <CardContent className="p-5 md:p-6">
@@ -244,12 +244,12 @@ export default function AboutClient() {
                   className="relative"
                 >
                   {index < journeyMilestones.length - 1 && (
-                    <div className="hidden lg:block absolute top-12 left-full w-full h-0.5 bg-gradient-to-r from-fernando-red/50 to-fernando-orange/50 z-0" />
+                    <div className="hidden lg:block absolute top-12 left-full w-full h-0.5 bg-linear-to-r from-fernando-red/50 to-fernando-orange/50 z-0" />
                   )}
 
                   <Card className="relative z-10 p-6 h-full hover:shadow-lg transition-all duration-300 border-white/10">
                     <CardContent className="space-y-4 text-center">
-                      <div className="w-16 h-16 mx-auto bg-gradient-to-r from-fernando-red to-fernando-orange rounded-full flex items-center justify-center">
+                      <div className="w-16 h-16 mx-auto bg-linear-to-r from-fernando-red to-fernando-orange rounded-full flex items-center justify-center">
                         <IconComponent className="w-8 h-8 text-white" />
                       </div>
 
@@ -332,7 +332,7 @@ export default function AboutClient() {
                         </div>
                         <div className="w-full bg-charcoal/40 rounded-full h-2">
                           <div
-                            className="bg-gradient-to-r from-fernando-red to-fernando-orange h-2 rounded-full transition-all duration-1000 ease-out"
+                            className="bg-linear-to-r from-fernando-red to-fernando-orange h-2 rounded-full transition-all duration-1000 ease-out"
                             style={{ width: spec.expertise }}
                           />
                         </div>
@@ -370,7 +370,7 @@ export default function AboutClient() {
             viewport={{ once: true }}
             variants={staggerContainer}
           >
-            <Card className="border-white/10 bg-gradient-to-br from-ink-black via-charcoal/95 to-charcoal/20 shadow-xl rounded-xl">
+            <Card className="border-white/10 bg-linear-to-br from-ink-black via-charcoal/95 to-charcoal/20 shadow-xl rounded-xl">
               <CardContent className="p-10 md:p-16">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 md:gap-12 text-center">
                   {[
@@ -384,10 +384,10 @@ export default function AboutClient() {
                     return (
                       <motion.div key={stat.label} variants={fadeInUp} className="group">
                         <div className="space-y-4">
-                          <div className={`w-16 h-16 mx-auto bg-gradient-to-r ${stat.color} rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                          <div className={`w-16 h-16 mx-auto bg-linear-to-r ${stat.color} rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
                             <IconComponent className="w-8 h-8 text-white" />
                           </div>
-                          <div className={`text-4xl md:text-5xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent tracking-tight`}>
+                          <div className={`text-4xl md:text-5xl font-bold bg-linear-to-r ${stat.color} bg-clip-text text-transparent tracking-tight`}>
                             {stat.number}
                           </div>
                           <div className="text-silver font-medium text-sm md:text-base leading-tight">
@@ -455,7 +455,7 @@ export default function AboutClient() {
                 <motion.div key={value.title} variants={fadeInUp} className="h-full">
                   <Card className="h-full text-center p-6 md:p-8 border-white/10 hover:shadow-xl hover:border-fernando-red/30 transition-all duration-300 group">
                     <CardContent className="space-y-6">
-                      <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-r from-fernando-red to-fernando-orange flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                      <div className="w-20 h-20 mx-auto rounded-full bg-linear-to-r from-fernando-red to-fernando-orange flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                         <IconComponent className="h-10 w-10 text-white" />
                       </div>
 
@@ -494,10 +494,10 @@ export default function AboutClient() {
             variants={fadeInUp}
           >
             <Card className="relative overflow-hidden border-white/10">
-              <div className="absolute inset-0 bg-gradient-to-r from-ink-black/95 to-ink-black/90" />
+              <div className="absolute inset-0 bg-linear-to-r from-ink-black/95 to-ink-black/90" />
               <CardContent className="relative p-10 md:p-16 text-center">
                 <div className="max-w-4xl mx-auto">
-                  <div className="w-16 h-16 mx-auto mb-8 bg-gradient-to-r from-fernando-red to-fernando-orange rounded-full flex items-center justify-center">
+                  <div className="w-16 h-16 mx-auto mb-8 bg-linear-to-r from-fernando-red to-fernando-orange rounded-full flex items-center justify-center">
                     <Heart className="h-8 w-8 text-white" />
                   </div>
 

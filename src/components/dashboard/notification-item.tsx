@@ -46,7 +46,7 @@ export function NotificationItem({ notification, onMarkRead }: NotificationItemP
       }}
     >
       {/* Unread indicator */}
-      <div className="mt-1.5 flex-shrink-0">
+      <div className="mt-1.5 shrink-0">
         {!notification.isRead ? (
           <div className="h-2 w-2 rounded-full bg-blue-500" />
         ) : (
@@ -55,7 +55,7 @@ export function NotificationItem({ notification, onMarkRead }: NotificationItemP
       </div>
 
       {/* Icon */}
-      <div className="mt-0.5 flex-shrink-0">
+      <div className="mt-0.5 shrink-0">
         <Icon className="h-4 w-4 text-muted-foreground" />
       </div>
 

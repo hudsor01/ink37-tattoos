@@ -281,7 +281,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
                   alt="Product image"
                   width={80}
                   height={80}
-                  className="rounded object-cover"
+                  className="rounded-sm object-cover"
                 />
                 <div className="flex flex-col gap-2">
                   <p className="text-sm text-muted-foreground truncate max-w-col">
