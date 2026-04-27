@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link, { useLinkStatus } from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from '@/lib/auth-client';
 import {
@@ -20,6 +20,7 @@ import {
   Package,
   ShoppingBag,
   MessageSquare,
+  Loader2,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -34,6 +35,12 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from '@/components/ui/sidebar';
+
+function NavLinkStatus() {
+  const { pending } = useLinkStatus();
+  if (!pending) return null;
+  return <Loader2 className="ml-auto h-3 w-3 shrink-0 animate-spin opacity-70" aria-hidden />;
+}
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -99,6 +106,7 @@ export function AdminNav() {
                   >
                     <item.icon />
                     <span>{item.label}</span>
+                    <NavLinkStatus />
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

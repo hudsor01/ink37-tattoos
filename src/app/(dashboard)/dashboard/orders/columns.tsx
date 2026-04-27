@@ -140,7 +140,7 @@ function OrderActions({ order }: { order: OrderWithItems }) {
             <AlertDialog>
               <AlertDialogTrigger
                 render={
-                  <button className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-destructive outline-none hover:bg-accent focus:bg-accent">
+                  <button className="relative flex w-full cursor-default select-none items-center gap-2 rounded-xs px-2 py-1.5 text-sm text-destructive outline-hidden hover:bg-accent focus:bg-accent">
                     <XCircle className="h-4 w-4" />
                     Cancel Order
                   </button>
@@ -174,7 +174,7 @@ function OrderActions({ order }: { order: OrderWithItems }) {
             <AlertDialog>
               <AlertDialogTrigger
                 render={
-                  <button className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-destructive outline-none hover:bg-accent focus:bg-accent">
+                  <button className="relative flex w-full cursor-default select-none items-center gap-2 rounded-xs px-2 py-1.5 text-sm text-destructive outline-hidden hover:bg-accent focus:bg-accent">
                     <RotateCcw className="h-4 w-4" />
                     Issue Refund
                   </button>

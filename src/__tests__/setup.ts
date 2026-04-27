@@ -26,8 +26,32 @@ vi.mock('@upstash/redis', () => ({
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
   revalidateTag: vi.fn(),
+  updateTag: vi.fn(),
+  refresh: vi.fn(),
   unstable_cache: vi.fn((fn: unknown) => fn),
+  cacheLife: vi.fn(),
+  cacheTag: vi.fn(),
 }));
+
+// ---------------------------------------------------------------------------
+// next/navigation -- forbidden() / unauthorized() throw NEXT_HTTP_ERROR_FALLBACK
+// at runtime; mock as throws so DAL tests can assert on them.
+// ---------------------------------------------------------------------------
+vi.mock('next/navigation', async () => {
+  const actual = await vi.importActual<typeof import('next/navigation')>('next/navigation');
+  return {
+    ...actual,
+    redirect: vi.fn((url: string) => {
+      throw new Error(`NEXT_REDIRECT: ${url}`);
+    }),
+    forbidden: vi.fn(() => {
+      throw new Error('NEXT_HTTP_ERROR_FALLBACK;403');
+    }),
+    unauthorized: vi.fn(() => {
+      throw new Error('NEXT_HTTP_ERROR_FALLBACK;401');
+    }),
+  };
+});
 
 // ---------------------------------------------------------------------------
 // next/headers -- headers() and cookies() require Next.js request context.

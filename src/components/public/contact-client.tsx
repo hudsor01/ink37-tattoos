@@ -85,7 +85,7 @@ export default function ContactClient() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="bg-black/50 backdrop-blur-sm rounded-lg border border-white/10 shadow-xl p-6 md:p-8">
+            <div className="bg-black/50 backdrop-blur-xs rounded-lg border border-white/10 shadow-xl p-6 md:p-8">
               <h2 className="text-xl font-bold mb-6 flex items-center text-white">
                 <Phone className="mr-3 text-fernando-red" size={24} />
                 Send Me a Message
@@ -107,7 +107,7 @@ export default function ContactClient() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="bg-black/50 backdrop-blur-sm rounded-lg border border-white/10 shadow-xl p-6 md:p-8 h-full flex flex-col">
+            <div className="bg-black/50 backdrop-blur-xs rounded-lg border border-white/10 shadow-xl p-6 md:p-8 h-full flex flex-col">
               <h2 className="text-xl font-bold mb-6 flex items-center text-white">
                 <Info className="mr-3 text-fernando-red" size={24} />
                 Contact Information
@@ -132,7 +132,7 @@ export default function ContactClient() {
                       href="https://instagram.com/fennyg83"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600/20 via-pink-500/20 to-orange-400/20 flex items-center justify-center text-pink-400 hover:text-white transition-colors border border-pink-500/30 hover:border-pink-400"
+                      className="w-16 h-16 rounded-full bg-linear-to-tr from-purple-600/20 via-pink-500/20 to-orange-400/20 flex items-center justify-center text-pink-400 hover:text-white transition-colors border border-pink-500/30 hover:border-pink-400"
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
                       title="Follow on Instagram"
@@ -230,7 +230,7 @@ export default function ContactClient() {
           viewport={{ once: true }}
           variants={fadeInUp}
         >
-          <div className="bg-black/50 backdrop-blur-sm rounded-lg border border-white/10 shadow-xl p-6 md:p-8">
+          <div className="bg-black/50 backdrop-blur-xs rounded-lg border border-white/10 shadow-xl p-6 md:p-8">
             <h2 className="text-xl font-bold mb-4 flex items-center text-white">
               <MapPin className="mr-3 text-fernando-red" size={24} />
               Our Area
@@ -262,7 +262,7 @@ export default function ContactClient() {
           viewport={{ once: true }}
           variants={fadeInUp}
         >
-          <div className="bg-gradient-to-br from-black to-black/90 rounded-2xl border border-fernando-red/20 shadow-xl p-8 md:p-12">
+          <div className="bg-linear-to-br from-black to-black/90 rounded-2xl border border-fernando-red/20 shadow-xl p-8 md:p-12">
             <div className="max-w-3xl mx-auto text-center">
               <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
                 Ready to Bring Your Vision to Life?

@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server';
 import { sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 /**
  * Detailed database health check — reports connectivity, query latency,

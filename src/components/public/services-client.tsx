@@ -284,7 +284,7 @@ export default function ServicesClient() {
                           <ul className="space-y-1">
                             {service.features.slice(0, 3).map((feature) => (
                               <li key={feature} className="text-sm text-silver flex items-start gap-2">
-                                <ArrowRight className="h-3 w-3 text-fernando-red mt-0.5 flex-shrink-0" />
+                                <ArrowRight className="h-3 w-3 text-fernando-red mt-0.5 shrink-0" />
                                 {feature}
                               </li>
                             ))}
@@ -398,13 +398,13 @@ export default function ServicesClient() {
                   className="relative"
                 >
                   {index < processSteps.length - 1 && (
-                    <div className="absolute left-8 top-16 w-0.5 h-16 bg-gradient-to-b from-fernando-red to-fernando-red/30 hidden md:block" />
+                    <div className="absolute left-8 top-16 w-0.5 h-16 bg-linear-to-b from-fernando-red to-fernando-red/30 hidden md:block" />
                   )}
 
                   <Card className="mb-8 hover:shadow-lg transition-shadow border-white/10">
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0">
+                        <div className="shrink-0">
                           <div className="relative">
                             <div className="w-16 h-16 bg-fernando-red/10 rounded-full flex items-center justify-center border-2 border-fernando-red/20">
                               <IconComponent className="h-7 w-7 text-fernando-red" />
@@ -420,7 +420,7 @@ export default function ServicesClient() {
                             <h3 className="text-xl font-semibold text-white">
                               {step.title}
                             </h3>
-                            <span className="text-sm text-fernando-red font-medium bg-fernando-red/10 px-2 py-1 rounded">
+                            <span className="text-sm text-fernando-red font-medium bg-fernando-red/10 px-2 py-1 rounded-sm">
                               {step.duration}
                             </span>
                           </div>

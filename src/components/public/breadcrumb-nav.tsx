@@ -28,7 +28,7 @@ export function BreadcrumbNav({ items }: BreadcrumbNavProps) {
   return (
     <nav
       aria-label="Breadcrumb"
-      className="sticky top-20 sm:top-24 md:top-28 z-40 bg-black/80 backdrop-blur-sm border-b border-white/5"
+      className="sticky top-20 sm:top-24 md:top-28 z-40 bg-black/80 backdrop-blur-xs border-b border-white/5"
     >
       <div className="container mx-auto px-4 md:px-6 py-2">
         <ol className="flex items-center gap-1.5 text-sm text-white/60">

@@ -1,8 +1,9 @@
-import { connection } from 'next/server';
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { getPublicDesigns } from '@/lib/dal/designs';
 import { GalleryClient } from '@/components/public/gallery-grid';
 import { BreadcrumbNav } from '@/components/public/breadcrumb-nav';
+
 
 export const metadata: Metadata = {
   title: 'Gallery | Ink 37 Tattoos',
@@ -14,10 +15,22 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function GalleryPage() {
-  await connection();
+async function Designs() {
   const designs = await getPublicDesigns();
+  return <GalleryClient initialDesigns={designs} />;
+}
 
+function GallerySkeleton() {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="aspect-square animate-pulse rounded-lg bg-muted" />
+      ))}
+    </div>
+  );
+}
+
+export default function GalleryPage() {
   return (
     <>
       <BreadcrumbNav
@@ -31,7 +44,9 @@ export default async function GalleryPage() {
         <p className="text-muted-foreground mb-8">
           Browse our portfolio of custom tattoo art
         </p>
-        <GalleryClient initialDesigns={designs} />
+        <Suspense fallback={<GallerySkeleton />}>
+          <Designs />
+        </Suspense>
       </div>
     </>
   );

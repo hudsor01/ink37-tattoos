@@ -3,8 +3,6 @@ import { sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { logger } from '@/lib/logger';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 interface HealthResponse {
   status: 'ok' | 'error';

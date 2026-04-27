@@ -40,8 +40,8 @@ export function PublicNav() {
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           scrolled
-            ? 'bg-black/90 backdrop-blur-sm shadow-md py-2'
-            : 'bg-black/80 backdrop-blur-sm py-3'
+            ? 'bg-black/90 backdrop-blur-xs shadow-md py-2'
+            : 'bg-black/80 backdrop-blur-xs py-3'
         }`}
       >
         <div className="container mx-auto px-4 md:px-6">
@@ -88,7 +88,7 @@ export function PublicNav() {
 
             {/* Mobile menu button */}
             <button
-              className="md:hidden p-2 text-white focus:outline-none shrink-0"
+              className="md:hidden p-2 text-white focus:outline-hidden shrink-0"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             >

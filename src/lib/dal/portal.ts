@@ -2,7 +2,7 @@ import 'server-only';
 import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
-import { redirect } from 'next/navigation';
+import { redirect, unauthorized } from 'next/navigation';
 import { eq, and, gte, not, sql, desc, asc } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 
@@ -13,7 +13,7 @@ import * as schema from '@/lib/db/schema';
  */
 async function requirePortalAuth() {
   const session = await getCurrentSession();
-  if (!session?.user) redirect('/login');
+  if (!session?.user) unauthorized();
 
   const customerRecord = await db.query.customer.findFirst({
     where: eq(schema.customer.userId, session.user.id),

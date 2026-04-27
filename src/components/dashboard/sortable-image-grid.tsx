@@ -91,7 +91,7 @@ function SortableItem({
     >
       {/* Drag handle */}
       <button
-        className="absolute top-1 left-1 z-10 rounded bg-black/50 p-1 text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
+        className="absolute top-1 left-1 z-10 rounded-sm bg-black/50 p-1 text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
         {...attributes}
         {...listeners}
         aria-label="Drag to reorder"

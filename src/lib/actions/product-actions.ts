@@ -66,6 +66,7 @@ export async function createProductAction(formData: FormData): Promise<ActionRes
     );
 
     revalidatePath('/dashboard/products');
+    revalidatePath('/store');
     return { id: product.id };
   });
 }
@@ -141,6 +142,7 @@ export async function updateProductAction(formData: FormData): Promise<ActionRes
     );
 
     revalidatePath('/dashboard/products');
+    revalidatePath('/store');
     return { id: product.id };
   });
 }
@@ -181,5 +183,6 @@ export async function deleteProductAction(formData: FormData): Promise<ActionRes
     );
 
     revalidatePath('/dashboard/products');
+    revalidatePath('/store');
   });
 }

@@ -556,7 +556,7 @@ export function PeakHoursHeatmap({ data }: PeakHoursHeatmapProps) {
             <div key={hour} className="flex flex-col items-center gap-1">
               <span className="text-xs text-muted-foreground">{formatHour(hour)}</span>
               <div
-                className="flex h-12 w-full items-center justify-center rounded text-xs font-medium"
+                className="flex h-12 w-full items-center justify-center rounded-sm text-xs font-medium"
                 style={{
                   backgroundColor: count > 0
                     ? `hsl(220, 70%, ${intensity}%)`

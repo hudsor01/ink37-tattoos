@@ -148,7 +148,7 @@ export function NotificationsClient({ result }: NotificationsClientProps) {
             >
               <CardContent className="flex items-start gap-4 py-3">
                 {/* Unread dot */}
-                <div className="mt-1.5 flex-shrink-0">
+                <div className="mt-1.5 shrink-0">
                   {!n.isRead ? (
                     <div className="h-2 w-2 rounded-full bg-blue-500" />
                   ) : (
@@ -157,7 +157,7 @@ export function NotificationsClient({ result }: NotificationsClientProps) {
                 </div>
 
                 {/* Icon */}
-                <div className="mt-0.5 flex-shrink-0">
+                <div className="mt-0.5 shrink-0">
                   <Icon className="h-5 w-5 text-muted-foreground" />
                 </div>
 
@@ -178,7 +178,7 @@ export function NotificationsClient({ result }: NotificationsClientProps) {
 
                 {/* Timestamp */}
                 <span
-                  className="flex-shrink-0 text-xs text-muted-foreground/70"
+                  className="shrink-0 text-xs text-muted-foreground/70"
                   title={format(createdAt, 'MMM d, yyyy h:mm a')}
                 >
                   {formatDistance(createdAt, new Date(), { addSuffix: true })}

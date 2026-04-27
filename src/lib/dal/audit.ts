@@ -2,7 +2,7 @@ import 'server-only';
 import { cache } from 'react';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
-import { redirect } from 'next/navigation';
+import { forbidden, unauthorized } from 'next/navigation';
 import { eq, and, desc, gte, lte, sql, count } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 import { logger } from '@/lib/logger';
@@ -13,9 +13,9 @@ const DEFAULT_PAGE_SIZE = 25;
 
 async function requireStaffRole() {
   const session = await getCurrentSession();
-  if (!session?.user) redirect('/login');
+  if (!session?.user) unauthorized();
   if (!STAFF_ROLES.includes(session.user.role)) {
-    throw new Error('Insufficient permissions: requires staff role or above');
+    forbidden();
   }
   return session;
 }
