@@ -3,30 +3,16 @@
 import { ConsentFormSchema } from '@/lib/security/validation';
 import { createConsentFormVersion } from '@/lib/dal/consent';
 import { logAudit } from '@/lib/dal/audit';
-import { getCurrentSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth';
 import { after } from 'next/server';
 import { headers } from 'next/headers';
-import { forbidden, unauthorized } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
 import { eq } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 
-const ADMIN_ROLES = ['admin', 'super_admin'];
-
-function requireRole(role: 'admin') {
-  return async () => {
-    const session = await getCurrentSession();
-    if (!session?.user) unauthorized();
-    if (role === 'admin' && !ADMIN_ROLES.includes(session.user.role)) {
-      forbidden();
-    }
-    return session;
-  };
-}
-
 export async function createConsentFormVersionAction(formData: FormData) {
-  const session = await requireRole('admin')();
+  const session = await requireRole('admin');
 
   const raw = {
     title: formData.get('title') as string,
@@ -54,7 +40,7 @@ export async function createConsentFormVersionAction(formData: FormData) {
 }
 
 export async function deactivateConsentFormAction(id: string) {
-  const session = await requireRole('admin')();
+  const session = await requireRole('admin');
 
   const [result] = await db
     .update(schema.consentForm)

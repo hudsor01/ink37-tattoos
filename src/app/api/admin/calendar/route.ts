@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isHTTPAccessFallbackError } from 'next/dist/client/components/http-access-fallback/http-access-fallback';
 import { getAppointmentsByDateRange } from '@/lib/dal/appointments';
 import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
 
@@ -44,7 +43,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ appointments: serialized });
   } catch (error) {
     // Re-throw forbidden() / unauthorized() so Next maps them to 403 / 401.
-    if (isHTTPAccessFallbackError(error)) throw error;
+    // Match on the public digest shape instead of the internal isHTTPAccessFallbackError helper.
+    const digest = (error as { digest?: string } | null)?.digest;
+    if (typeof digest === 'string' && digest.startsWith('NEXT_HTTP_ERROR_FALLBACK')) {
+      throw error;
+    }
     return NextResponse.json(
       { error: 'Failed to fetch appointments' },
       { status: 500 }

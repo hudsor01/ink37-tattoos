@@ -78,13 +78,16 @@ describe('Admin Customers API Route', () => {
     expect(data.error).toBe('Unauthorized');
   });
 
-  it('returns 401 when DAL rejects insufficient role', async () => {
+  it('returns 403 when user has insufficient role', async () => {
     mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'user' } });
-    mockGetCustomers.mockRejectedValue(new Error('Insufficient permissions: requires staff role or above'));
+    // Route returns 403 from its own ADMIN_ROLES check before the DAL is reached.
+    // The DAL would call forbidden() (NEXT_HTTP_ERROR_FALLBACK;403) if it ran.
+    mockGetCustomers.mockRejectedValue(
+      Object.assign(new Error('NEXT_HTTP_ERROR_FALLBACK;403'), { digest: 'NEXT_HTTP_ERROR_FALLBACK;403' })
+    );
 
     const { GET } = await import('@/app/api/admin/customers/route');
     const response = await GET(mockRequest('/api/admin/customers'));
-    // Route checks role and returns 403 for non-admin users
     expect(response.status).toBe(403);
   });
 
@@ -135,7 +138,10 @@ describe('Admin Media API Route', () => {
 
   it('returns 403 when user has insufficient role', async () => {
     mockGetCurrentSession.mockResolvedValue({ user: { id: 'u1', role: 'user' } });
-    mockGetMediaItems.mockRejectedValue(new Error('Insufficient permissions'));
+    // Route returns 403 from its own ADMIN_ROLES check before the DAL is reached.
+    mockGetMediaItems.mockRejectedValue(
+      Object.assign(new Error('NEXT_HTTP_ERROR_FALLBACK;403'), { digest: 'NEXT_HTTP_ERROR_FALLBACK;403' })
+    );
 
     const { GET } = await import('@/app/api/admin/media/route');
     const request = new Request('http://localhost/api/admin/media');

@@ -1,6 +1,6 @@
 import { connection } from 'next/server';
 import { getCurrentSession } from '@/lib/auth';
-import { redirect } from 'next/navigation';
+import { unauthorized } from 'next/navigation';
 import { getNotifications } from '@/lib/dal/notifications';
 import { NotificationsClient } from './notifications-client';
 
@@ -11,7 +11,7 @@ interface NotificationsPageProps {
 export default async function NotificationsPage({ searchParams }: NotificationsPageProps) {
   await connection();
   const session = await getCurrentSession();
-  if (!session?.user) redirect('/login');
+  if (!session?.user) unauthorized();
 
   const params = await searchParams;
   const page = Number(params.page) || 1;

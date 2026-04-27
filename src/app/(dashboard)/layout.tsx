@@ -1,5 +1,5 @@
 import { connection } from 'next/server';
-import { redirect } from 'next/navigation';
+import { redirect, unauthorized } from 'next/navigation';
 import { getCurrentSession } from '@/lib/auth';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { AdminNav } from '@/components/dashboard/admin-nav';
@@ -19,10 +19,11 @@ const ADMIN_ROLES = ['admin', 'super_admin'];
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   await connection();
 
-  // Auth guard: require admin or super_admin role
+  // Auth guard: require admin or super_admin role.
+  // Unauthenticated -> 401 page; non-admin authenticated -> redirect to portal (UX, not 403).
   const session = await getCurrentSession();
   if (!session?.user) {
-    redirect('/login');
+    unauthorized();
   }
   if (!ADMIN_ROLES.includes(session.user.role)) {
     redirect('/portal');

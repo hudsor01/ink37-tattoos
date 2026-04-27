@@ -11,6 +11,11 @@ vi.mock('server-only', () => ({}));
 
 vi.mock('@/lib/auth', () => ({
   getCurrentSession: (...args: unknown[]) => mockGetCurrentSession(...args),
+  requireRole: async () => {
+    const session = await mockGetCurrentSession();
+    if (!session?.user) throw new Error('UNAUTHORIZED');
+    return session;
+  },
 }));
 
 vi.mock('next/navigation', () => ({
