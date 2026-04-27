@@ -5,7 +5,6 @@ import { getPublicDesigns } from '@/lib/dal/designs';
 import { GalleryClient } from '@/components/public/gallery-grid';
 import { BreadcrumbNav } from '@/components/public/breadcrumb-nav';
 
-
 export const metadata: Metadata = {
   title: 'Gallery | Ink 37 Tattoos',
   description:
@@ -22,11 +21,18 @@ async function Designs() {
   return <GalleryClient initialDesigns={designs} />;
 }
 
+// Mirror the GalleryClient masonry layout (columns-1 md:columns-2 lg:columns-3
+// with break-inside-avoid items at varying aspect ratios) so the swap-in
+// doesn't cause a grid-to-masonry reflow on slow connections.
 function GallerySkeleton() {
+  const heights = ['h-64', 'h-48', 'h-72', 'h-56', 'h-80', 'h-44', 'h-60', 'h-52', 'h-68'];
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="aspect-square animate-pulse rounded-lg bg-muted" />
+    <div className="columns-1 md:columns-2 lg:columns-3 gap-3">
+      {heights.map((h, i) => (
+        <div
+          key={i}
+          className={`break-inside-avoid mb-3 ${h} animate-pulse rounded-lg bg-muted`}
+        />
       ))}
     </div>
   );
