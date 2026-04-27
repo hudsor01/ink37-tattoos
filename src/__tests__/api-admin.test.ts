@@ -32,10 +32,10 @@ vi.mock('next/server', () => ({
 }));
 
 // Mock DAL modules -- the admin routes call these directly.
-// The DAL functions internally call requireStaffRole() which calls getCurrentSession.
-// When getCurrentSession returns null, requireStaffRole calls redirect('/login'),
-// but redirect throws a Next.js navigation error. In the route handler's try/catch,
-// this is caught and returns 401.
+// The DAL's requireStaffRole() calls unauthorized() / forbidden() from
+// next/navigation, which throw Errors with digest 'NEXT_HTTP_ERROR_FALLBACK;{401|403}'.
+// Most admin routes return 401/403 from their own session/role check before the
+// DAL is reached; the DAL throws are defense-in-depth.
 vi.mock('@/lib/dal/customers', () => ({
   getCustomers: (...args: unknown[]) => mockGetCustomers(...args),
 }));

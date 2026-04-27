@@ -9,11 +9,16 @@ const mockDbUpdateSetWhereReturning = vi.fn();
 
 vi.mock('server-only', () => ({}));
 
+// Mirror auth.ts requireRole: 401 on no session, 403 on insufficient role.
+const ROLE_HIERARCHY: Record<string, number> = { user: 0, staff: 1, manager: 2, admin: 3, super_admin: 4 };
 vi.mock('@/lib/auth', () => ({
   getCurrentSession: (...args: unknown[]) => mockGetCurrentSession(...args),
-  requireRole: async () => {
+  requireRole: async (minimumRole: string) => {
     const session = await mockGetCurrentSession();
     if (!session?.user) throw new Error('UNAUTHORIZED');
+    const userLevel = ROLE_HIERARCHY[session.user.role] ?? 0;
+    const requiredLevel = ROLE_HIERARCHY[minimumRole] ?? 0;
+    if (userLevel < requiredLevel) throw new Error('FORBIDDEN');
     return session;
   },
 }));

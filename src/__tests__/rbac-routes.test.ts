@@ -364,7 +364,6 @@ describe('RBAC Route Enforcement', () => {
         const content = fs.readFileSync(file, 'utf-8');
 
         // Pattern: unauthorized() for unauthenticated, forbidden() for wrong role.
-        // Migrated from redirect('/login') + throw 'Insufficient permissions' in Next 16.
         expect(content, `${file} must call unauthorized() for unauthenticated users`).toContain('unauthorized()');
         expect(content, `${file} must call forbidden() for insufficient role`).toContain('forbidden()');
       }
