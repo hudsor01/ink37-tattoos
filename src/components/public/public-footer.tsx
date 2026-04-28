@@ -1,6 +1,16 @@
+import { cacheLife } from 'next/cache';
 import Link from 'next/link';
 
-export function PublicFooter() {
+/**
+ * Cached cross-request -- footer content (including the copyright year) is
+ * the same for every visitor and only needs to revalidate occasionally.
+ * Per Next 16 Cache Components, `new Date()` in a Server Component must
+ * either follow `connection()` or live inside a `'use cache'` boundary.
+ */
+export async function PublicFooter() {
+  'use cache';
+  cacheLife('weeks');
+
   return (
     <footer className="bg-black border-t border-zinc-800 py-4">
       <div className="max-w-6xl mx-auto px-4">
@@ -40,6 +50,17 @@ export function PublicFooter() {
             <span>Dallas-Fort Worth, Texas</span>
             <span className="hidden md:inline">&bull;</span>
             <span>By appointment only</span>
+          </div>
+
+          {/* Built-by credit */}
+          <div className="text-xs text-zinc-600">
+            Built by{' '}
+            <a
+              href="https://hudsondigitalsolutions.com"
+              className="hover:text-zinc-300 transition-colors underline underline-offset-2"
+            >
+              Hudson Digital Solutions
+            </a>
           </div>
         </div>
       </div>

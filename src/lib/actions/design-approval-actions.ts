@@ -7,7 +7,7 @@ import { safeAction } from './safe-action';
 import type { ActionResult } from './types';
 import { after } from 'next/server';
 import { headers } from 'next/headers';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, updateTag } from 'next/cache';
 
 export async function approveDesignAction(
   designId: string
@@ -31,7 +31,9 @@ export async function approveDesignAction(
     );
 
     revalidatePath('/dashboard/designs');
-    revalidatePath('/gallery');
+    // Public gallery reads are cached via cacheTag('public-designs').
+    updateTag('public-designs');
+    updateTag(`design:${designId}`);
     return { id: result.id };
   });
 }
@@ -59,7 +61,8 @@ export async function rejectDesignAction(
     );
 
     revalidatePath('/dashboard/designs');
-    revalidatePath('/gallery');
+    updateTag('public-designs');
+    updateTag(`design:${designId}`);
     return { id: result.id };
   });
 }

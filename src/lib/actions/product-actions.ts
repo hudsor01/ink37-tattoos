@@ -9,7 +9,7 @@ import { safeAction } from './safe-action';
 import type { ActionResult } from './types';
 import { after } from 'next/server';
 import { headers } from 'next/headers';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, updateTag } from 'next/cache';
 
 /**
  * Create a new product with Stripe sync (D-01).
@@ -66,7 +66,9 @@ export async function createProductAction(formData: FormData): Promise<ActionRes
     );
 
     revalidatePath('/dashboard/products');
-    revalidatePath('/store');
+    // Public store reads are cached via cacheTag('public-products');
+    // updateTag (read-your-writes) so the admin sees their change instantly.
+    updateTag('public-products');
     return { id: product.id };
   });
 }
@@ -142,7 +144,9 @@ export async function updateProductAction(formData: FormData): Promise<ActionRes
     );
 
     revalidatePath('/dashboard/products');
-    revalidatePath('/store');
+    // Public store reads are cached via cacheTag('public-products');
+    // updateTag (read-your-writes) so the admin sees their change instantly.
+    updateTag('public-products');
     return { id: product.id };
   });
 }
@@ -183,6 +187,8 @@ export async function deleteProductAction(formData: FormData): Promise<ActionRes
     );
 
     revalidatePath('/dashboard/products');
-    revalidatePath('/store');
+    // Public store reads are cached via cacheTag('public-products');
+    // updateTag (read-your-writes) so the admin sees their change instantly.
+    updateTag('public-products');
   });
 }

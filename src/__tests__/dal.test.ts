@@ -40,10 +40,14 @@ describe('DAL security boundary', () => {
   it('public designs function does NOT require auth', async () => {
     const fs = await import('node:fs');
     const designsDal = fs.readFileSync('src/lib/dal/designs.ts', 'utf-8');
-    // getPublicDesigns should exist and not call requireStaffRole
+    // getPublicDesigns exists and its body must not call requireStaffRole/requireAdminRole.
+    // After the Cache Components migration the function is declared with the
+    // `'use cache'` directive instead of being wrapped in React's cache(),
+    // so match against either form.
     expect(designsDal).toContain('getPublicDesigns');
-    // The function body between export const getPublicDesigns and the next export should not contain requireStaffRole
-    const publicFnMatch = designsDal.match(/export const getPublicDesigns[\s\S]*?(?=export const|export async|$)/);
+    const publicFnMatch = designsDal.match(
+      /(?:export const getPublicDesigns|export async function getPublicDesigns)[\s\S]*?(?=export const|export async|$)/
+    );
     expect(publicFnMatch).toBeTruthy();
     expect(publicFnMatch![0]).not.toContain('requireStaffRole');
     expect(publicFnMatch![0]).not.toContain('requireAdminRole');

@@ -1,4 +1,4 @@
-import { connection } from 'next/server';
+import { Suspense } from 'react';
 import { redirect, unauthorized } from 'next/navigation';
 import { getCurrentSession } from '@/lib/auth';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
@@ -16,11 +16,16 @@ import { PageTransition } from '@/components/page-transition';
 
 const ADMIN_ROLES = ['admin', 'super_admin'];
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  await connection();
-
-  // Auth guard: require admin or super_admin role.
-  // Unauthenticated -> 401 page; non-admin authenticated -> redirect to portal (UX, not 403).
+/**
+ * Auth guard wrapped in <Suspense> per Cache Components requirements.
+ * Reads the session (dynamic via headers/cookies) and either renders the
+ * children or short-circuits via unauthorized() / redirect().
+ *
+ * proxy.ts is the first line of defense for unauthenticated requests; this
+ * layout-level check is defense-in-depth and the only enforcement of the
+ * admin role requirement.
+ */
+async function AuthGuard({ children }: { children: React.ReactNode }) {
   const session = await getCurrentSession();
   if (!session?.user) {
     unauthorized();
@@ -28,6 +33,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!ADMIN_ROLES.includes(session.user.role)) {
     redirect('/portal');
   }
+  return <>{children}</>;
+}
+
+function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <AdminNav />
@@ -52,5 +61,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </main>
       </SidebarInset>
     </SidebarProvider>
+  );
+}
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={null}>
+      <AuthGuard>
+        <DashboardShell>{children}</DashboardShell>
+      </AuthGuard>
+    </Suspense>
   );
 }

@@ -1,5 +1,6 @@
 import 'server-only';
 import { cache } from 'react';
+import { cacheLife, cacheTag } from 'next/cache';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { forbidden, unauthorized } from 'next/navigation';
@@ -20,7 +21,13 @@ async function requireStaffRole() {
 }
 
 // PUBLIC -- no auth required (gallery content is public per locked decision)
-export const getPublicDesigns = cache(async (filters?: { style?: string; tags?: string[] }) => {
+// Cached cross-request via Next 16 'use cache'; tag invalidated by the
+// design approval Server Action.
+export async function getPublicDesigns(filters?: { style?: string; tags?: string[] }) {
+  'use cache';
+  cacheLife('hours');
+  cacheTag('public-designs');
+
   const conditions = [
     eq(schema.tattooDesign.isApproved, true),
     eq(schema.tattooDesign.isPublic, true),
@@ -36,10 +43,13 @@ export const getPublicDesigns = cache(async (filters?: { style?: string; tags?: 
     where: and(...conditions),
     orderBy: [desc(schema.tattooDesign.createdAt)],
   });
-});
+}
 
 // PUBLIC -- single design detail
-export const getPublicDesignById = cache(async (id: string) => {
+export async function getPublicDesignById(id: string) {
+  'use cache';
+  cacheLife('hours');
+  cacheTag('public-designs', `design:${id}`);
   return db.query.tattooDesign.findFirst({
     where: and(
       eq(schema.tattooDesign.id, id),
@@ -48,7 +58,7 @@ export const getPublicDesignById = cache(async (id: string) => {
     ),
     with: { artist: { columns: { name: true } } },
   });
-});
+}
 
 // ADMIN -- all designs including unapproved, with pagination and search
 export const getAllDesigns = cache(async (
