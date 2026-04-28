@@ -13,12 +13,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { GalleryDesign } from '@/lib/gallery-designs';
 
-// Lightbox only needs a subset of the GalleryDesign shape (no popularity
-// or createdAt). Pick keeps the two type definitions in lockstep.
-type Design = Pick<
-  GalleryDesign,
-  'id' | 'name' | 'description' | 'fileUrl' | 'thumbnailUrl' | 'designType' | 'size' | 'style' | 'tags'
->;
+// Lightbox renders all GalleryDesign fields except popularity and
+// createdAt. Omit<> (rather than Pick<>) means new fields added to
+// GalleryDesign are included by default -- safer than silently dropping.
+type Design = Omit<GalleryDesign, 'popularity' | 'createdAt'>;
 
 interface GalleryLightboxProps {
   designs: Design[];
