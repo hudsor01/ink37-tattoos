@@ -52,6 +52,7 @@ vi.mock('next/headers', () => ({
 
 vi.mock('next/cache', () => ({
   revalidatePath: (...args: unknown[]) => mockRevalidatePath(...args),
+  updateTag: vi.fn(),
 }));
 
 vi.mock('next/server', () => ({
