@@ -107,7 +107,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${montserrat.variable} ${pacifico.variable} ${satisfy.variable}`}
+      className={`dark ${inter.variable} ${montserrat.variable} ${pacifico.variable} ${satisfy.variable}`}
       suppressHydrationWarning
     >
       <body className="min-h-screen antialiased">

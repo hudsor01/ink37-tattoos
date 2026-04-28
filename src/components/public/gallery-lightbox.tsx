@@ -11,18 +11,12 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import type { GalleryDesign } from '@/lib/gallery-designs';
 
-interface Design {
-  id: string;
-  name: string;
-  description: string | null;
-  fileUrl: string;
-  thumbnailUrl: string | null;
-  designType: string | null;
-  size: string | null;
-  style: string | null;
-  tags: string[] | null;
-}
+// Lightbox renders all GalleryDesign fields except popularity and
+// createdAt. Omit<> (rather than Pick<>) means new fields added to
+// GalleryDesign are included by default -- safer than silently dropping.
+type Design = Omit<GalleryDesign, 'popularity' | 'createdAt'>;
 
 interface GalleryLightboxProps {
   designs: Design[];

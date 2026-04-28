@@ -239,7 +239,7 @@ export default function ServicesClient() {
                   transition={{ delay: index * 0.1 }}
                   className="h-full"
                 >
-                  <Card className="h-full group hover:shadow-2xl transition-all duration-500 border-white/10 hover:border-fernando-red/20 hover:-translate-y-1">
+                  <Card className="h-full group hover:shadow-2xl transition-all duration-500 border-white/10 bg-linear-to-br from-ink-black via-charcoal/95 to-charcoal/20 hover:border-fernando-red/20 hover:-translate-y-1">
                     {service.featured && (
                       <div className="absolute -top-2 -right-2 z-10">
                         <Badge className="bg-fernando-gradient text-white">
@@ -401,7 +401,7 @@ export default function ServicesClient() {
                     <div className="absolute left-8 top-16 w-0.5 h-16 bg-linear-to-b from-fernando-red to-fernando-red/30 hidden md:block" />
                   )}
 
-                  <Card className="mb-8 hover:shadow-lg transition-shadow border-white/10">
+                  <Card className="mb-8 hover:shadow-lg transition-shadow border-white/10 bg-linear-to-br from-ink-black via-charcoal/95 to-charcoal/20">
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
                         <div className="shrink-0">
