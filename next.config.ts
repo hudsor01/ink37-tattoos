@@ -77,6 +77,23 @@ const nextConfig: NextConfig = {
   ],
 
   /**
+   * Cache Components -- the Next.js 16 caching model. With this enabled:
+   *   - All dynamic data is executed at request time by default
+   *   - Cache opt-in is via `'use cache'` directive + `cacheLife()` + `cacheTag()`
+   *   - Mutations use `updateTag()` (read-your-writes) and `refresh()` (uncached)
+   *     instead of the legacy `revalidatePath()` / `revalidateTag()` flow
+   *   - PPR is included automatically; the old `experimental.ppr` flag was
+   *     removed in Next 16 in favor of this model
+   *
+   * Pages that fetch dynamic data MUST wrap that fetch in a `<Suspense>`
+   * boundary or mark the function with `'use cache'`. Failures show as
+   * "Uncached data was accessed outside of <Suspense>" at build time.
+   * Docs: https://nextjs.org/docs/app/api-reference/config/next-config-js/cacheComponents
+   *       https://nextjs.org/docs/app/getting-started/caching
+   */
+  cacheComponents: true,
+
+  /**
    * Experimental flags. Subject to change between minor releases per the
    * Next.js docs; do not rely on these for production-critical behavior.
    *

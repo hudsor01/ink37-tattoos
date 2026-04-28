@@ -1,5 +1,6 @@
 import 'server-only';
 import { cache } from 'react';
+import { cacheLife, cacheTag } from 'next/cache';
 import { db } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 import { forbidden, unauthorized } from 'next/navigation';
@@ -22,22 +23,30 @@ async function requireStaffRole() {
 
 /**
  * Get all active products for public store catalog. No auth required.
+ * Cached cross-request via Next 16 'use cache'; tag invalidated on mutation.
  */
-export const getActiveProducts = cache(async () => {
+export async function getActiveProducts() {
+  'use cache';
+  cacheLife('hours');
+  cacheTag('public-products');
   return db.query.product.findMany({
     where: eq(schema.product.isActive, true),
     orderBy: [asc(schema.product.sortOrder), desc(schema.product.createdAt)],
   });
-});
+}
 
 /**
  * Get a single product by ID for product detail page. No auth required.
+ * Cached cross-request; per-product tag for fine-grained invalidation.
  */
-export const getProductById = cache(async (id: string) => {
+export async function getProductById(id: string) {
+  'use cache';
+  cacheLife('hours');
+  cacheTag('public-products', `product:${id}`);
   return db.query.product.findFirst({
     where: eq(schema.product.id, id),
   });
-});
+}
 
 /**
  * Get all products (including inactive) for admin product list with pagination and search.

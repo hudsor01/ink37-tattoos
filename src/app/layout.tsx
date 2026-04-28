@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
 import { inter, montserrat, pacifico, satisfy } from '../styles/fonts';
 import { Providers } from '@/components/providers';
 import './globals.css';
@@ -101,9 +100,7 @@ const jsonLd = {
   },
 };
 
-export default async function RootLayout({ children }: { children: ReactNode }) {
-  const nonce = (await headers()).get('x-nonce') ?? undefined;
-
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="en"
@@ -111,9 +108,17 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       suppressHydrationWarning
     >
       <body className="min-h-screen antialiased">
+        {/*
+          dangerouslySetInnerHTML is the canonical pattern for JSON-LD per the
+          Next.js docs (https://nextjs.org/docs/app/guides/json-ld). React would
+          otherwise HTML-encode `<`, `>`, `&` inside the script tag, which
+          breaks crawler parsing. Safe here because:
+            - `jsonLd` is a hardcoded module-level const (lines 69-102)
+            - Zero user input or request data is interpolated
+            - `application/ld+json` declares the script as data, not executable JS
+        */}
         <script
           type="application/ld+json"
-          nonce={nonce}
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <Providers>{children}</Providers>

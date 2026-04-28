@@ -1,4 +1,4 @@
-import { connection } from 'next/server';
+import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
@@ -11,10 +11,7 @@ interface SessionDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function SessionDetailPage({
-  params,
-}: SessionDetailPageProps) {
-  await connection();
+async function SessionDetail({ params }: SessionDetailPageProps) {
   const { id } = await params;
   const sessionData = await getSessionWithDetails(id);
 
@@ -51,5 +48,13 @@ export default async function SessionDetailPage({
 
       <SessionDetailClient session={sessionData} />
     </div>
+  );
+}
+
+export default function SessionDetailPage({ params }: SessionDetailPageProps) {
+  return (
+    <Suspense fallback={null}>
+      <SessionDetail params={params} />
+    </Suspense>
   );
 }

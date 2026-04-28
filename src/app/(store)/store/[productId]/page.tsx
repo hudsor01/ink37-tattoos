@@ -1,4 +1,4 @@
-import { connection } from 'next/server';
+import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -21,7 +21,6 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  await connection();
   const { productId } = await params;
   const product = await getProductById(productId);
   if (!product) return { title: 'Product Not Found' };
@@ -31,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function ProductDetailPage({ params }: Props) {
+async function ProductDetail({ params }: Props) {
   const { productId } = await params;
   const product = await getProductById(productId);
 
@@ -107,5 +106,13 @@ export default async function ProductDetailPage({ params }: Props) {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ProductDetailPage({ params }: Props) {
+  return (
+    <Suspense fallback={null}>
+      <ProductDetail params={params} />
+    </Suspense>
   );
 }

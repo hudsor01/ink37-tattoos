@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Menu } from 'lucide-react';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -171,7 +171,16 @@ function StoreFooter() {
           </div>
         </div>
         <div className="mt-8 border-t pt-6 text-center text-xs text-muted-foreground">
-          &copy; {new Date().getFullYear()} Ink 37 Tattoos. All rights reserved.
+          <div>&copy; 2026 Ink 37 Tattoos. All rights reserved.</div>
+          <div className="mt-1">
+            Built by{' '}
+            <a
+              href="https://hudsondigitalsolutions.com"
+              className="hover:text-foreground transition-colors underline underline-offset-2"
+            >
+              Hudson Digital Solutions
+            </a>
+          </div>
         </div>
       </div>
     </footer>
@@ -181,9 +190,13 @@ function StoreFooter() {
 export default function StoreLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <StoreNav />
+      <Suspense fallback={null}>
+        <StoreNav />
+      </Suspense>
       <main className="pt-16 min-h-screen">
-        <PageTransition>{children}</PageTransition>
+        <Suspense fallback={null}>
+          <PageTransition>{children}</PageTransition>
+        </Suspense>
       </main>
       <StoreFooter />
       <CartDrawer />
