@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import FAQClient from '@/components/public/faq-client';
 import { BreadcrumbNav } from '@/components/public/breadcrumb-nav';
+import { JsonLd } from '@/components/public/json-ld';
 
 export const metadata: Metadata = {
   title: 'FAQ | Ink 37 Tattoos',
@@ -101,12 +102,7 @@ export default function FAQPage() {
           { label: 'FAQ' },
         ]}
       />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(faqStructuredData),
-        }}
-      />
+      <JsonLd data={faqStructuredData} />
       <FAQClient />
     </>
   );

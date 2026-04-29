@@ -4,7 +4,7 @@
 
 - **v1.0 MVP** -- Phases 1-12 (shipped 2026-03-27) | [Archive](milestones/v1.0-ROADMAP.md)
 - **v2.0 Admin Panel** -- Phases 13-22 (shipped 2026-03-30)
-- **v3.0 Production Launch** -- Phases 23-28 (active)
+- **v3.0 Production Launch** -- Phases 23-31 (shipped 2026-04-28)
 
 ## Phases
 
@@ -44,11 +44,15 @@
 
 ### v3.0 Production Launch
 
-- [ ] **Phase 23: Git Merge + CI/CD Pipeline** - Merge v2.0 branches to main, clean up branches, set up GitHub Actions CI and Vercel deploy
-- [ ] **Phase 24: Monitoring + Observability** - Sentry error tracking, health check endpoint, structured logging, web vitals
-- [ ] **Phase 25: Database + Security Hardening** - Migration consolidation, production seed data, CSP nonces, admin rate limiting
-- [ ] **Phase 26: Assets + Infrastructure** - Gallery videos, search verification files, PWA manifest, n8n workflows, env var audit
-- [ ] **Phase 27: Documentation** - Production deployment checklist and README update
+- [x] **Phase 23: Git Merge + CI/CD Pipeline** -- completed 2026-04-06
+- [x] **Phase 24: Monitoring + Observability** -- completed 2026-03-31
+- [x] **Phase 25: Database + Security Hardening** -- completed 2026-04-06
+- [x] **Phase 26: Assets + Infrastructure** -- completed 2026-04-06
+- [x] **Phase 27: Documentation** -- completed 2026-03-31
+- [x] **Phase 28: Fix PR #5 Notification Retention Policy Review Issues** -- completed 2026-04-02
+- [x] **Phase 29: Secret Scanning Pipeline** -- completed 2026-04-06 (k3s self-hosted infra, see .planning/phases/29-secret-scanning-pipeline/K3S-AGENT-PROMPT.md)
+- [x] **Phase 30: CSP Nonce Implementation** -- completed 2026-04-28 (proxy.ts nonce + CSP, JsonLd shared component, ThemeProvider nonce wiring)
+- [x] **Phase 31: Documentation + Tracking Corrections** -- completed 2026-04-28
 
 ## Phase Details
 
@@ -353,8 +357,9 @@ Plans:
 | 26. Assets + Infrastructure | v3.0 | 3/3 | Complete    | 2026-04-06 |
 | 27. Documentation | v3.0 | 1/1 | Complete    | 2026-03-31 |
 | 28. Fix PR #5 Cron Issues | v3.0 | 2/2 | Complete    | 2026-04-02 |
-| 30. CSP Nonce Implementation | v3.0 | 0/1 | Planned | — |
-| 31. Documentation + Tracking Corrections | v3.0 | 0/0 | Planned | — |
+| 29. Secret Scanning Pipeline | v3.0 | 3/3 | Complete    | 2026-04-06 |
+| 30. CSP Nonce Implementation | v3.0 | 1/1 | Complete    | 2026-04-28 |
+| 31. Documentation + Tracking Corrections | v3.0 | 1/1 | Complete    | 2026-04-28 |
 
 ### Phase 29: Secret Scanning Pipeline
 
