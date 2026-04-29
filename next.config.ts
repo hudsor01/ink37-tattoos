@@ -114,11 +114,12 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Content-Security-Policy now set per-request by proxy.ts (nonce-based).
+        // The static CSP that used to live here was redundant and conflicted.
         source: '/sw.js',
         headers: [
           { key: 'Content-Type', value: 'application/javascript; charset=utf-8' },
           { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
-          { key: 'Content-Security-Policy', value: "default-src 'self'; script-src 'self'" },
         ],
       },
       { source: '/(.*)', headers: securityHeaders },

@@ -1,7 +1,9 @@
-import type { ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { inter, montserrat, pacifico, satisfy } from '../styles/fonts';
 import { Providers } from '@/components/providers';
+import { JsonLd } from '@/components/public/json-ld';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -100,6 +102,21 @@ const jsonLd = {
   },
 };
 
+/**
+ * Forwards the per-request nonce (set on x-nonce by proxy.ts) into the
+ * Providers tree so next-themes' inline theme-bootstrap script carries
+ * the matching CSP nonce. Without this, the browser blocks the bootstrap
+ * script and users with localStorage-saved theme preferences see the
+ * default theme regardless of their choice.
+ *
+ * Wrapped in <Suspense> per Cache Components rules: reading headers()
+ * makes this component dynamic.
+ */
+async function NonceWiredProviders({ children }: { children: ReactNode }) {
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
+  return <Providers nonce={nonce}>{children}</Providers>;
+}
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
@@ -108,20 +125,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       suppressHydrationWarning
     >
       <body className="min-h-screen antialiased">
-        {/*
-          dangerouslySetInnerHTML is the canonical pattern for JSON-LD per the
-          Next.js docs (https://nextjs.org/docs/app/guides/json-ld). React would
-          otherwise HTML-encode `<`, `>`, `&` inside the script tag, which
-          breaks crawler parsing. Safe here because:
-            - `jsonLd` is a hardcoded module-level const (lines 69-102)
-            - Zero user input or request data is interpolated
-            - `application/ld+json` declares the script as data, not executable JS
-        */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-        <Providers>{children}</Providers>
+        <JsonLd data={jsonLd} />
+        <Suspense fallback={null}>
+          <NonceWiredProviders>{children}</NonceWiredProviders>
+        </Suspense>
       </body>
     </html>
   );
