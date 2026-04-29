@@ -38,6 +38,11 @@ describe('proxy CSP + nonce', () => {
   });
 
   it('sets the x-nonce request header for downstream server components', () => {
+    // Next.js exposes request headers set via NextResponse.next({ request: { headers } })
+    // back to the caller as `x-middleware-request-${headerName}` on the response.
+    // This is an internal Next.js convention (see node_modules/next/dist/esm/server/
+    // web/spec-extension/response.js -- search for x-middleware-request). If the
+    // convention name changes in a future Next.js minor, update the sentinel below.
     const res = proxy(makeRequest('/'));
     const sentinel = res.headers.get('x-middleware-request-x-nonce');
     expect(sentinel).toBeTruthy();

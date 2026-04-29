@@ -29,6 +29,17 @@ function buildCSP(nonce: string): string {
   ].join('; ');
 }
 
+/**
+ * Skip the proxy on static assets and Next.js internals. CSP only needs to
+ * guard rendered HTML responses; running the proxy on every image / font /
+ * favicon / _next/static chunk wastes CPU per request with no security benefit.
+ */
+export const config = {
+  matcher: [
+    '/((?!_next/static|_next/image|favicon\\.ico|robots\\.txt|sitemap\\.xml|manifest\\.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf)$).*)',
+  ],
+};
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const sessionToken = request.cookies.get('better-auth.session_token');
@@ -43,6 +54,10 @@ export function proxy(request: NextRequest) {
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('callbackUrl', pathname);
       const redirectResponse = NextResponse.redirect(loginUrl);
+      // CSP on a 302 is functionally inert (browsers don't render bodies of
+      // redirects); the follow-up /login request is a fresh proxy invocation
+      // with its own nonce + CSP. Keep the header here as defense-in-depth so
+      // any user-agent that does inspect 3xx headers gets the policy too.
       redirectResponse.headers.set('Content-Security-Policy', cspHeader);
       return redirectResponse;
     }
@@ -52,6 +67,9 @@ export function proxy(request: NextRequest) {
   if (authPages.some((page) => pathname.startsWith(page))) {
     if (sessionToken) {
       const redirectResponse = NextResponse.redirect(new URL('/dashboard', request.url));
+      // See comment above: CSP on 3xx is defense-in-depth, the actual
+      // policy that governs /dashboard rendering comes from its own
+      // proxy pass.
       redirectResponse.headers.set('Content-Security-Policy', cspHeader);
       return redirectResponse;
     }
