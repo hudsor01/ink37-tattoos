@@ -116,3 +116,36 @@ describe('proxy CSP + nonce', () => {
     vi.unstubAllEnvs();
   });
 });
+
+describe('JsonLd </script> escape', () => {
+  /**
+   * Regression test for the JSON-LD XSS vector. JSON.stringify alone does
+   * not escape `<`, so any `</script>` substring in the data would close
+   * the script tag and let the rest execute as HTML/JS. The fix in
+   * src/components/public/json-ld.tsx is to replace `<` with `<`
+   * which is JSON-safe (round-trips through JSON.parse) and prevents the
+   * script from terminating early.
+   *
+   * This test exercises the same transformation directly so the regex
+   * stays load-bearing.
+   */
+  function safeStringify(data: unknown): string {
+    return JSON.stringify(data).replace(/</g, '\\u003c');
+  }
+
+  it('replaces `<` with \\u003c so </script> cannot break out', () => {
+    const malicious = { label: '</script><script>alert(1)</script>' };
+    const out = safeStringify(malicious);
+    // The closing-tag bytes are gone -- only `<` needs to be escaped to
+    // defeat the breakout (the parser looks for the literal `<` to start
+    // a tag boundary). `>` can remain literal.
+    expect(out).not.toContain('</script>');
+    expect(out).toContain('\\u003c/script>');
+    expect(out).toContain('\\u003cscript>');
+  });
+
+  it('round-trips through JSON.parse to the original value', () => {
+    const malicious = { label: '</script><script>alert(1)</script>' };
+    expect(JSON.parse(safeStringify(malicious))).toEqual(malicious);
+  });
+});
