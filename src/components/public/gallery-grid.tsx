@@ -101,7 +101,7 @@ export function GalleryClient({ initialDesigns }: GalleryClientProps) {
           </div>
         ) : (
           <m.div
-            className="columns-1 md:columns-2 lg:columns-3 gap-3"
+            className="columns-1 md:columns-2 lg:columns-3 gap-5"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -111,7 +111,7 @@ export function GalleryClient({ initialDesigns }: GalleryClientProps) {
               <m.div
                 key={design.id}
                 variants={itemVariants}
-                className="break-inside-avoid mb-3 cursor-pointer group"
+                className="break-inside-avoid mb-5 cursor-pointer group"
                 onClick={() => setLightboxIndex(index)}
                 role="button"
                 tabIndex={0}
@@ -122,17 +122,17 @@ export function GalleryClient({ initialDesigns }: GalleryClientProps) {
                   }
                 }}
               >
-                <div className="relative overflow-hidden rounded-lg transition-transform duration-200 ease-out group-hover:scale-[1.02]">
+                <div className="relative overflow-hidden rounded-lg bg-zinc-900 p-2 ring-1 ring-white/10 shadow-lg shadow-black/40 transition-transform duration-200 ease-out group-hover:scale-[1.02] group-hover:ring-white/20">
                   <Image
                     src={design.thumbnailUrl ?? design.fileUrl}
                     alt={design.name}
                     width={400}
                     height={0}
                     style={{ height: 'auto' }}
-                    className="w-full"
+                    className="w-full rounded-md"
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200" />
+                  <div className="pointer-events-none absolute inset-2 rounded-md bg-black/0 group-hover:bg-black/10 transition-colors duration-200" />
                 </div>
               </m.div>
             ))}

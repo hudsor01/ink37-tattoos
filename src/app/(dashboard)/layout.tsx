@@ -10,7 +10,6 @@ import {
   BreadcrumbItem,
   BreadcrumbPage,
 } from '@/components/ui/breadcrumb';
-import { ThemeToggle } from '@/components/dashboard/theme-toggle';
 import { NotificationBell } from '@/components/dashboard/notification-bell';
 import { PageTransition } from '@/components/page-transition';
 
@@ -26,7 +25,18 @@ const ADMIN_ROLES = ['admin', 'super_admin'];
  * admin role requirement.
  */
 async function AuthGuard({ children }: { children: React.ReactNode }) {
-  const session = await getCurrentSession();
+  // Wrap session lookup so a transient DB/Better-Auth failure surfaces as
+  // a redirect to /login (handled by the unauthorized boundary) rather
+  // than a 500. Without this, any throw here bubbles to the Suspense
+  // boundary as a render error and the user sees Vercel's generic
+  // function-failure page instead of the auth flow.
+  let session: Awaited<ReturnType<typeof getCurrentSession>> = null;
+  try {
+    session = await getCurrentSession();
+  } catch {
+    unauthorized();
+  }
+
   if (!session?.user) {
     unauthorized();
   }
@@ -53,7 +63,6 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
           </Breadcrumb>
           <div className="ml-auto flex items-center gap-2">
             <NotificationBell />
-            <ThemeToggle />
           </div>
         </header>
         <main className="p-6">

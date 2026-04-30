@@ -30,7 +30,13 @@ export function Providers({
   return (
     <NuqsAdapter>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} nonce={nonce}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          forcedTheme="dark"
+          enableSystem={false}
+          nonce={nonce}
+        >
           {children}
           <WebVitals />
           <Toaster position="bottom-right" richColors />
