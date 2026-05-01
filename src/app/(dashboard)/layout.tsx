@@ -1,6 +1,8 @@
 import { Suspense } from 'react';
-import { redirect, unauthorized } from 'next/navigation';
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { getCurrentSession } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { AdminNav } from '@/components/dashboard/admin-nav';
 import { Separator } from '@/components/ui/separator';
@@ -26,20 +28,33 @@ const ADMIN_ROLES = ['admin', 'super_admin'];
  */
 async function AuthGuard({ children }: { children: React.ReactNode }) {
   // Wrap session lookup so a transient DB/Better-Auth failure surfaces as
-  // a redirect to /login (handled by the unauthorized boundary) rather
-  // than a 500. Without this, any throw here bubbles to the Suspense
-  // boundary as a render error and the user sees Vercel's generic
-  // function-failure page instead of the auth flow.
+  // a redirect (handled below) rather than a 500. Without this, any throw
+  // here bubbles to the Suspense boundary as a render error and the user
+  // sees Vercel's generic function-failure page instead of the auth flow.
+  // We log the underlying error first so a real outage surfaces in pino
+  // (which Sentry ingests) instead of being silently rewritten to "please
+  // sign in" -- without that signal, an admin can't tell a flaky DB apart
+  // from an unauthenticated visitor.
   let session: Awaited<ReturnType<typeof getCurrentSession>> = null;
   try {
     session = await getCurrentSession();
-  } catch {
-    unauthorized();
+  } catch (error) {
+    logger.error(
+      { err: error, route: 'dashboard.AuthGuard' },
+      'getCurrentSession threw; redirecting to /login as a safe fallback'
+    );
   }
 
+  // Capture the originating path so the user lands back on the page they
+  // tried to visit after signing in. proxy.ts forwards x-next-pathname on
+  // the request headers; if it's missing (proxy not in the request chain
+  // for some reason) we fall back to the dashboard root.
   if (!session?.user) {
-    unauthorized();
+    const hdrs = await headers();
+    const pathname = hdrs.get('x-next-pathname') || '/dashboard';
+    redirect(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
   }
+
   if (!ADMIN_ROLES.includes(session.user.role)) {
     redirect('/portal');
   }

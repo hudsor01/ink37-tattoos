@@ -1,17 +1,21 @@
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 /**
- * Dashboard-segment unauthorized boundary. AuthGuard in
- * src/app/(dashboard)/layout.tsx calls unauthorized() when there is no
- * session; Next walks up looking for the nearest unauthorized.tsx and
- * the root one is fine, but anchoring it inside the segment makes the
- * resolution local and avoids any rendering-tree edge case.
+ * Dashboard-segment unauthorized boundary. The AuthGuard in
+ * src/app/(dashboard)/layout.tsx now handles unauthenticated visitors
+ * with a direct redirect, so this boundary is a defensive last-resort:
+ * if any nested server component or DAL helper inside the dashboard
+ * tree throws via unauthorized(), this catches it and routes the user
+ * through the auth flow rather than letting the throw bubble to the
+ * Suspense boundary as a 500.
  *
- * We redirect to /login with a callbackUrl so the user lands back on
- * the dashboard after signing in. (Returning a static 401 page also
- * works, but for an admin-only segment a forced login is the obvious
- * UX.)
+ * We read x-next-pathname (set by proxy.ts) so the user lands back on
+ * the page they tried to visit after signing in. Falls back to the
+ * dashboard root if the header is missing.
  */
-export default function DashboardUnauthorized() {
-  redirect('/login?callbackUrl=/dashboard');
+export default async function DashboardUnauthorized() {
+  const hdrs = await headers();
+  const pathname = hdrs.get('x-next-pathname') || '/dashboard';
+  redirect(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
 }

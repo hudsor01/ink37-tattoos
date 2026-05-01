@@ -77,8 +77,12 @@ export function proxy(request: NextRequest) {
 
   // Forward x-nonce so server components can read it via headers().
   // Set CSP on the response so the browser enforces it.
+  // Forward x-next-pathname so AuthGuards in (dashboard) and (portal)
+  // can build a callbackUrl that lands the user back on the page they
+  // were trying to visit, rather than the segment root.
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-nonce', nonce);
+  requestHeaders.set('x-next-pathname', pathname);
   requestHeaders.set('Content-Security-Policy', cspHeader);
 
   const response = NextResponse.next({

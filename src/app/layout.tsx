@@ -1,10 +1,23 @@
 import { Suspense, type ReactNode } from 'react';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { headers } from 'next/headers';
 import { inter, montserrat, pacifico, satisfy } from '../styles/fonts';
 import { Providers } from '@/components/providers';
 import { JsonLd } from '@/components/public/json-ld';
 import './globals.css';
+
+/**
+ * Viewport metadata is split from `metadata` per Next 14+ guidance --
+ * Next emits a deprecation warning if themeColor / viewport are set on
+ * the Metadata object instead. themeColor controls the mobile browser
+ * chrome (Safari address bar, Chrome status bar) so it must match the
+ * forced-dark page background or the brand identity breaks above the
+ * page content.
+ */
+export const viewport: Viewport = {
+  themeColor: '#000000',
+  colorScheme: 'dark',
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(

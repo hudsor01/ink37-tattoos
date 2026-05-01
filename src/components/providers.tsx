@@ -30,13 +30,17 @@ export function Providers({
   return (
     <NuqsAdapter>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          forcedTheme="dark"
-          enableSystem={false}
-          nonce={nonce}
-        >
+        {/*
+          forcedTheme="dark" pins the html class to "dark" regardless of
+          localStorage or system preference -- this site has no theme
+          toggle anywhere in the public surface, so honoring stored prefs
+          would only re-introduce the bug where a stale theme=light value
+          flipped the page to an unstyled light render. defaultTheme /
+          enableSystem are intentionally omitted: forcedTheme overrides
+          both, and including them would mislead readers into thinking
+          they were load-bearing.
+        */}
+        <ThemeProvider attribute="class" forcedTheme="dark" nonce={nonce}>
           {children}
           <WebVitals />
           <Toaster position="bottom-right" richColors />
