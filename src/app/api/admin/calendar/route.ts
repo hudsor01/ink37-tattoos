@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAppointmentsByDateRange } from '@/lib/dal/appointments';
 import { isFrameworkSignal } from '@/lib/auth-guard';
+import { logger } from '@/lib/logger';
 import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
 
 export async function GET(request: NextRequest) {
@@ -56,6 +57,7 @@ export async function GET(request: NextRequest) {
     // type) we no longer need it -- tests that want to simulate a
     // signal can attach the digest directly.
     if (isFrameworkSignal(error)) throw error;
+    logger.error({ err: error }, 'GET /api/admin/calendar failed');
     return NextResponse.json(
       { error: 'Failed to fetch appointments' },
       { status: 500 }

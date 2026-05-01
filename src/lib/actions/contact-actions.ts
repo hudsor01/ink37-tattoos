@@ -8,6 +8,7 @@ import { sendContactNotification } from '@/lib/email/resend';
 import { logAudit } from '@/lib/dal/audit';
 import { createNotificationForAdmins } from '@/lib/dal/notifications';
 import { getCurrentSession } from '@/lib/auth';
+import { isFrameworkSignal } from '@/lib/auth-guard';
 import { logger } from '@/lib/logger';
 import { after } from 'next/server';
 import { headers } from 'next/headers';
@@ -61,6 +62,7 @@ export async function submitContactForm(formData: FormData) {
 
     return { success: true as const };
   } catch (error) {
+    if (isFrameworkSignal(error)) throw error;
     logger.error({ err: error }, 'Contact form submission failed');
     return {
       success: false as const,
@@ -105,6 +107,7 @@ export async function updateContactNotesAction(
     revalidatePath('/dashboard/contacts');
     return { success: true, data: undefined };
   } catch (error) {
+    if (isFrameworkSignal(error)) throw error;
     logger.error({ err: error }, 'Update contact notes failed');
     return { success: false, error: 'Failed to update notes' };
   }
@@ -136,6 +139,7 @@ export async function deleteContactAction(
     revalidatePath('/dashboard/contacts');
     return { success: true, data: undefined };
   } catch (error) {
+    if (isFrameworkSignal(error)) throw error;
     logger.error({ err: error }, 'Delete contact failed');
     return { success: false, error: 'Failed to delete contact' };
   }

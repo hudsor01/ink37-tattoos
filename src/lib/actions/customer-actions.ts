@@ -5,6 +5,7 @@ import { CreateCustomerSchema, UpdateCustomerSchema } from '@/lib/security/valid
 import { createCustomer, updateCustomer, deleteCustomer, checkDuplicateEmails } from '@/lib/dal/customers';
 import { logAudit } from '@/lib/dal/audit';
 import { requireRole, getCurrentSession } from '@/lib/auth';
+import { isFrameworkSignal } from '@/lib/auth-guard';
 import { safeAction } from './safe-action';
 import type { ActionResult } from './types';
 import { after } from 'next/server';
@@ -184,12 +185,15 @@ export async function importCustomersAction(
       });
       imported++;
     } catch (err: unknown) {
-      // Skip rows that violate unique constraints (duplicate email)
-      if (err instanceof Error && err.message.includes('unique')) {
-        skipped++;
-      } else {
-        skipped++;
-      }
+      // Re-throw framework signals so a deeper redirect()/notFound()
+      // /unauthorized()/forbidden() doesn't get masked as a skipped row.
+      if (isFrameworkSignal(err)) throw err;
+      // Skip the row regardless of cause -- the previous if/else branches
+      // both incremented `skipped` so the unique-constraint check was
+      // dead code. If we ever need to differentiate "skipped because
+      // duplicate" vs "skipped because of error", split the counter
+      // into two fields and update the response shape.
+      skipped++;
     }
   }
 

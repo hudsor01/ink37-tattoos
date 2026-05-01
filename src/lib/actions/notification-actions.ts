@@ -1,6 +1,7 @@
 'use server';
 
 import { getCurrentSession } from '@/lib/auth';
+import { isFrameworkSignal } from '@/lib/auth-guard';
 import { unauthorized } from 'next/navigation';
 import { markAsRead, markAllAsRead } from '@/lib/dal/notifications';
 import { revalidatePath } from 'next/cache';
@@ -15,6 +16,7 @@ export async function markNotificationReadAction(notificationId: string) {
     revalidatePath('/dashboard/notifications');
     return { success: true as const, data: result };
   } catch (error) {
+    if (isFrameworkSignal(error)) throw error;
     logger.error({ err: error }, 'Failed to mark notification as read');
     return { success: false as const, error: 'Failed to mark notification as read' };
   }
@@ -29,6 +31,7 @@ export async function markAllNotificationsReadAction() {
     revalidatePath('/dashboard/notifications');
     return { success: true as const };
   } catch (error) {
+    if (isFrameworkSignal(error)) throw error;
     logger.error({ err: error }, 'Failed to mark all notifications as read');
     return { success: false as const, error: 'Failed to mark all notifications as read' };
   }

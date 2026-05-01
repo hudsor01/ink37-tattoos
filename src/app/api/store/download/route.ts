@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { eq, sql } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
+import { isFrameworkSignal } from '@/lib/auth-guard';
 import { env } from '@/lib/env';
 import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
 import { logger } from '@/lib/logger';
@@ -97,6 +98,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (err) {
+    if (isFrameworkSignal(err)) throw err;
     logger.error({ err }, 'Download error');
     return NextResponse.json(
       { error: 'Failed to serve download' },

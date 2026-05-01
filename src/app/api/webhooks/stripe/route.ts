@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { stripe, stripeCentsToDollars } from '@/lib/stripe';
+import { isFrameworkSignal } from '@/lib/auth-guard';
 import { db } from '@/lib/db';
 import { eq, and, or, sql } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
@@ -116,6 +117,7 @@ export async function POST(request: Request) {
     }
 
   } catch (err) {
+    if (isFrameworkSignal(err)) throw err;
     logger.error({ err, eventType: event.type }, 'Stripe webhook handler error');
     return NextResponse.json(
       { error: 'Handler failed' },

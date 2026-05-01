@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { updateArtistProfile } from '@/lib/dal/artists';
 import { logAudit } from '@/lib/dal/audit';
 import { getCurrentSession } from '@/lib/auth';
+import { isFrameworkSignal } from '@/lib/auth-guard';
 import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
@@ -58,6 +59,7 @@ export async function updateArtistProfileAction(
     revalidatePath('/dashboard/profile');
     return { success: true, data: undefined };
   } catch (error) {
+    if (isFrameworkSignal(error)) throw error;
     if (error instanceof z.ZodError) {
       const fieldErrors: Record<string, string[]> = {};
       for (const issue of error.issues) {

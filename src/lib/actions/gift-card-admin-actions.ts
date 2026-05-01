@@ -5,6 +5,7 @@ import { createGiftCard, deactivateGiftCard } from '@/lib/dal/gift-cards';
 import { sendGiftCardEmail } from '@/lib/email/resend';
 import { logAudit } from '@/lib/dal/audit';
 import { getCurrentSession } from '@/lib/auth';
+import { isFrameworkSignal } from '@/lib/auth-guard';
 import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
@@ -76,6 +77,7 @@ export async function issueGiftCardAction(data: {
     revalidatePath('/dashboard/gift-cards');
     return { success: true, data: { code: result.code, emailFailed } };
   } catch (error) {
+    if (isFrameworkSignal(error)) throw error;
     logger.error({ err: error }, 'Issue gift card failed');
     return { success: false, error: 'Failed to issue gift card' };
   }
@@ -104,6 +106,7 @@ export async function deactivateGiftCardAction(id: string): Promise<ActionResult
     revalidatePath('/dashboard/gift-cards');
     return { success: true, data: undefined };
   } catch (error) {
+    if (isFrameworkSignal(error)) throw error;
     logger.error({ err: error }, 'Deactivate gift card failed');
     return { success: false, error: 'Failed to deactivate gift card' };
   }

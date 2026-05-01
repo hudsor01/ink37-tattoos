@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
 import { eq, ilike } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
+import { isFrameworkSignal } from '@/lib/auth-guard';
 import { verifyCalSignature } from '@/lib/cal/verify';
 import type { CalBookingPayload } from '@/lib/cal/types';
 import { CalWebhookPayloadSchema } from '@/lib/security/validation';
@@ -93,6 +94,7 @@ export async function POST(request: Request) {
     logger.info({ triggerEvent: event.triggerEvent, uid: payload.uid }, 'Cal.com webhook processed');
     return NextResponse.json({ received: true });
   } catch (err) {
+    if (isFrameworkSignal(err)) throw err;
     logger.error({ err, triggerEvent: event.triggerEvent }, 'Cal.com webhook handler error');
     return NextResponse.json({ error: 'Handler failed' }, { status: 500 });
   }

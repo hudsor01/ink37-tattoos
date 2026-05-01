@@ -41,31 +41,42 @@ vi.mock('next/cache', () => ({
 }));
 
 // ---------------------------------------------------------------------------
-// next/navigation -- forbidden() / unauthorized() / redirect() throw
-// framework signals at runtime; mock as throws so DAL tests can assert
-// on them.
-//
-// IMPORTANT: these mocks throw bare `new Error(...)` WITHOUT a `digest`
-// property. The real next/navigation attaches `digest` (e.g.
-// "NEXT_HTTP_ERROR_FALLBACK;401") — that's what isFrameworkSignal()
-// in src/lib/auth-guard.ts checks for. So a test that wants to verify
-// re-throw behavior via isFrameworkSignal MUST attach the digest
-// directly via `Object.assign(new Error(), { digest: '...' })` rather
-// than relying on these mocks. See src/__tests__/auth-guard.test.ts
-// "re-throws Next.js framework signals" for the canonical pattern.
+// next/navigation -- redirect() / forbidden() / unauthorized() / notFound()
+// throw framework signals at runtime. The real next/navigation attaches a
+// `digest` property to the thrown error (e.g. "NEXT_HTTP_ERROR_FALLBACK;401",
+// "NEXT_REDIRECT;replace;/login;307;") -- that's what isFrameworkSignal()
+// in src/lib/auth-guard.ts checks for. These mocks attach the digest too
+// so any code under test that re-throws via isFrameworkSignal works
+// identically against the real and mocked navigation.
 // ---------------------------------------------------------------------------
 vi.mock('next/navigation', async () => {
   const actual = await vi.importActual<typeof import('next/navigation')>('next/navigation');
   return {
     ...actual,
+    // Attach `digest` to the thrown errors so they match the framework
+    // signal contract that production next/navigation uses (and that
+    // isFrameworkSignal() in src/lib/auth-guard.ts checks for). Without
+    // the digest, code under test that wraps these calls in try/catch
+    // and uses isFrameworkSignal would silently swallow the throw.
     redirect: vi.fn((url: string) => {
-      throw new Error(`NEXT_REDIRECT: ${url}`);
+      throw Object.assign(new Error(`NEXT_REDIRECT: ${url}`), {
+        digest: `NEXT_REDIRECT;replace;${url};307;`,
+      });
     }),
     forbidden: vi.fn(() => {
-      throw new Error('NEXT_HTTP_ERROR_FALLBACK;403');
+      throw Object.assign(new Error('NEXT_HTTP_ERROR_FALLBACK;403'), {
+        digest: 'NEXT_HTTP_ERROR_FALLBACK;403',
+      });
     }),
     unauthorized: vi.fn(() => {
-      throw new Error('NEXT_HTTP_ERROR_FALLBACK;401');
+      throw Object.assign(new Error('NEXT_HTTP_ERROR_FALLBACK;401'), {
+        digest: 'NEXT_HTTP_ERROR_FALLBACK;401',
+      });
+    }),
+    notFound: vi.fn(() => {
+      throw Object.assign(new Error('NEXT_NOT_FOUND'), {
+        digest: 'NEXT_NOT_FOUND',
+      });
     }),
   };
 });

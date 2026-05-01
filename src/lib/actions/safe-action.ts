@@ -30,25 +30,11 @@ export async function safeAction<T>(fn: () => Promise<T>): Promise<ActionResult<
     // 1. Re-throw Next.js framework signals so the framework can render
     //    the matching route convention (redirect, notFound, forbidden,
     //    unauthorized) and partial prerender abort signals can do their
-    //    job. Uses the shared isFrameworkSignal helper -- the previous
-    //    inline check missed HANGING_PROMISE_REJECTION and required two
-    //    branches (message-prefix + digest-prefix); the helper covers
-    //    every signal via the digest property convention.
+    //    job. The shared isFrameworkSignal helper covers every signal
+    //    via the digest property convention; setup.ts's next/navigation
+    //    mock attaches `digest` so test contexts go through the same
+    //    path as production.
     if (isFrameworkSignal(error)) throw error;
-
-    // Test contexts mock next/navigation to throw bare Errors with the
-    // signal name in the message but no digest property. Preserve the
-    // old message-prefix branch so existing test mocks continue to work
-    // until a follow-up updates them to attach a digest.
-    if (
-      error instanceof Error &&
-      (error.message === 'NEXT_REDIRECT' ||
-        error.message === 'NEXT_NOT_FOUND' ||
-        error.message.startsWith('NEXT_HTTP_ERROR_FALLBACK') ||
-        error.message.startsWith('NEXT_REDIRECT'))
-    ) {
-      throw error;
-    }
 
     // 2. Zod validation errors
     if (error instanceof z.ZodError) {

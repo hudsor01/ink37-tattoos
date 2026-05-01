@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { NextResponse } from 'next/server';
+import { isFrameworkSignal } from '@/lib/auth-guard';
 import { purgeOldNotifications } from '@/lib/dal/notifications';
 import { logger } from '@/lib/logger';
 import { env } from '@/lib/env';
@@ -134,6 +135,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result);
   } catch (error) {
+    if (isFrameworkSignal(error)) throw error;
     logger.error({ err: error }, 'Notification cleanup failed');
     return NextResponse.json(
       { error: 'Failed to cleanup notifications' },
