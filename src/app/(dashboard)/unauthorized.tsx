@@ -1,5 +1,6 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { safeCallbackUrl } from '@/lib/safe-callback';
 
 /**
  * Dashboard-segment unauthorized boundary. The AuthGuard in
@@ -10,12 +11,13 @@ import { redirect } from 'next/navigation';
  * through the auth flow rather than letting the throw bubble to the
  * Suspense boundary as a 500.
  *
- * We read x-next-pathname (set by proxy.ts) so the user lands back on
- * the page they tried to visit after signing in. Falls back to the
- * dashboard root if the header is missing.
+ * We read x-pathname (set by proxy.ts) so the user lands back on the
+ * page they tried to visit after signing in. safeCallbackUrl filters
+ * out the open-redirect / login-loop edge cases and falls back to the
+ * dashboard root.
  */
 export default async function DashboardUnauthorized() {
   const hdrs = await headers();
-  const pathname = hdrs.get('x-next-pathname') || '/dashboard';
-  redirect(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+  const target = safeCallbackUrl(hdrs.get('x-pathname'), '/dashboard');
+  redirect(`/login?callbackUrl=${encodeURIComponent(target)}`);
 }

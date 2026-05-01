@@ -34,6 +34,8 @@ Next.js 16, React 19, TypeScript, Tailwind 4, shadcn/ui, Drizzle ORM, Neon Postg
 - Drizzle `numeric()` returns strings — monetary columns use `mode: 'number'`
 - Drizzle mutations need explicit `.returning()`
 - Drizzle relational API (`db.query`) doesn't support aggregations — use the SQL builder (`db.select`)
+- AuthGuard pattern (see `src/app/(dashboard)/layout.tsx`, `src/app/(portal)/layout.tsx`): wrap `getCurrentSession()` in try/catch + `logger.error({ handled_via: 'authguard_fallback', ... })`, then read `headers().get('x-pathname')` (forwarded by `proxy.ts`) and run it through `safeCallbackUrl()` from `src/lib/safe-callback.ts` to build the `/login?callbackUrl=...` redirect. Never trust a callbackUrl from a query param or header without going through `safeCallbackUrl()` — it filters open-redirect (`//evil.com`), absolute-URL, and login-loop vectors.
+- The dark theme is forced via `forcedTheme="dark"` on the next-themes ThemeProvider in `src/components/providers.tsx`. There is no theme toggle anywhere; do not add one without removing the forcedTheme prop or the toggle will silently no-op.
 
 ## Planning
 

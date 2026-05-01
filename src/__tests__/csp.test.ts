@@ -117,6 +117,50 @@ describe('proxy CSP + nonce', () => {
   });
 });
 
+describe('proxy x-pathname forwarding', () => {
+  /**
+   * AuthGuards in (dashboard) and (portal) read x-pathname from the
+   * request headers to build a callbackUrl that lands the user back
+   * on the page they tried to visit. proxy.ts must forward the full
+   * pathname + search (so query state survives the auth flow).
+   *
+   * Tests use the same x-middleware-request- sentinel convention as
+   * the x-nonce test above. If a future refactor of proxy.ts drops
+   * the requestHeaders.set('x-pathname', ...) line, these tests fail
+   * loudly instead of letting the AuthGuards silently fall back.
+   */
+  it('forwards the request pathname on x-pathname', () => {
+    // Use a non-protected path so the proxy returns NextResponse.next()
+    // (which carries the x-middleware-request-* sentinel) rather than a
+    // 302 redirect (which doesn't expose request headers back to the test).
+    const res = proxy(makeRequest('/gallery/japanese'));
+    expect(res.headers.get('x-middleware-request-x-pathname')).toBe(
+      '/gallery/japanese'
+    );
+  });
+
+  it('includes search params so query state survives the auth round-trip', () => {
+    const res = proxy(makeRequest('/gallery?style=realism&page=2'));
+    expect(res.headers.get('x-middleware-request-x-pathname')).toBe(
+      '/gallery?style=realism&page=2'
+    );
+  });
+
+  it('forwards the root path as "/"', () => {
+    const res = proxy(makeRequest('/'));
+    expect(res.headers.get('x-middleware-request-x-pathname')).toBe('/');
+  });
+
+  it('uses the path+search variant in the protected-route redirect callbackUrl', () => {
+    // Unauthenticated /dashboard hit should redirect to /login with the
+    // full pathname (no search here, but verify the param is present).
+    const res = proxy(makeRequest('/dashboard'));
+    expect(res.status).toBe(307);
+    const location = res.headers.get('location');
+    expect(location).toContain('callbackUrl=%2Fdashboard');
+  });
+});
+
 describe('JsonLd </script> escape', () => {
   /**
    * Regression test for the JSON-LD XSS vector. JSON.stringify alone does

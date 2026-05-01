@@ -41,18 +41,25 @@ export const config = {
 };
 
 export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, search } = request.nextUrl;
   const sessionToken = request.cookies.get('better-auth.session_token');
+  // Combine path + query so AuthGuards can preserve filter/sort state
+  // when redirecting through the auth flow (e.g. /dashboard/orders?status=open
+  // → user signs in → lands back with the filter intact). Using a single
+  // header value keeps the safeCallbackUrl validator's surface tiny.
+  const pathWithSearch = `${pathname}${search}`;
 
   // Per-request nonce + CSP header. crypto.randomUUID() is the Node CSPRNG.
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   const cspHeader = buildCSP(nonce);
 
-  // Protected routes: redirect to login if no session cookie
+  // Protected routes: redirect to login if no session cookie. Use the
+  // path+search variant so a deep-linked /dashboard/orders?status=open
+  // round-trips through the auth flow with the query intact.
   if (protectedPrefixes.some((prefix) => pathname.startsWith(prefix))) {
     if (!sessionToken) {
       const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('callbackUrl', pathname);
+      loginUrl.searchParams.set('callbackUrl', pathWithSearch);
       const redirectResponse = NextResponse.redirect(loginUrl);
       // CSP on a 302 is functionally inert (browsers don't render bodies of
       // redirects); the follow-up /login request is a fresh proxy invocation
@@ -77,12 +84,15 @@ export function proxy(request: NextRequest) {
 
   // Forward x-nonce so server components can read it via headers().
   // Set CSP on the response so the browser enforces it.
-  // Forward x-next-pathname so AuthGuards in (dashboard) and (portal)
-  // can build a callbackUrl that lands the user back on the page they
-  // were trying to visit, rather than the segment root.
+  // Forward x-pathname (path + query string) so AuthGuards in (dashboard)
+  // and (portal) can build a callbackUrl that lands the user back on the
+  // exact page they were trying to visit, rather than the segment root.
+  // Header is namespaced `x-pathname` (not `x-next-pathname`) because
+  // there is no Next.js convention by that name -- callers should not
+  // assume the framework sets it.
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-nonce', nonce);
-  requestHeaders.set('x-next-pathname', pathname);
+  requestHeaders.set('x-pathname', pathWithSearch);
   requestHeaders.set('Content-Security-Policy', cspHeader);
 
   const response = NextResponse.next({

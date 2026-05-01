@@ -122,7 +122,7 @@ export function GalleryClient({ initialDesigns }: GalleryClientProps) {
                   }
                 }}
               >
-                <div className="relative overflow-hidden rounded-lg bg-zinc-900 p-2 ring-1 ring-white/10 shadow-lg shadow-black/40 transition-transform duration-200 ease-out group-hover:scale-[1.02] group-hover:ring-white/20">
+                <div className="relative overflow-hidden rounded-lg bg-zinc-900 p-2 ring-1 ring-white/10 shadow-lg shadow-black/40 transition-all duration-200 ease-out group-hover:scale-[1.02] group-hover:ring-white/20">
                   <Image
                     src={design.thumbnailUrl ?? design.fileUrl}
                     alt={design.name}

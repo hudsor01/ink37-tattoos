@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { signIn } from '@/lib/auth-client';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { safeCallbackUrl } from '@/lib/safe-callback';
 import {
   Card,
   CardContent,
@@ -28,18 +29,25 @@ export default function LoginPage() {
     const formData = new FormData(e.currentTarget);
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
-    const callbackUrl = searchParams.get('callbackUrl');
+    const rawCallback = searchParams.get('callbackUrl');
 
     await signIn.email({
       email,
       password,
-      callbackURL: callbackUrl?.startsWith('/') ? callbackUrl : '/dashboard',
+      // Validate before forwarding to Better Auth so a hand-crafted
+      // ?callbackUrl=//evil.com or ?callbackUrl=https://evil.com cannot
+      // trick a signed-in user into landing on an attacker-controlled
+      // page. safeCallbackUrl also rejects /login and /register so we
+      // can't loop the user back to the auth flow.
+      callbackURL: safeCallbackUrl(rawCallback, '/dashboard'),
     }, {
       onSuccess: (ctx) => {
-        // Route by role: admin/super_admin → dashboard, everyone else → portal
+        // Route by role: admin/super_admin → dashboard, everyone else → portal.
+        // The role-based fallback only applies when no safe callback was
+        // supplied; an explicit safe callbackUrl always wins.
         const role = ctx.data?.user?.role as string | undefined;
         const isAdmin = role === 'admin' || role === 'super_admin';
-        const target = callbackUrl?.startsWith('/') ? callbackUrl : (isAdmin ? '/dashboard' : '/portal');
+        const target = safeCallbackUrl(rawCallback, isAdmin ? '/dashboard' : '/portal');
         window.location.href = target;
       },
       onError: (ctx) => {
