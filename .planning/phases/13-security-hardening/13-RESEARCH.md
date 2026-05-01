@@ -153,7 +153,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   if (!session?.user) {
     const hdrs = await headers();
-    const pathname = hdrs.get('x-next-pathname') || '/dashboard';
+    const pathname = hdrs.get('x-pathname') || '/dashboard';
     redirect(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
   }
 
@@ -523,10 +523,10 @@ If future phases add Resend-triggered mutations (e.g., automatically marking ema
    - What's unclear: Whether to also upgrade Better Auth's rate limiting storage to persistent (currently defaults to in-memory in serverless)
    - Recommendation: If Upstash Redis is being added anyway, configure Better Auth to use it as `secondaryStorage` for session caching AND rate limiting. This is a bonus hardening step, not strictly required by SEC-01 through SEC-10.
 
-3. **x-next-pathname Header Availability**
+3. **x-pathname Header Availability**
    - What we know: Need the current URL path to construct callbackUrl for redirect
-   - What's unclear: Whether `x-next-pathname` header is available in Next.js 16 server components without middleware
-   - Recommendation: Use `headers()` to check for `x-next-pathname` or `x-invoke-path`. If unavailable, fall back to a hardcoded default (`/dashboard` or `/portal`). Alternatively, use `usePathname` in a client wrapper, but layout-level redirect in server component is preferred.
+   - What's unclear: Whether `x-pathname` header is available in Next.js 16 server components without middleware
+   - Recommendation: Use `headers()` to check for `x-pathname` or `x-invoke-path`. If unavailable, fall back to a hardcoded default (`/dashboard` or `/portal`). Alternatively, use `usePathname` in a client wrapper, but layout-level redirect in server component is preferred.
 
 ## Environment Availability
 

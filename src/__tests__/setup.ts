@@ -7,6 +7,17 @@
 import { vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
+// `server-only` -- Next.js's compile-time marker that throws if imported
+// from a Client Component. Vitest treats every test file as a "client"
+// module, so any module that does `import 'server-only'` (e.g.
+// src/lib/auth-guard.ts, src/lib/auth.ts) explodes before the test
+// body runs. Replace with a no-op so server-side modules are importable
+// from tests. The marker has no runtime behavior we care about; the
+// real check happens at build time via Next's bundler.
+// ---------------------------------------------------------------------------
+vi.mock('server-only', () => ({}));
+
+// ---------------------------------------------------------------------------
 // @upstash/ratelimit + @upstash/redis -- not available in CI without env vars.
 // Must be mocked before any module imports rate-limiter.ts.
 // ---------------------------------------------------------------------------

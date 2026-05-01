@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAppointmentsByDateRange } from '@/lib/dal/appointments';
+import { isFrameworkSignal } from '@/lib/auth-guard';
 import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
 
 export async function GET(request: NextRequest) {
@@ -42,16 +43,19 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ appointments: serialized });
   } catch (error) {
-    // Re-throw forbidden() / unauthorized() so Next maps them to 403 / 401.
-    // Match on the public digest shape, with message-prefix as a fallback for
-    // test contexts that throw a bare Error without setting digest.
-    const digest = (error as { digest?: string } | null)?.digest;
-    if (
-      (typeof digest === 'string' && digest.startsWith('NEXT_HTTP_ERROR_FALLBACK')) ||
-      (error instanceof Error && error.message.startsWith('NEXT_HTTP_ERROR_FALLBACK'))
-    ) {
-      throw error;
-    }
+    // Re-throw all Next.js framework signals so the framework can map
+    // them to the right HTTP semantics: NEXT_HTTP_ERROR_FALLBACK from
+    // unauthorized()/forbidden() (401/403), NEXT_REDIRECT from
+    // redirect() (307), NEXT_NOT_FOUND from notFound() (404), and
+    // HANGING_PROMISE_REJECTION from any prerender abort. The previous
+    // version of this catch only re-threw NEXT_HTTP_ERROR_FALLBACK and
+    // would silently 500 on a redirect() or notFound() emitted from
+    // deeper in the DAL chain. The message-prefix branch was a
+    // workaround for test contexts that throw a bare Error; with
+    // isFrameworkSignal's structural check (digest property + string
+    // type) we no longer need it -- tests that want to simulate a
+    // signal can attach the digest directly.
+    if (isFrameworkSignal(error)) throw error;
     return NextResponse.json(
       { error: 'Failed to fetch appointments' },
       { status: 500 }

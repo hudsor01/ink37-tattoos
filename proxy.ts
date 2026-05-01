@@ -93,6 +93,12 @@ export function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-nonce', nonce);
   requestHeaders.set('x-pathname', pathWithSearch);
+  // CSP on the *request* headers is functionally inert as far as the
+  // browser is concerned -- only the response-side header below
+  // governs script execution. We set it on the request too so server
+  // components can read the policy via headers() if they ever need to
+  // (e.g., to mirror it on a Response constructed in a route handler).
+  // Don't remove without auditing for header() readers.
   requestHeaders.set('Content-Security-Policy', cspHeader);
 
   const response = NextResponse.next({
