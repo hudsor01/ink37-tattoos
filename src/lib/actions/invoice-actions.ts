@@ -1,6 +1,7 @@
 'use server';
 
 import { requireRole } from '@/lib/auth';
+import { isFrameworkSignal } from '@/lib/auth-guard';
 import { safeAction } from './safe-action';
 import type { ActionResult } from './types';
 import { getPaymentWithDetails } from '@/lib/dal/payments';
@@ -52,15 +53,23 @@ export async function emailInvoiceAction(
       payment.tattooSession?.designDescription ?? 'Tattoo Session';
     const invoiceNumber = `INV-${paymentId.slice(0, 8).toUpperCase()}`;
 
-    // Fetch invoice terms from settings
+    // Fetch invoice terms from settings. Falling back to a hardcoded
+    // default on a real DB error is intentional (terms aren't critical
+    // for invoice generation); but framework signals must still
+    // propagate so a deeper unauthorized()/forbidden()/notFound()
+    // doesn't get masked. The action is admin-gated upstream so this
+    // is defense-in-depth, but the silent swallow shouldn't be a
+    // safety property load-bearing on the upstream guard staying
+    // admin-only.
     let terms = 'Payment received. Thank you.';
     try {
       const termsSetting = await getSettingByKey('invoice_terms');
       if (termsSetting?.value) {
         terms = String(termsSetting.value);
       }
-    } catch {
-      // Use default terms if settings fetch fails
+    } catch (err) {
+      if (isFrameworkSignal(err)) throw err;
+      // fall through to default terms
     }
 
     // Build invoice HTML inline
