@@ -35,6 +35,10 @@ export function dropFrameworkSignals(
   const original = hint.originalException as { digest?: unknown } | undefined;
   const digest = original?.digest;
   if (typeof digest === 'string') {
+    // HANGING_PROMISE_REJECTION uses === because the digest is the bare
+    // string with no suffix. The other three carry a `;<arg>` suffix
+    // (e.g. "NEXT_REDIRECT;replace;/login;307;",
+    // "NEXT_HTTP_ERROR_FALLBACK;404") so startsWith is the right shape.
     if (
       digest === 'HANGING_PROMISE_REJECTION' ||
       digest.startsWith('NEXT_REDIRECT') ||
@@ -56,6 +60,12 @@ export function dropFrameworkSignals(
  * its message is human-readable text that doesn't contain the digest
  * substring.
  */
+// 'NEXT_NOT_FOUND' is kept as defensive coverage even though Next 16.2.3
+// constructs notFound() throws as `NEXT_HTTP_ERROR_FALLBACK;404` (see
+// node_modules/next/dist/client/components/not-found.js). Sentry's own
+// nextNavigationErrorUtils still tests for this shape, and an older Next
+// path or Sentry-internal re-construction could surface it. Don't strip
+// without confirming both Sentry and the deployed Next version agree.
 const FRAMEWORK_SIGNAL_NAMES = [
   'NEXT_NOT_FOUND',
   'NEXT_REDIRECT',
