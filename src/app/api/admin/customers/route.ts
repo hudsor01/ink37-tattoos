@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getCurrentSession } from '@/lib/auth';
+import { isFrameworkSignal } from '@/lib/auth-guard';
 import { getCustomers } from '@/lib/dal/customers';
 import { logger } from '@/lib/logger';
 import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
@@ -25,6 +26,11 @@ export async function GET(request: Request) {
     const customers = await getCustomers();
     return NextResponse.json(customers);
   } catch (err) {
+    // Re-throw Next.js framework signals (NEXT_REDIRECT, NEXT_NOT_FOUND,
+    // NEXT_HTTP_ERROR_FALLBACK from forbidden()/unauthorized()) so the
+    // framework can map them to the right HTTP semantics. Without this,
+    // a forbidden() throw deeper in the DAL would silently 500.
+    if (isFrameworkSignal(err)) throw err;
     logger.error({ err }, 'GET /api/admin/customers failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

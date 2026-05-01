@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getCurrentSession } from '@/lib/auth';
+import { isFrameworkSignal } from '@/lib/auth-guard';
 import { getAppointments } from '@/lib/dal/appointments';
 import { logger } from '@/lib/logger';
 import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
@@ -25,6 +26,7 @@ export async function GET(request: Request) {
     const appointments = await getAppointments();
     return NextResponse.json(appointments);
   } catch (err) {
+    if (isFrameworkSignal(err)) throw err;
     logger.error({ err }, 'GET /api/admin/appointments failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

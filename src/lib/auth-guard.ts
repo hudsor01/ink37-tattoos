@@ -24,12 +24,19 @@ import { safeCallbackUrl } from '@/lib/safe-callback';
  *     Error, isRedirectError) couples us to module paths that move
  */
 export function isFrameworkSignal(error: unknown): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'digest' in error &&
-    typeof (error as { digest: unknown }).digest === 'string'
-  );
+  if (typeof error !== 'object' || error === null) return false;
+  if (!('digest' in error)) return false;
+  // Defensive: read the digest inside a try/catch so a pathological
+  // error object that defines `digest` as a throwing getter doesn't
+  // explode this typeguard. The cost is one extra try/catch per
+  // exception path; the win is that the helper is genuinely safe to
+  // call from any catch block, including ones wrapping unknown
+  // third-party throws.
+  try {
+    return typeof (error as { digest: unknown }).digest === 'string';
+  } catch {
+    return false;
+  }
 }
 
 interface RequireAuthSessionOptions {

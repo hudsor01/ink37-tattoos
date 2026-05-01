@@ -1,6 +1,7 @@
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { NextResponse } from 'next/server';
 import { getCurrentSession } from '@/lib/auth';
+import { isFrameworkSignal } from '@/lib/auth-guard';
 import { logger } from '@/lib/logger';
 import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
 
@@ -42,6 +43,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(jsonResponse);
   } catch (err) {
+    if (isFrameworkSignal(err)) throw err;
     logger.error({ err }, 'POST /api/upload/token failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

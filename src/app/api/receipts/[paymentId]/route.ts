@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getCurrentSession } from '@/lib/auth';
+import { isFrameworkSignal } from '@/lib/auth-guard';
 import { getPaymentWithDetails } from '@/lib/dal/payments';
+import { logger } from '@/lib/logger';
 import { renderReceiptHtml } from '@/lib/receipt-template';
 
 const STIRLING_PDF_URL = 'https://pdf.thehudsonfam.com/api/v1/convert/html/pdf';
@@ -17,12 +19,25 @@ export async function GET(
 
   const { paymentId } = await params;
 
-  // Fetch payment via DAL (includes auth + relations)
+  // Fetch payment via DAL (includes auth + relations).
+  // Re-throw framework signals so unauthorized()/forbidden()/notFound()
+  // emitted from inside the DAL get the right HTTP status (the
+  // previous version coerced *every* exception — including a real
+  // DB outage — into a 401, hiding outages from operators and
+  // misreporting forbidden as unauthorized).
   let payment;
   try {
     payment = await getPaymentWithDetails(paymentId);
-  } catch {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  } catch (err) {
+    if (isFrameworkSignal(err)) throw err;
+    logger.error(
+      { err, paymentId, route: 'receipts/[paymentId]' },
+      'getPaymentWithDetails failed'
+    );
+    return NextResponse.json(
+      { error: 'Failed to fetch payment' },
+      { status: 500 }
+    );
   }
 
   if (!payment) {

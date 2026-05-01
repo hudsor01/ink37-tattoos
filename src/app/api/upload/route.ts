@@ -1,6 +1,7 @@
 import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 import { getCurrentSession } from '@/lib/auth';
+import { isFrameworkSignal } from '@/lib/auth-guard';
 import { logger } from '@/lib/logger';
 import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
 
@@ -48,6 +49,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: blob.url, pathname: blob.pathname });
   } catch (err) {
+    if (isFrameworkSignal(err)) throw err;
     logger.error({ err }, 'POST /api/upload failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

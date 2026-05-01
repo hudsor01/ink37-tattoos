@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { getCurrentSession } from '@/lib/auth';
+import { isFrameworkSignal } from '@/lib/auth-guard';
 import { getMediaItems, type MediaApprovalStatus } from '@/lib/dal/media';
 import { logger } from '@/lib/logger';
 import { rateLimiters, getRequestIp, rateLimitResponse } from '@/lib/security/rate-limiter';
@@ -35,6 +36,7 @@ export async function GET(request: NextRequest) {
     const media = await getMediaItems({ page, pageSize, search, tag, approvalStatus });
     return NextResponse.json(media);
   } catch (err) {
+    if (isFrameworkSignal(err)) throw err;
     logger.error({ err }, 'GET /api/admin/media failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

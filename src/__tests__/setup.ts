@@ -41,8 +41,18 @@ vi.mock('next/cache', () => ({
 }));
 
 // ---------------------------------------------------------------------------
-// next/navigation -- forbidden() / unauthorized() throw NEXT_HTTP_ERROR_FALLBACK
-// at runtime; mock as throws so DAL tests can assert on them.
+// next/navigation -- forbidden() / unauthorized() / redirect() throw
+// framework signals at runtime; mock as throws so DAL tests can assert
+// on them.
+//
+// IMPORTANT: these mocks throw bare `new Error(...)` WITHOUT a `digest`
+// property. The real next/navigation attaches `digest` (e.g.
+// "NEXT_HTTP_ERROR_FALLBACK;401") — that's what isFrameworkSignal()
+// in src/lib/auth-guard.ts checks for. So a test that wants to verify
+// re-throw behavior via isFrameworkSignal MUST attach the digest
+// directly via `Object.assign(new Error(), { digest: '...' })` rather
+// than relying on these mocks. See src/__tests__/auth-guard.test.ts
+// "re-throws Next.js framework signals" for the canonical pattern.
 // ---------------------------------------------------------------------------
 vi.mock('next/navigation', async () => {
   const actual = await vi.importActual<typeof import('next/navigation')>('next/navigation');

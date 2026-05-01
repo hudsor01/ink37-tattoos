@@ -2,6 +2,7 @@
 
 import { z } from 'zod';
 import type { ActionResult } from './types';
+import { isFrameworkSignal } from '@/lib/auth-guard';
 import { logger } from '@/lib/logger';
 
 /**
@@ -26,28 +27,27 @@ export async function safeAction<T>(fn: () => Promise<T>): Promise<ActionResult<
     const data = await fn();
     return { success: true, data };
   } catch (error: unknown) {
-    // 1. Re-throw Next.js internal errors so the framework can render the
-    //    matching route convention (redirect, notFound, forbidden, unauthorized).
-    if (error instanceof Error) {
-      if (
-        error.message === 'NEXT_REDIRECT' ||
-        error.message === 'NEXT_NOT_FOUND' ||
-        error.message.startsWith('NEXT_HTTP_ERROR_FALLBACK')
-      ) {
-        throw error;
-      }
+    // 1. Re-throw Next.js framework signals so the framework can render
+    //    the matching route convention (redirect, notFound, forbidden,
+    //    unauthorized) and partial prerender abort signals can do their
+    //    job. Uses the shared isFrameworkSignal helper -- the previous
+    //    inline check missed HANGING_PROMISE_REJECTION and required two
+    //    branches (message-prefix + digest-prefix); the helper covers
+    //    every signal via the digest property convention.
+    if (isFrameworkSignal(error)) throw error;
 
-      // Also handle Next.js digest-based detection (used in some Next.js versions)
-      if ('digest' in error && typeof (error as Record<string, unknown>).digest === 'string') {
-        const digest = (error as Record<string, unknown>).digest as string;
-        if (
-          digest.startsWith('NEXT_REDIRECT') ||
-          digest.startsWith('NEXT_NOT_FOUND') ||
-          digest.startsWith('NEXT_HTTP_ERROR_FALLBACK')
-        ) {
-          throw error;
-        }
-      }
+    // Test contexts mock next/navigation to throw bare Errors with the
+    // signal name in the message but no digest property. Preserve the
+    // old message-prefix branch so existing test mocks continue to work
+    // until a follow-up updates them to attach a digest.
+    if (
+      error instanceof Error &&
+      (error.message === 'NEXT_REDIRECT' ||
+        error.message === 'NEXT_NOT_FOUND' ||
+        error.message.startsWith('NEXT_HTTP_ERROR_FALLBACK') ||
+        error.message.startsWith('NEXT_REDIRECT'))
+    ) {
+      throw error;
     }
 
     // 2. Zod validation errors
