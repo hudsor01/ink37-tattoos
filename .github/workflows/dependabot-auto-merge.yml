@@ -38,7 +38,7 @@ jobs:
       # dependency-type (direct:development / direct:production / etc.)
       # so the conditionals below can decide whether to auto-merge.
       - id: meta
-        uses: dependabot/fetch-metadata@v2
+        uses: dependabot/fetch-metadata@v3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
