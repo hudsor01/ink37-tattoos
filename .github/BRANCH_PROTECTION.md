@@ -1,87 +1,193 @@
-# Branch protection — recommended settings for `main`
+# Branch protection — recommended setup for `main`
 
-This file documents the GitHub branch-protection settings the maintainer
-should apply via the repo Settings UI (or `gh api`). Some of these
-require admin access and can't be set from a PR's code changes.
+This file documents the recommended GitHub-side configuration for the
+`main` branch. Some of these settings can't be set from a PR's code
+changes — they live in GitHub's own database and require API or UI
+access.
 
-The current state and the gaps are explained inline so you can adopt
-them incrementally.
+The recommendation here is to use **Repository Rulesets** rather than
+classic branch protection rules. Rulesets are GitHub's modern path
+forward (see Research below) and avoid a hard footgun specific to
+solo-maintainer repositories.
 
-## Apply via GitHub UI
+## The solo-maintainer footgun
 
-Settings → Branches → Branch protection rules → `main` → Edit
+GitHub does NOT allow a pull-request author to approve their own PR
+under any configuration:
 
-| Setting                                          | Recommended            | Current  | Why                                                                    |
-| ------------------------------------------------ | ---------------------- | -------- | ---------------------------------------------------------------------- |
-| Require a pull request before merging            | **on**                 | off      | Forces every change through a PR; no surprise direct pushes to `main`. |
-| ↳ Require approvals                              | **1**                  | 0        | At minimum a self-review checkbox; pairs with CODEOWNERS for routing.  |
-| ↳ Dismiss stale approvals on new commits         | **on**                 | off      | Re-review when the diff changes after approval.                        |
-| ↳ Require review from Code Owners                | **on**                 | off      | The new `.github/CODEOWNERS` routes auth/db/CI changes to you.         |
-| Require status checks to pass before merging     | **on**                 | on       | Already on.                                                            |
-| ↳ Require branches to be up to date              | **on**                 | on       | Already on.                                                            |
-| ↳ Required check                                 | **`ci`**               | `ci`     | Already required. The new umbrella job in `ci.yml` now actually emits this check (previously the rule waited on a check name that no job reported, hence the `Bypassed rule violations` warnings on every push). |
-| Require conversation resolution before merging   | **on**                 | off      | Stops "merged with unresolved comments" mistakes.                      |
-| Require signed commits                           | optional               | off      | Worth enabling if you set up a signing key; not required for safety.   |
-| Require linear history                           | **on**                 | off      | Forces squash/rebase; merge-commit clutter is real.                    |
-| Do not allow bypassing the above settings        | **on**                 | off      | This is `enforce_admins`. Without it, you (admin) silently bypass everything. |
-| Restrict who can push to matching branches       | optional               | off      | If `Require PR` is on, this is largely redundant.                      |
-| Allow force pushes                               | **off**                | off      | Already off.                                                           |
-| Allow deletions                                  | **off**                | off      | Already off.                                                           |
+> Pull request authors can't approve their own pull request — even
+> when they are repository owners/admins.
+> — [Graphite — PR approval permissions and rules](https://graphite.com/guides/pull-request-approval-permissions-rules-github)
 
-## Apply via `gh api` (one shot)
+> Self-approval remains impossible. GitHub will not count owners as
+> automatic reviewers or allow them to approve their own PRs under
+> any configuration.
+> — [GitHub Community Discussion #150545](https://github.com/orgs/community/discussions/150545)
 
-If you'd rather flip everything at once:
+For a single-maintainer repository this means: if you set
+`required_approving_review_count: 1` (or higher), you lock yourself
+out of merging your own PRs forever. There is no second reviewer.
+
+The clean solution is `required_approving_review_count: 0` — the PR
+flow is still mandatory (so direct-to-`main` pushes are blocked, CI
+must pass, conversation threads must resolve), but no approval is
+required for merge.
+
+## Why rulesets, not classic branch protection
+
+> Multiple rulesets can apply at the same time, so you can be
+> confident that every rule targeting a branch in your repository
+> will be evaluated. In contrast, only a single branch protection
+> rule can apply at a time.
+> — [GitHub Docs: About rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets)
+
+Rulesets:
+
+- Stack (multiple can apply simultaneously)
+- Cover more rule types (commit metadata, branch naming, file paths)
+- Apply to tags and wildcards, not just single branches
+- Have a status (active / disabled / evaluate) so you can experiment
+- Don't need an `enforce_admins` flag — the bypass list is the
+  explicit allowlist, and an empty list means nobody bypasses
+
+Classic branch protection still works but is the legacy path. You
+shouldn't need both. Apply the ruleset, then delete the classic rule
+to avoid two-rules-stacking confusion.
+
+## Apply the ruleset (recommended)
+
+Run this once after PR #15 merges. It creates the ruleset on `main`
+with PR-required + CI-required + linear-history + force-push-blocked
++ deletion-blocked, with no bypass actors:
 
 ```bash
-gh api -X PUT repos/hudsor01/ink37-tattoos/branches/main/protection \
+gh api -X POST repos/hudsor01/ink37-tattoos/rulesets \
   --input - <<'JSON'
 {
-  "required_status_checks": {
-    "strict": true,
-    "checks": [{ "context": "ci", "app_id": 15368 }]
+  "name": "main protection",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "include": ["~DEFAULT_BRANCH"],
+      "exclude": []
+    }
   },
-  "enforce_admins": true,
-  "required_pull_request_reviews": {
-    "dismiss_stale_reviews": true,
-    "require_code_owner_reviews": true,
-    "required_approving_review_count": 1,
-    "require_last_push_approval": false
-  },
-  "required_conversation_resolution": true,
-  "required_linear_history": true,
-  "allow_force_pushes": false,
-  "allow_deletions": false,
-  "block_creations": false,
-  "required_signatures": false,
-  "restrictions": null
+  "rules": [
+    { "type": "deletion" },
+    { "type": "non_fast_forward" },
+    { "type": "required_linear_history" },
+    {
+      "type": "pull_request",
+      "parameters": {
+        "required_approving_review_count": 0,
+        "dismiss_stale_reviews_on_push": true,
+        "require_code_owner_review": false,
+        "require_last_push_approval": false,
+        "required_review_thread_resolution": true,
+        "allowed_merge_methods": ["squash", "rebase"]
+      }
+    },
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict_required_status_checks_policy": true,
+        "required_status_checks": [
+          { "context": "ci", "integration_id": 15368 }
+        ]
+      }
+    }
+  ],
+  "bypass_actors": []
 }
 JSON
 ```
 
-`enforce_admins: true` and `required_pull_request_reviews.required_approving_review_count: 1` are the two settings that close the "admin direct-push to main with no review" loophole. As a solo maintainer you can self-approve via the GitHub UI; the friction is intentional and surfaces in code review when a second person eventually joins.
+Then delete the legacy branch protection so two rules don't stack:
+
+```bash
+gh api -X DELETE repos/hudsor01/ink37-tattoos/branches/main/protection
+```
+
+## What each rule enforces
+
+| Rule                                  | Effect                                                                                                              |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `deletion`                            | Branch can't be deleted.                                                                                            |
+| `non_fast_forward`                    | Force-pushes blocked.                                                                                               |
+| `required_linear_history`             | Squash/rebase only — no merge commits.                                                                              |
+| `pull_request`                        | All changes must come through a PR (no direct-push to `main`, even by you).                                         |
+| `required_approving_review_count: 0`  | No approval required for merge — solves the self-approval impossibility.                                            |
+| `dismiss_stale_reviews_on_push: true` | If a future contributor adds reviews, they're dismissed when a new push lands.                                      |
+| `require_code_owner_review: false`    | CODEOWNERS still auto-assigns reviewers (visibility/routing) but doesn't block — required because you can't be your own code-owner reviewer. |
+| `required_review_thread_resolution`   | Conversation threads must resolve before merge — no "merged with unresolved comments."                              |
+| `allowed_merge_methods: [squash, rebase]` | Merge-commit option disabled, matches `required_linear_history`.                                                |
+| `required_status_checks` (`ci`)       | The umbrella `ci` job from `.github/workflows/ci.yml` must pass before merge.                                       |
+| `strict_required_status_checks_policy`| Branch must be up-to-date with `main` before merge (forces rebase if main moved).                                   |
+| `bypass_actors: []` + `enforcement: active` | Nobody bypasses, including you. The lack of an `enforce_admins` toggle is intentional — rulesets enforce on everyone except listed bypass actors. |
+
+## Available bypass actors (for future reference)
+
+The `bypass_actors` array can include the following per the
+[GitHub REST API: Repository rules](https://docs.github.com/en/rest/repos/rules?apiVersion=2022-11-28):
+
+- `Integration` — a GitHub App, by `actor_id`
+- `OrganizationAdmin` — N/A for personal repos
+- `RepositoryRole` — by numeric role ID (built-in or custom)
+- `Team` — by team `actor_id`
+- `DeployKey`
+
+`bypass_mode` can be `always` (bypass on every action), `pull_request`
+(must still open a PR but can self-merge), or `exempt`.
+
+**Individual users cannot be bypass actors directly.** This is by
+design — bypass is granted to roles or apps, not specific people.
 
 ## Verifying the new `ci` umbrella check
 
-After this PR merges, the next push or PR will trigger the updated workflow. Confirm the new umbrella works:
+After PR #15 merges, the next push or PR will trigger the updated
+workflow. Confirm the new umbrella works:
 
 ```bash
 # Latest run on main
 gh run list --branch main --limit 1
 
-# Inspect the jobs of that run -- there should be a `ci` job alongside changes/lint/test/build
+# Inspect the jobs of that run -- you should see changes/lint/typecheck/test/build/ci
 gh run view <run-id> --json jobs --jq '.jobs[].name'
 
-# Confirm branch protection sees `ci` as the satisfied required check
-gh api repos/hudsor01/ink37-tattoos/branches/main/protection/required_status_checks --jq '.checks'
+# Confirm the active ruleset's required check
+gh api repos/hudsor01/ink37-tattoos/rulesets --jq '.[] | select(.name == "main protection") | .id' \
+  | xargs -I {} gh api repos/hudsor01/ink37-tattoos/rulesets/{} --jq '.rules[] | select(.type == "required_status_checks")'
 ```
 
-If `gh run view` shows `ci` and it's `success`, branch protection's required check is genuinely met for the first time. The `Bypassed rule violations for refs/heads/main` warnings should stop appearing on subsequent pushes.
+If `gh run view` shows `ci` and it's `success`, branch protection's
+required check is genuinely met.
 
 ## Why this didn't surface earlier
 
-Every prior merge to `main` went through a PR (PRs #12, #13, #14). The PR UI blocks the "merge" button until required checks pass, but it surfaces required checks by name — and since `ci` was never reported by any job, the PR UI showed it as "Expected — Waiting for status" indefinitely. The PRs were merged anyway because:
+Every prior merge to `main` went through a PR (PRs #12, #13, #14). The
+PR UI blocks the "merge" button until required checks pass, but it
+surfaces required checks by name — and since `ci` was never reported
+by any job, the PR UI showed it as "Expected — Waiting for status"
+indefinitely. The PRs were merged anyway because:
 
-1. `enforce_admins: false` lets admins click the merge button despite missing checks (the `Bypassed rule violations` line in the push response is GitHub logging that bypass).
-2. The actual workflow `lint`/`test`/`build` jobs all passed each time, so it *looked* like CI was green even though the branch protection rule was never actually satisfied.
+1. `enforce_admins: false` lets admins click the merge button despite
+   missing checks. The `Bypassed rule violations` line in the push
+   response is GitHub logging that bypass.
+2. The actual workflow `lint`/`test`/`build` jobs all passed each
+   time, so it *looked* like CI was green even though the branch
+   protection rule was never actually satisfied.
 
-The umbrella `ci` job + `enforce_admins: true` combination closes this loop: the required check exists for real, and admins can no longer bypass it.
+The umbrella `ci` job + the rulesets-based config above closes this
+loop: the required check exists for real, and there's no bypass list
+for the ruleset, so even an admin direct-push would fail.
+
+## Research / citations
+
+- [GitHub Docs — About rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets)
+- [GitHub Docs — Available rules for rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets)
+- [GitHub Docs — Creating rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/creating-rulesets-for-a-repository)
+- [GitHub REST API — Repository rules](https://docs.github.com/en/rest/repos/rules?apiVersion=2022-11-28)
+- [GitHub Community Discussion #150545 — Repository owner merging own PRs](https://github.com/orgs/community/discussions/150545)
+- [Graphite — PR approval permissions and rules](https://graphite.com/guides/pull-request-approval-permissions-rules-github)
+- [DEV Community — Branch Protection Rules vs Rulesets](https://dev.to/piyushgaikwaad/branch-protection-rules-vs-rulesets-the-right-way-to-protect-your-git-repos-305m)
