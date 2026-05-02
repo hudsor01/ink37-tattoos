@@ -42,14 +42,17 @@ jobs:
       - id: filter
         uses: dorny/paths-filter@v3
         with:
-          # `code` is true when ANY file outside the docs/config
-          # exclusion list changed. The leading `**` is load-bearing:
-          # dorny/paths-filter requires a positive pattern to seed the
-          # match set before the `!` exclusions can subtract from it
-          # (verified against the action's README -- a list of only
-          # negative patterns matches no files, which is the inverse
-          # of what we want). Without `**`, every PR (including pure
-          # docs ones) skipped nothing and the work jobs always ran.
+          # paths-filter's default `predicate-quantifier: some` means
+          # "match if ANY pattern matches." With `some` the leading
+          # `**` always matches every file by itself and the `!`-
+          # prefixed patterns are ignored -- so docs-only PRs returned
+          # code=true and ran the work jobs anyway (verified empirically
+          # in PR #30's first CI run).
+          # `every` flips it to "match only if ALL patterns match,"
+          # which is what makes `**` + `!**/*.md` + `!.planning/**`
+          # actually subtract docs files from the base set.
+          # See https://github.com/dorny/paths-filter#use-only-when-all-paths-of-the-pattern-match
+          predicate-quantifier: every
           filters: |
             code:
               - '**'
