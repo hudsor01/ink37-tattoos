@@ -42,12 +42,17 @@ jobs:
       - id: filter
         uses: dorny/paths-filter@v3
         with:
-          # `code` is true when ANY file outside the listed patterns
-          # changed. Inverse-match (`!`) means "fail this filter if
-          # only listed files changed." Adjust this list when you add
-          # new docs/config-only paths that genuinely shouldn't gate CI.
+          # `code` is true when ANY file outside the docs/config
+          # exclusion list changed. The leading `**` is load-bearing:
+          # dorny/paths-filter requires a positive pattern to seed the
+          # match set before the `!` exclusions can subtract from it
+          # (verified against the action's README -- a list of only
+          # negative patterns matches no files, which is the inverse
+          # of what we want). Without `**`, every PR (including pure
+          # docs ones) skipped nothing and the work jobs always ran.
           filters: |
             code:
+              - '**'
               - '!**/*.md'
               - '!.planning/**'
               - '!docs/**'
