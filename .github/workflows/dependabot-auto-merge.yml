@@ -1,0 +1,76 @@
+name: Dependabot auto-merge
+
+# Auto-enables merge on dependabot PRs once CI passes, gated on the
+# bump's update-type and dep-type. Pairs with .github/dependabot.yml's
+# grouping strategy:
+#
+#   dev-deps  minor + patch  -> auto-merge (group: development-dependencies)
+#   prod-deps patch          -> auto-merge (group: production-patches)
+#   prod-deps minor          -> human review (group: production-minor)
+#   actions   minor + patch  -> auto-merge (group: actions)
+#   anything  major          -> human review (no group, individual PR)
+#
+# Uses `gh pr merge --auto` which queues the merge to fire when all
+# branch-protection requirements are satisfied (in our case: the `ci`
+# umbrella check + conversation resolution + 0 approvals). Repo-level
+# auto-merge must be enabled at github.com/<owner>/<repo>/settings.
+#
+# Security note: every untrusted input from github.event.* is funneled
+# through env: vars and referenced as quoted bash variables ("$VAR"),
+# never inlined into run: scripts via ${{ ... }}. Follows the
+# command-injection mitigation guide:
+# https://github.blog/security/vulnerability-research/how-to-catch-github-actions-workflow-injections-before-attackers-do/
+
+on: pull_request_target
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    name: Auto-merge eligible dependabot PRs
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    steps:
+      # dependabot/fetch-metadata exposes the PR's update-type
+      # (semver-major / semver-minor / semver-patch) and the
+      # dependency-type (direct:development / direct:production / etc.)
+      # so the conditionals below can decide whether to auto-merge.
+      - id: meta
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Patch bumps for any dep-type: always safe to auto-merge.
+      - name: Auto-merge patch bumps
+        if: steps.meta.outputs.update-type == 'version-update:semver-patch'
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge --auto --merge "$PR_URL"
+
+      # Minor bumps only for dev dependencies. Production minors are
+      # left for human review because they can introduce new behavior
+      # that semver allows but isn't always benign in practice.
+      - name: Auto-merge dev minor bumps
+        if: |
+          steps.meta.outputs.update-type == 'version-update:semver-minor' &&
+          steps.meta.outputs.dependency-type == 'direct:development'
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge --auto --merge "$PR_URL"
+
+      # github-actions ecosystem: auto-merge minor + patch. Keeping
+      # this separate from the npm conditionals because the dep-type
+      # values differ across ecosystems.
+      - name: Auto-merge actions minor + patch
+        if: |
+          steps.meta.outputs.package-ecosystem == 'github_actions' &&
+          (steps.meta.outputs.update-type == 'version-update:semver-minor' ||
+           steps.meta.outputs.update-type == 'version-update:semver-patch')
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge --auto --merge "$PR_URL"

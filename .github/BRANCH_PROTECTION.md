@@ -54,11 +54,11 @@ Classic branch protection still works but is the legacy path. You
 shouldn't need both. Apply the ruleset, then delete the classic rule
 to avoid two-rules-stacking confusion.
 
-## Apply the ruleset (recommended)
+## Apply the ruleset
 
-Run this once after PR #15 merges. It creates the ruleset on `main`
-with PR-required + CI-required + linear-history + force-push-blocked
-+ deletion-blocked, with no bypass actors:
+Run this once. Creates the ruleset on `main` with PR-required +
+CI-required + force-push-blocked + deletion-blocked + merge-commits-
+only, with no bypass actors:
 
 ```bash
 gh api -X POST repos/hudsor01/ink37-tattoos/rulesets \
@@ -76,7 +76,6 @@ gh api -X POST repos/hudsor01/ink37-tattoos/rulesets \
   "rules": [
     { "type": "deletion" },
     { "type": "non_fast_forward" },
-    { "type": "required_linear_history" },
     {
       "type": "pull_request",
       "parameters": {
@@ -85,7 +84,7 @@ gh api -X POST repos/hudsor01/ink37-tattoos/rulesets \
         "require_code_owner_review": false,
         "require_last_push_approval": false,
         "required_review_thread_resolution": true,
-        "allowed_merge_methods": ["squash", "rebase"]
+        "allowed_merge_methods": ["merge"]
       }
     },
     {
@@ -109,21 +108,27 @@ Then delete the legacy branch protection so two rules don't stack:
 gh api -X DELETE repos/hudsor01/ink37-tattoos/branches/main/protection
 ```
 
+Then enable auto-merge on the repo (one-time, required for the
+dependabot-auto-merge workflow to function):
+
+```bash
+gh api -X PATCH repos/hudsor01/ink37-tattoos -f allow_auto_merge=true
+```
+
 ## What each rule enforces
 
 | Rule                                  | Effect                                                                                                              |
 | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | `deletion`                            | Branch can't be deleted.                                                                                            |
 | `non_fast_forward`                    | Force-pushes blocked.                                                                                               |
-| `required_linear_history`             | Squash/rebase only — no merge commits.                                                                              |
 | `pull_request`                        | All changes must come through a PR (no direct-push to `main`, even by you).                                         |
 | `required_approving_review_count: 0`  | No approval required for merge — solves the self-approval impossibility.                                            |
 | `dismiss_stale_reviews_on_push: true` | If a future contributor adds reviews, they're dismissed when a new push lands.                                      |
 | `require_code_owner_review: false`    | CODEOWNERS still auto-assigns reviewers (visibility/routing) but doesn't block — required because you can't be your own code-owner reviewer. |
 | `required_review_thread_resolution`   | Conversation threads must resolve before merge — no "merged with unresolved comments."                              |
-| `allowed_merge_methods: [squash, rebase]` | Merge-commit option disabled, matches `required_linear_history`.                                                |
+| `allowed_merge_methods: [merge]`      | Only true merge commits allowed — squash and rebase are explicitly disabled per maintainer preference. Preserves per-PR commit history. |
 | `required_status_checks` (`ci`)       | The umbrella `ci` job from `.github/workflows/ci.yml` must pass before merge.                                       |
-| `strict_required_status_checks_policy`| Branch must be up-to-date with `main` before merge (forces rebase if main moved).                                   |
+| `strict_required_status_checks_policy`| Branch must be up-to-date with `main` before merge.                                                                  |
 | `bypass_actors: []` + `enforcement: active` | Nobody bypasses, including you. The lack of an `enforce_admins` toggle is intentional — rulesets enforce on everyone except listed bypass actors. |
 
 ## Available bypass actors (for future reference)
@@ -181,6 +186,31 @@ indefinitely. The PRs were merged anyway because:
 The umbrella `ci` job + the rulesets-based config above closes this
 loop: the required check exists for real, and there's no bypass list
 for the ruleset, so even an admin direct-push would fail.
+
+## Dependabot auto-merge
+
+The `.github/workflows/dependabot-auto-merge.yml` workflow auto-enables
+merge on dependabot PRs once CI passes, gated by the bump's
+update-type and dep-type:
+
+| Bump shape                            | Action                  |
+| ------------------------------------- | ----------------------- |
+| Patch (any dep type, any ecosystem)   | Auto-merge              |
+| Dev-dep minor                         | Auto-merge              |
+| github-actions minor                  | Auto-merge              |
+| Production minor                      | Human review            |
+| Major (any ecosystem, any dep type)   | Human review            |
+
+This pairs with `.github/dependabot.yml`'s grouping strategy
+(development-dependencies / production-patches / production-minor /
+actions) to converge on ~1-3 review-worthy PRs per week instead of
+the 10+ individual bumps the original config generated.
+
+The auto-merge mechanism uses `gh pr merge --auto --merge` which
+queues the merge to fire when all branch-protection requirements
+are satisfied (the `ci` umbrella check + conversation resolution +
+0 approvals). It respects the same ruleset as a manual merge — no
+bypass involved.
 
 ## Research / citations
 
