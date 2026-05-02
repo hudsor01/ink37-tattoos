@@ -11,6 +11,9 @@ export const metadata: Metadata = {
       'Professional custom tattoo artistry in Dallas-Fort Worth, Texas.',
     type: 'website',
   },
+  alternates: {
+    canonical: '/',
+  },
 };
 
 export default function HomePage() {

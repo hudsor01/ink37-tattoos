@@ -12,6 +12,9 @@ export const metadata: Metadata = {
     description:
       'Everything you need to know about the tattoo experience at Ink 37 Tattoos.',
   },
+  alternates: {
+    canonical: '/faq',
+  },
 };
 
 const faqStructuredData = {
