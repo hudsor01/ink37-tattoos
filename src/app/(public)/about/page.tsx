@@ -20,8 +20,14 @@ export const metadata: Metadata = {
 // Standalone Person schema for the artist. Schema.org's Person type is
 // surfaced separately from the LocalBusiness.founder reference in
 // src/app/layout.tsx because dedicated Person schemas qualify for the
-// Knowledge Graph and surface in artist-name searches with richer cards
-// than a nested founder reference does.
+// Knowledge Graph and surface in artist-name searches with richer
+// cards than a nested founder reference does.
+//
+// Note: `image` is intentionally omitted. Schema.org's Person.image
+// is "an image of the person" -- using a tattoo portfolio piece would
+// be misleading and could harm rich-result eligibility (Google has
+// rejected mismatched person images in the past). When a real
+// Fernando headshot is available, add it here.
 const personSchema = {
   '@context': 'https://schema.org',
   '@type': 'Person',
@@ -32,7 +38,6 @@ const personSchema = {
   description:
     'Master tattoo artist with 10+ years experience and 1000+ completed pieces. Founder of Ink 37 Tattoos in Dallas-Fort Worth, specializing in Japanese traditional, American traditional, photorealism, and custom designs.',
   url: 'https://ink37tattoos.com/about',
-  image: 'https://ink37tattoos.com/images/japanese.jpg',
   knowsAbout: [
     'Japanese Traditional Tattoos',
     'American Traditional Tattoos',

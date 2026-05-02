@@ -5,6 +5,8 @@ import { ThemeProvider } from 'next-themes';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { Toaster } from 'sonner';
 import { useState } from 'react';
+import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ServiceWorkerRegistration } from './service-worker-registration';
 import { WebVitals } from './web-vitals';
 
@@ -55,6 +57,16 @@ export function Providers({
         <ThemeProvider attribute="class" forcedTheme="dark" nonce={nonce}>
           {children}
           <WebVitals />
+          {/*
+            Vercel Analytics (page views, custom events) + Speed Insights
+            (Core Web Vitals telemetry). Native to Vercel deployments,
+            cookie-free, GDPR-friendly. Custom event tracking is wired
+            into the booking/contact/gallery CTAs via the `track()`
+            import from @vercel/analytics. Both components are no-ops
+            when not deployed on Vercel (e.g., during local dev).
+          */}
+          <Analytics />
+          <SpeedInsights />
           <Toaster position="bottom-right" richColors />
           <ServiceWorkerRegistration />
         </ThemeProvider>
