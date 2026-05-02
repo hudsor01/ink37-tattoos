@@ -68,6 +68,25 @@ jobs:
       - uses: ./.github/actions/setup
       - run: bun run lint
 
+  # No `typecheck` script in package.json (per CLAUDE.md), so the job
+  # invokes tsc directly. Lint catches a different class of issue
+  # (style/eslint rules); typecheck catches missing await, optional
+  # property access, return-type drift, etc. Without this job a TS
+  # regression can pass lint+test+build (Next can be configured to
+  # ignore TS errors during build) and merge clean.
+  typecheck:
+    name: Typecheck
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: ./.github/actions/setup
+      - run: bunx tsc --noEmit
+
   test:
     name: Test
     needs: changes
@@ -87,7 +106,10 @@ jobs:
         with:
           fetch-depth: 1
       - uses: ./.github/actions/setup
-      - run: bunx vitest run --reporter=dot
+      # Use the package.json `test` script so a future change to it
+      # (pretest hooks, reporter swap, chained typecheck) applies in CI
+      # without an extra workflow edit.
+      - run: bun run test
 
   build:
     name: Build
@@ -133,7 +155,7 @@ jobs:
   # iteration 8 surfaced.
   ci:
     name: ci
-    needs: [changes, lint, test, build]
+    needs: [changes, lint, typecheck, test, build]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 1
@@ -142,6 +164,7 @@ jobs:
         env:
           CHANGES_RESULT: ${{ needs.changes.result }}
           LINT_RESULT: ${{ needs.lint.result }}
+          TYPECHECK_RESULT: ${{ needs.typecheck.result }}
           TEST_RESULT: ${{ needs.test.result }}
           BUILD_RESULT: ${{ needs.build.result }}
         run: |
@@ -150,6 +173,7 @@ jobs:
           for pair in \
             "changes:$CHANGES_RESULT" \
             "lint:$LINT_RESULT" \
+            "typecheck:$TYPECHECK_RESULT" \
             "test:$TEST_RESULT" \
             "build:$BUILD_RESULT"
           do

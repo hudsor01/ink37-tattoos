@@ -47,9 +47,11 @@ updates:
           - 'lucide-react'
       # Everything else: separate PRs.
 
-  # GitHub Actions itself -- bumps `actions/checkout`, `dorny/paths-filter`,
-  # the composite ./.github/actions/setup. Critical because outdated
-  # action versions are the most common supply-chain vector in CI.
+  # GitHub Actions itself -- bumps `actions/checkout`, `actions/cache`,
+  # `oven-sh/setup-bun`, `dorny/paths-filter`. Critical because
+  # outdated action versions are the most common supply-chain vector
+  # in CI. Local composite actions (./.github/actions/setup) aren't
+  # versioned and Dependabot ignores them automatically.
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -61,3 +63,9 @@ updates:
     labels:
       - dependencies
       - github-actions
+    # Single grouped PR per week so 4 action bumps don't fan out into
+    # 4 separate PRs that would each need a CI run.
+    groups:
+      actions:
+        patterns:
+          - '*'
