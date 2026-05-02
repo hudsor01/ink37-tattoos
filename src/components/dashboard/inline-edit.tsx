@@ -32,18 +32,20 @@ export function InlineEdit({
 }: InlineEditProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value);
+  const [prevValue, setPrevValue] = useState(value);
   const [isSaving, setIsSaving] = useState(false);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
+
+  if (prevValue !== value) {
+    setPrevValue(value);
+    setEditValue(value);
+  }
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
       inputRef.current.focus();
     }
   }, [isEditing]);
-
-  useEffect(() => {
-    setEditValue(value);
-  }, [value]);
 
   function handleStartEdit() {
     setEditValue(value);

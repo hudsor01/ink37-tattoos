@@ -15,17 +15,6 @@ const tattooImages = [
 function HomeClient() {
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
   const [isPaused, setIsPaused] = React.useState(false);
-  const [isMounted, setIsMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  React.useEffect(() => {
-    if (currentImageIndex >= tattooImages.length) {
-      setCurrentImageIndex(0);
-    }
-  }, [currentImageIndex]);
 
   React.useEffect(() => {
     if (isPaused) return undefined;
@@ -66,7 +55,6 @@ function HomeClient() {
 
   // Preload first two images
   React.useEffect(() => {
-    if (!isMounted) return undefined;
     const cleanups: (() => void)[] = [];
     tattooImages.slice(0, 2).forEach((src) => {
       const link = document.createElement('link');
@@ -79,7 +67,7 @@ function HomeClient() {
       });
     });
     return () => cleanups.forEach((fn) => fn());
-  }, [isMounted]);
+  }, []);
 
   return (
     <div className="min-h-[calc(100vh-5rem)] md:fixed md:inset-0 overflow-y-auto md:overflow-hidden bg-black" suppressHydrationWarning>
