@@ -1,0 +1,37 @@
+# GitHub auto-assigns reviewers from this file when a PR touches the
+# matching paths. Format: <pattern> <owner>...
+#
+# Last match wins, so order matters: most general at top, most
+# specific at bottom.
+#
+# When CODEOWNERS exists AND branch protection enables "Require review
+# from Code Owners", the listed owners are required reviewers on any
+# matching PR. See ".github/BRANCH_PROTECTION.md" for the recommended
+# protection settings.
+
+# Default: every file in the repo is owned by hudsor01 unless a more
+# specific rule overrides below.
+*                                    @hudsor01
+
+# Auth + security surface — anything touching authn/z, CSP, or the
+# proxy/middleware needs explicit attention even on a "trivial" diff.
+/proxy.ts                            @hudsor01
+/src/lib/auth.ts                     @hudsor01
+/src/lib/auth-client.ts              @hudsor01
+/src/lib/auth-guard.ts               @hudsor01
+/src/lib/safe-callback.ts            @hudsor01
+/src/app/(auth)/                     @hudsor01
+/src/app/(dashboard)/unauthorized.tsx @hudsor01
+/src/app/(portal)/unauthorized.tsx   @hudsor01
+/src/app/unauthorized.tsx            @hudsor01
+/src/instrumentation.ts              @hudsor01
+
+# Database schema + migrations — drift here breaks production.
+/src/lib/db/schema.ts                @hudsor01
+/drizzle/                            @hudsor01
+
+# CI + repo config — meta-level changes get a second look at minimum.
+/.github/                            @hudsor01
+/next.config.ts                      @hudsor01
+/package.json                        @hudsor01
+/bun.lock                            @hudsor01
