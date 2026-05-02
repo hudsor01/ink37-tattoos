@@ -16,10 +16,12 @@ export function SearchInput({
   placeholder = 'Search...',
 }: SearchInputProps) {
   const [internalValue, setInternalValue] = useState(value);
+  const [prevValue, setPrevValue] = useState(value);
 
-  useEffect(() => {
+  if (prevValue !== value) {
+    setPrevValue(value);
     setInternalValue(value);
-  }, [value]);
+  }
 
   useEffect(() => {
     const timer = setTimeout(() => {
