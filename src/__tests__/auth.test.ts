@@ -30,7 +30,7 @@ describe('Auth configuration', () => {
 
   it('proxy.ts protects dashboard and portal routes', async () => {
     const fs = await import('node:fs');
-    const content = fs.readFileSync('proxy.ts', 'utf-8');
+    const content = fs.readFileSync('src/proxy.ts', 'utf-8');
     expect(content).toContain('export function proxy');
     expect(content).toContain('/dashboard');
     expect(content).toContain('/portal');

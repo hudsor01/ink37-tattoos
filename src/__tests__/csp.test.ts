@@ -6,7 +6,7 @@ import { describe, it, expect, vi } from 'vitest';
 vi.mock('next/server', async () => await vi.importActual('next/server'));
 
 import { NextRequest } from 'next/server';
-import { proxy } from '../../proxy';
+import { proxy } from '../proxy';
 
 /**
  * Phase 30: CSP nonce + Content-Security-Policy header tests.
