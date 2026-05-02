@@ -3,22 +3,8 @@ name: CI
 on:
   pull_request:
     branches: [main]
-    paths-ignore:
-      - '**/*.md'
-      - '.planning/**'
-      - 'docs/**'
-      - 'LICENSE'
-      - '.gitignore'
-      - '.vscode/**'
   push:
     branches: [main]
-    paths-ignore:
-      - '**/*.md'
-      - '.planning/**'
-      - 'docs/**'
-      - 'LICENSE'
-      - '.gitignore'
-      - '.vscode/**'
 
 # Cancel in-flight runs on the same ref when a new commit lands.
 # For PRs, github.ref is refs/pull/N/merge (one group per PR).
@@ -35,8 +21,44 @@ env:
   TURBO_TELEMETRY_DISABLED: 1
 
 jobs:
+  # `changes` runs first and decides whether the lint/test/build trio
+  # actually needs to execute. We keep these gated rather than using a
+  # workflow-level `paths-ignore` because that would skip the whole
+  # workflow (including the umbrella `ci` job below), and the branch
+  # protection rule requires `ci` to report a status -- a skipped
+  # workflow never reports, so docs-only PRs would be unmergeable.
+  # By gating per-job and always running the umbrella, the `ci` check
+  # reports success even when the work jobs are skipped.
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          # `code` is true when ANY file outside the listed patterns
+          # changed. Inverse-match (`!`) means "fail this filter if
+          # only listed files changed." Adjust this list when you add
+          # new docs/config-only paths that genuinely shouldn't gate CI.
+          filters: |
+            code:
+              - '!**/*.md'
+              - '!.planning/**'
+              - '!docs/**'
+              - '!LICENSE'
+              - '!.gitignore'
+              - '!.vscode/**'
+
   lint:
     name: Lint
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 4
     steps:
@@ -46,8 +68,29 @@ jobs:
       - uses: ./.github/actions/setup
       - run: bun run lint
 
+  # No `typecheck` script in package.json (per CLAUDE.md), so the job
+  # invokes tsc directly. Lint catches a different class of issue
+  # (style/eslint rules); typecheck catches missing await, optional
+  # property access, return-type drift, etc. Without this job a TS
+  # regression can pass lint+test+build (Next can be configured to
+  # ignore TS errors during build) and merge clean.
+  typecheck:
+    name: Typecheck
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: ./.github/actions/setup
+      - run: bunx tsc --noEmit
+
   test:
     name: Test
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     env:
@@ -63,10 +106,15 @@ jobs:
         with:
           fetch-depth: 1
       - uses: ./.github/actions/setup
-      - run: bunx vitest run --reporter=dot
+      # Use the package.json `test` script so a future change to it
+      # (pretest hooks, reporter swap, chained typecheck) applies in CI
+      # without an extra workflow edit.
+      - run: bun run test
 
   build:
     name: Build
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -95,3 +143,53 @@ jobs:
             next-${{ runner.os }}-
 
       - run: bun run build
+
+  # Umbrella check that branch protection's "Required status check: ci"
+  # rule waits on. `if: always()` makes it run even when the work jobs
+  # are skipped (docs-only changes). The aggregation logic accepts
+  # `success` and `skipped` but rejects `failure` and `cancelled`.
+  #
+  # Without this job, branch protection's required `ci` check is never
+  # reported (the underlying jobs are named lint/test/build) and every
+  # push gets the `Bypassed rule violations` message -- which is what
+  # iteration 8 surfaced.
+  ci:
+    name: ci
+    needs: [changes, lint, typecheck, test, build]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Aggregate job results
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          LINT_RESULT: ${{ needs.lint.result }}
+          TYPECHECK_RESULT: ${{ needs.typecheck.result }}
+          TEST_RESULT: ${{ needs.test.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+        run: |
+          set -euo pipefail
+          fail=0
+          for pair in \
+            "changes:$CHANGES_RESULT" \
+            "lint:$LINT_RESULT" \
+            "typecheck:$TYPECHECK_RESULT" \
+            "test:$TEST_RESULT" \
+            "build:$BUILD_RESULT"
+          do
+            name="${pair%%:*}"
+            result="${pair#*:}"
+            case "$result" in
+              success|skipped)
+                echo "  ✓ $name: $result"
+                ;;
+              *)
+                echo "::error::$name reported $result"
+                fail=1
+                ;;
+            esac
+          done
+          if [ "$fail" -ne 0 ]; then
+            exit 1
+          fi
+          echo "All required jobs succeeded or were intentionally skipped."

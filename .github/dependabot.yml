@@ -1,0 +1,71 @@
+# Dependabot configuration. Auto-opens PRs for outdated dependencies
+# (with a CVE bias for security updates). Reference:
+# https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference
+
+version: 2
+updates:
+  # npm-ecosystem package updates. Bun's lockfile is `bun.lock` (v1+);
+  # Dependabot's npm provider works on `package.json` directly and
+  # recognizes Bun-managed projects. PRs land on Monday so a week of
+  # bumps batch into one review cycle, and security patches fast-track
+  # via the separate `security-updates` channel (always-on, can't be
+  # disabled per-package).
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: America/Chicago
+    open-pull-requests-limit: 10
+    versioning-strategy: increase
+    labels:
+      - dependencies
+      - npm
+    groups:
+      # Bundle the React + Next ecosystem so a Next minor that needs a
+      # matching React patch lands in one PR rather than three that
+      # fight each other.
+      next-react:
+        patterns:
+          - 'next'
+          - 'next-*'
+          - 'react'
+          - 'react-*'
+          - '@types/react'
+          - '@types/react-dom'
+      # Drizzle + Neon are coupled at the wire level (driver expects
+      # specific schema features). Bundle so they land together.
+      drizzle:
+        patterns:
+          - 'drizzle-*'
+          - '@neondatabase/*'
+      # shadcn/ui + Radix are versioned together in practice.
+      shadcn-radix:
+        patterns:
+          - '@radix-ui/*'
+          - 'lucide-react'
+      # Everything else: separate PRs.
+
+  # GitHub Actions itself -- bumps `actions/checkout`, `actions/cache`,
+  # `oven-sh/setup-bun`, `dorny/paths-filter`. Critical because
+  # outdated action versions are the most common supply-chain vector
+  # in CI. Local composite actions (./.github/actions/setup) aren't
+  # versioned and Dependabot ignores them automatically.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: America/Chicago
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - github-actions
+    # Single grouped PR per week so 4 action bumps don't fan out into
+    # 4 separate PRs that would each need a CI run.
+    groups:
+      actions:
+        patterns:
+          - '*'
