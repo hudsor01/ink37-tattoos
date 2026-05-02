@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { track } from '@vercel/analytics';
 
 type ActionState = {
   success: boolean;
@@ -30,6 +31,12 @@ export function ContactForm() {
     if (!state) return;
 
     if (state.success) {
+      // Conversion event for Vercel Analytics. Booking page-views and
+      // gallery interactions are auto-tracked via @vercel/analytics
+      // page-view instrumentation; this explicit event captures the
+      // contact-form-submit conversion which is the primary inbound
+      // funnel for non-booking inquiries.
+      track('contact_form_submitted');
       toast.success("Message sent! We'll get back to you within 24 hours.");
       formRef.current?.reset();
     } else if (state.error) {
