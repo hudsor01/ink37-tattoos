@@ -11,6 +11,9 @@ export const metadata: Metadata = {
     description:
       'Get in touch with Ink 37 Tattoos in Dallas-Fort Worth. Send a message or book a consultation.',
   },
+  alternates: {
+    canonical: '/contact',
+  },
 };
 
 export default function ContactPage() {

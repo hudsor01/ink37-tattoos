@@ -68,6 +68,16 @@ export const metadata: Metadata = {
       },
     ],
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Ink 37 Tattoos | Custom Tattoo Art by Fernando Govea',
+    description:
+      'Professional custom tattoo artistry in Dallas-Fort Worth, Texas. Japanese, traditional, realism, cover-ups. Book a consultation today.',
+    images: ['/images/japanese.jpg'],
+  },
+  alternates: {
+    canonical: '/',
+  },
   robots: {
     index: true,
     follow: true,
@@ -108,11 +118,13 @@ const jsonLd = {
   ],
   openingHours: ['Mo-Sa 10:00-18:00'],
   priceRange: '$$',
+  email: 'contact@ink37tattoos.com',
   founder: {
     '@type': 'Person',
     name: 'Fernando Govea',
     jobTitle: 'Professional Tattoo Artist',
   },
+  sameAs: ['https://instagram.com/fennyg83'],
 };
 
 /**

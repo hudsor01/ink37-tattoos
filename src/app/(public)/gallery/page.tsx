@@ -11,6 +11,9 @@ export const metadata: Metadata = {
     title: 'Gallery | Ink 37 Tattoos',
     description: 'Browse our portfolio of custom tattoo art.',
   },
+  alternates: {
+    canonical: '/gallery',
+  },
 };
 
 export default function GalleryPage() {

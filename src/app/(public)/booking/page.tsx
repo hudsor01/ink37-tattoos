@@ -11,6 +11,9 @@ export const metadata: Metadata = {
     description:
       'Book a consultation, design review, or tattoo session at Ink 37 Tattoos.',
   },
+  alternates: {
+    canonical: '/booking',
+  },
 };
 
 export default function BookingPage() {
