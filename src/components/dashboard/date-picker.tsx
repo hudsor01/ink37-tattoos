@@ -52,8 +52,8 @@ export function DatePicker({
           onSelect={onChange}
           captionLayout={captionLayout}
           defaultMonth={value}
-          {...(fromYear && { fromYear })}
-          {...(toYear && { toYear })}
+          {...(fromYear && { startMonth: new Date(fromYear, 0, 1) })}
+          {...(toYear && { endMonth: new Date(toYear, 11, 31) })}
         />
       </PopoverContent>
     </Popover>
