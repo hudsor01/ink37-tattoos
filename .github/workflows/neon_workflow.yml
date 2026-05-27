@@ -45,6 +45,8 @@ jobs:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           branch_name: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
           api_key: ${{ secrets.NEON_API_KEY }}
+          database: tattoo-studio
+          username: tattoo-studio_owner
           expires_at: ${{ env.EXPIRES_AT }}
 
   delete_neon_branch:
