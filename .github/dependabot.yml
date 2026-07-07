@@ -1,5 +1,5 @@
-# Dependabot configuration. Auto-opens PRs for outdated dependencies
-# (with a CVE bias for security updates). Reference:
+# Dependabot configuration. Auto-opens PRs for outdated dependencies.
+# Reference:
 # https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference
 #
 # Strategy: aggressive grouping + auto-merge.
@@ -11,15 +11,22 @@
 #     required (auto-merge workflow skips minor for prod).
 #   - Anything major (any ecosystem, any dep type) -> individual PR
 #     with no group, human review required.
-#   - Security updates fast-track via the always-on
-#     `security-updates` channel, independent of the schedule.
+#   - Security updates: the bun ecosystem doesn't support Dependabot
+#     security updates (version updates only, as of the current docs),
+#     so security fixes ride the weekly version-update cadence.
 #
 # This converges to ~1-3 review-worthy PRs per week instead of the
 # 10+ individual bumps that the original config generated.
 
 version: 2
 updates:
-  - package-ecosystem: npm
+  # The bun ecosystem (GA since 2025-02-13) regenerates bun.lock
+  # alongside package.json. The previous `npm` ecosystem didn't
+  # recognize bun.lock at all, so it ran in manifest-only mode: every
+  # merged bump drifted package.json away from the lockfile, which is
+  # what broke Vercel deploys (better-auth 1.6.13 in package.json,
+  # 1.6.9 in bun.lock — see PR #71).
+  - package-ecosystem: bun
     directory: /
     schedule:
       interval: weekly
@@ -31,6 +38,14 @@ updates:
     labels:
       - dependencies
       - npm
+    ignore:
+      # @types/node majors must track the deployed runtime, not npm's
+      # latest. Vercel is pinned to Node 24.x (.vercel/project.json);
+      # types ahead of the runtime let tsc accept APIs that throw in
+      # production. Bump the pin manually when the Vercel runtime
+      # moves.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
     groups:
       # Dev-deps: bundle every minor + patch bump into one PR. The
       # auto-merge workflow merges it automatically once CI passes,
@@ -60,7 +75,13 @@ updates:
       # group would obscure that.
 
   - package-ecosystem: github-actions
-    directory: /
+    # `directory: /` only scans .github/workflows plus a root
+    # action.yml; composite actions under .github/actions were never
+    # scanned, which is why actions/cache in the setup action sat on
+    # v4 while ci.yml got bump PRs. `directories` supports globs.
+    directories:
+      - /
+      - /.github/actions/*
     schedule:
       interval: weekly
       day: monday
