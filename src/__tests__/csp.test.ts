@@ -1,4 +1,15 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+
+/**
+ * Env stubs are unwound here, not at the end of each test body. vitest.config
+ * sets no `unstubEnvs` and setup.ts has no afterEach, so a stubEnv call
+ * followed by a FAILING expect never reached its trailing
+ * vi.unstubAllEnvs() -- leaking NODE_ENV into every later test in the worker
+ * and turning one red test into a cascade of unrelated ones.
+ */
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 // The global setup.ts partially mocks next/server (after, connection,
 // NextResponse.json). For these tests we need the real NextRequest +
@@ -39,6 +50,25 @@ function parseCSP(header: string | null): Record<string, string> {
     out[name] = rest.join(' ');
   }
   return out;
+}
+
+/**
+ * Does a CSP source-list actually authorize `host`?
+ *
+ * Implements CSP3 host-part matching: a leading `*.` is a SUFFIX match, so
+ * `*.example.com` authorizes `a.example.com` and `a.b.example.com`, but
+ * `*.ingest.sentry.io` does NOT authorize `o1.ingest.us.sentry.io` -- that
+ * host ends in `.us.sentry.io`. Getting this wrong is how the old Sentry
+ * entry silently dropped every browser error report from regional projects.
+ */
+function cspAllowsHost(sourceList: string | undefined, host: string): boolean {
+  if (!sourceList) return false;
+  return sourceList.split(/\s+/).some((source) => {
+    const bare = source.replace(/^https?:\/\//, '').replace(/:\d+$/, '');
+    if (!bare) return false;
+    if (bare.startsWith('*.')) return host.endsWith(bare.slice(1));
+    return host === bare;
+  });
 }
 
 function makeRequest(path = '/', cookie = ''): NextRequest {
@@ -196,15 +226,18 @@ describe('proxy CSP + nonce', () => {
   it('connect-src covers regional Sentry ingest hosts', () => {
     const res = proxy(makeRequest('/'));
     const csp = parseCSP(res.headers.get('content-security-policy'));
-    expect(csp['connect-src']).not.toContain('https://*.ingest.sentry.io');
 
-    const suffix = 'https://*.sentry.io'.replace('https://*', '');
+    // Assert against the ACTUAL emitted directive. The previous version of
+    // this test derived a suffix from its own string literal and asserted
+    // three hardcoded hostnames ended with it -- a property of
+    // String.endsWith that held no matter what buildCSP emitted, so deleting
+    // Sentry from connect-src entirely left it green.
     for (const host of [
       'o1.ingest.sentry.io',
       'o1.ingest.us.sentry.io',
       'o1.ingest.de.sentry.io',
     ]) {
-      expect(host.endsWith(suffix)).toBe(true);
+      expect(cspAllowsHost(csp['connect-src'], host)).toBe(true);
     }
   });
 
@@ -278,8 +311,36 @@ describe('proxy CSP + nonce', () => {
     const csp = parseCSP(res.headers.get('content-security-policy'));
     expect(csp['connect-src']).not.toContain('ws:');
     expect(csp['connect-src']).not.toContain('wss:');
-    vi.unstubAllEnvs();
   });
+
+  /**
+   * The dev branch must be opt-IN on NODE_ENV === 'development', never
+   * opt-OUT on !== 'production'.
+   *
+   * Stubbing 'production' proves nothing on its own: vitest already runs at
+   * NODE_ENV='test', where `isDev` is false, so those assertions pass
+   * identically whether the predicate is `=== 'development'` or
+   * `!== 'production'`. Flipping it to the latter -- a plausible "make
+   * preview builds behave like dev" edit -- would ship 'unsafe-eval' and bare
+   * ws:/wss: from any deployment whose NODE_ENV is not literally
+   * 'production' (self-hosted `node server.js` with NODE_ENV unset, a
+   * Docker/standalone run, a CI smoke env), with CI reporting full coverage.
+   *
+   * These values exercise that gap directly.
+   */
+  it.each(['test', 'preview', 'staging', ''])(
+    'treats NODE_ENV=%o as production-like (no dev-only sources)',
+    (env) => {
+      vi.stubEnv('NODE_ENV', env);
+      const csp = parseCSP(
+        proxy(makeRequest('/')).headers.get('content-security-policy')
+      );
+      expect(csp['script-src']).not.toContain("'unsafe-eval'");
+      expect(csp['script-src']).not.toContain('va.vercel-scripts.com');
+      expect(csp['connect-src']).not.toContain('ws:');
+      expect(csp['connect-src']).not.toContain('wss:');
+    }
+  );
 });
 
 describe('proxy x-pathname forwarding', () => {
@@ -326,61 +387,17 @@ describe('proxy x-pathname forwarding', () => {
   });
 });
 
-describe('JsonLd </script> escape', () => {
-  /**
-   * Regression test for the JSON-LD XSS vector. JSON.stringify alone does
-   * not escape `<`, so any `</script>` substring in the data would close
-   * the script tag and let the rest execute as HTML/JS. The fix in
-   * src/components/public/json-ld.tsx is to replace `<` with `<`
-   * which is JSON-safe (round-trips through JSON.parse) and prevents the
-   * script from terminating early.
-   *
-   * This test exercises the same transformation directly so the regex
-   * stays load-bearing.
-   */
-  function safeStringify(data: unknown): string {
-    return JSON.stringify(data).replace(/</g, '\\u003c');
-  }
-
-  it('replaces `<` with \\u003c so </script> cannot break out', () => {
-    const malicious = { label: '</script><script>alert(1)</script>' };
-    const out = safeStringify(malicious);
-    // The closing-tag bytes are gone -- only `<` needs to be escaped to
-    // defeat the breakout (the parser looks for the literal `<` to start
-    // a tag boundary). `>` can remain literal.
-    expect(out).not.toContain('</script>');
-    expect(out).toContain('\\u003c/script>');
-    expect(out).toContain('\\u003cscript>');
-  });
-
-  it('round-trips through JSON.parse to the original value', () => {
-    const malicious = { label: '</script><script>alert(1)</script>' };
-    expect(JSON.parse(safeStringify(malicious))).toEqual(malicious);
-  });
-});
-
 /**
- * Session-cookie recognition across environments.
+ * The JsonLd </script>-escape tests used to live here. They declared a private
+ * `safeStringify()` copy of the transformation and never imported the
+ * component, so they asserted a property of this file: deleting
+ * `.replace(/</g, '\\u003c')` from json-ld.tsx left them green while every
+ * <JsonLd> became a </script> breakout vector.
  *
- * Better Auth derives its cookie name from baseURL at runtime
- * (cookies/index.mjs): `secureCookiePrefix = baseURL.startsWith('https://')
- * ? '__Secure-' : ''`. src/lib/auth.ts sets `baseURL: BETTER_AUTH_URL` and
- * never sets `advanced.useSecureCookies`, so the live cookie is
- * `__Secure-better-auth.session_token` in production and the bare name in
- * local dev. Verified directly against the installed package:
- *
- *   createCookieGetter({baseURL:'https://ink37tattoos.com'})('session_token').name
- *     === '__Secure-better-auth.session_token'
- *   createCookieGetter({baseURL:'http://localhost:3000'})('session_token').name
- *     === 'better-auth.session_token'
- *
- * proxy.ts previously did an exact `request.cookies.get('better-auth.session_token')`,
- * which matched in dev and never in production -- so every authenticated user
- * read as logged out, /dashboard and /portal bounced to /login, and
- * login/page.tsx sent them right back. An unbreakable loop, invisible to CI
- * because every existing test called makeRequest() without a cookie and so
- * only ever exercised the unauthenticated path.
+ * They now render the real component in json-ld.test.tsx, and are verified to
+ * fail when the escape is removed.
  */
+
 describe('proxy session cookie recognition', () => {
   const SECURE = '__Secure-better-auth.session_token=abc123';
   const BARE = 'better-auth.session_token=abc123';
@@ -408,9 +425,53 @@ describe('proxy session cookie recognition', () => {
     expect(proxy(makeRequest('/portal')).status).toBe(303);
   });
 
-  it('bounces an already-authenticated user away from /login', () => {
+  /**
+   * Regression guard for an unbreakable redirect loop.
+   *
+   * The proxy must NOT bounce a cookie-bearing request off /login.
+   * getSessionCookie() only parses the jar -- no HMAC verify, no expiry, no
+   * DB lookup -- so a cookie whose session is revoked, expired, banned,
+   * dropped by a db:push, or invalidated by a BETTER_AUTH_SECRET rotation
+   * still reads as "present". With a bounce in place:
+   *
+   *   GET /dashboard -> proxy passes (cookie present)
+   *     -> layout requireAuthSession() finds no session -> /login?callbackUrl=
+   *   GET /login     -> proxy bounces back to /dashboard
+   *     -> ERR_TOO_MANY_REDIRECTS, /login unreachable, user permanently
+   *        locked out with no way to clear the cookie.
+   *
+   * Routing an authenticated user away from /login belongs in
+   * login/page.tsx, which reads a validated session and routes on real role.
+   */
+  it('does NOT bounce a cookie-bearing request off /login (loop guard)', () => {
     const res = proxy(makeRequest('/login', SECURE));
-    expect(res.status).toBe(303);
-    expect(res.headers.get('location')).toContain('/dashboard');
+    expect(res.status).toBe(200);
+    expect(res.headers.get('location')).toBeNull();
+  });
+
+  it('does NOT bounce a cookie-bearing request off /register', () => {
+    expect(proxy(makeRequest('/register', SECURE)).status).toBe(200);
+  });
+
+  /**
+   * A stale cookie must reach the segment layout, which performs the real
+   * session check -- that is the only place the loop can be broken.
+   */
+  it('forwards a stale-cookie /dashboard request to the layout, not a redirect', () => {
+    const res = proxy(makeRequest('/dashboard', 'better-auth.session_token=stale'));
+    expect(res.status).toBe(200);
+  });
+
+  /**
+   * Segment-boundary matching: a public route that merely shares a prefix
+   * must not be pulled behind the auth gate. safe-callback.ts exact-matches
+   * for the same reason (/login-help, /registered-users).
+   */
+  it('does not gate routes that merely share a prefix', () => {
+    expect(proxy(makeRequest('/dashboardxyz')).status).toBe(200);
+    expect(proxy(makeRequest('/portal-info')).status).toBe(200);
+    // ...while real segments stay gated.
+    expect(proxy(makeRequest('/dashboard')).status).toBe(303);
+    expect(proxy(makeRequest('/dashboard/orders')).status).toBe(303);
   });
 });

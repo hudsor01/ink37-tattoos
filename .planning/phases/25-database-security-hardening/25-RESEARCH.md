@@ -1,3 +1,25 @@
+
+> [!CAUTION]
+> **SUPERSEDED (2026-08-23): the `'strict-dynamic'` guidance in this document is wrong and must not be re-applied.**
+>
+> Shipping `'strict-dynamic'` blanked the entire public site. Per CSP Level 3 it
+> makes the browser ignore every host-source expression in `script-src`, so
+> `'self'` and `https://app.cal.com` both went inert and only nonce'd scripts
+> could run. But `cacheComponents: true` (PPR) means each route ships a
+> statically prerendered shell whose `/_next/static/chunks/*.js` tags are
+> emitted at build time and carry no nonce. Measured in production: 14 nonce'd
+> inline scripts executed, all 18 chunk scripts (turbopack runtime included)
+> were downloaded and refused. React never hydrated; every page rendered blank.
+>
+> Next's docs state it directly: "Partial Prerendering (PPR) is also
+> incompatible with nonce-based CSP because static shell scripts cannot access
+> the nonce." The claim below that `'strict-dynamic'` "covers dynamically
+> loaded chunks" is the exact inversion of what happens.
+>
+> Any acceptance criterion here requiring `'strict-dynamic'` in script-src is
+> INVERTED: src/__tests__/csp.test.ts now asserts it is ABSENT. The nonce
+> itself remains correct and in use. See the comment block in src/proxy.ts.
+
 # Phase 25: Database + Security Hardening - Research
 
 **Researched:** 2026-03-30

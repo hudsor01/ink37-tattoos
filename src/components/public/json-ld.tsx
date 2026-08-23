@@ -25,11 +25,25 @@
  * data cannot terminate the tag early (see the JsonLd tests in csp.test.ts).
  */
 export function JsonLd({ data }: { data: unknown }) {
+  // JSON.stringify returns the VALUE undefined -- not a string -- for
+  // undefined, functions and symbols, so calling .replace() on it throws
+  // TypeError. `data ?? null` is NOT sufficient: a function is neither null
+  // nor undefined but still stringifies to undefined. Checking the result
+  // covers every case.
+  //
+  // This matters more than it looks: `data: unknown` means an optional schema
+  // typechecks clean at the call site, and JsonLd now renders directly in
+  // layout.tsx's <body> with no Suspense boundary below the root -- under
+  // cacheComponents a throw there fails the prerender for EVERY route at
+  // build time rather than degrading one streamed hole.
+  const json = JSON.stringify(data);
+  const safe = typeof json === 'string' ? json : 'null';
+
   return (
     <script
       type="application/ld+json"
       dangerouslySetInnerHTML={{
-        __html: JSON.stringify(data).replace(/</g, '\\u003c'),
+        __html: safe.replace(/</g, '\\u003c'),
       }}
     />
   );

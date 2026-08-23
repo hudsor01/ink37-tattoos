@@ -124,3 +124,64 @@ describe('safeCallbackUrl -- parser-level origin escapes', () => {
     expect(safeCallbackUrl('/login-help', FALLBACK)).toBe('/login-help');
   });
 });
+
+/**
+ * The validator parses the input but must not hand back the RAW string --
+ * otherwise the value that was checked is not the value that ships.
+ */
+describe('safeCallbackUrl -- returns the normalized path, not raw input', () => {
+  const FALLBACK = '/dashboard';
+
+  /**
+   * The sentinel origin used internally for resolution is itself a host, so
+   * an origin-only comparison accepted URLs pointing AT it. `//host/x` is
+   * protocol-relative when the browser dereferences it.
+   */
+  it('rejects protocol-relative URLs aimed at the internal sentinel host', () => {
+    expect(safeCallbackUrl('//callback.invalid/x', FALLBACK)).toBe(FALLBACK);
+    expect(safeCallbackUrl('//callback.invalid', FALLBACK)).toBe(FALLBACK);
+  });
+
+  /**
+   * The WHATWG parser strips \t\n\r before validating, so a raw passthrough
+   * kept CRLF intact. Harmless while consumers encodeURIComponent it, but the
+   * first consumer to put it in a Location or Set-Cookie header gets response
+   * splitting.
+   */
+  it('strips CR/LF so the value can never split a header', () => {
+    const out = safeCallbackUrl('/foo\r\nX-Injected: 1', FALLBACK);
+    expect(out).not.toMatch(/[\r\n]/);
+  });
+
+  it('treats /login/ and /LOGIN as the auth-loop paths they are', () => {
+    expect(safeCallbackUrl('/login/', FALLBACK)).toBe(FALLBACK);
+    expect(safeCallbackUrl('/LOGIN', FALLBACK)).toBe(FALLBACK);
+    expect(safeCallbackUrl('/Register/', FALLBACK)).toBe(FALLBACK);
+    // ...without catching legitimate lookalikes.
+    expect(safeCallbackUrl('/login-help', FALLBACK)).toBe('/login-help');
+  });
+
+  it('preserves path, query and hash on accepted values', () => {
+    expect(safeCallbackUrl('/dashboard/orders?status=open#top', FALLBACK)).toBe(
+      '/dashboard/orders?status=open#top'
+    );
+  });
+
+  /**
+   * Behavioral invariant, independent of implementation shape: whatever comes
+   * back must dereference same-origin AND must itself pass revalidation.
+   */
+  it('output is always same-origin and idempotent under revalidation', () => {
+    const ORIGIN = 'https://ink37tattoos.com';
+    const inputs = [
+      '//evil.com', '///evil.com', '/\\evil.com', '/\\/evil.com',
+      '//callback.invalid/x', 'https://evil.com', 'javascript:alert(1)',
+      '/dashboard/orders?a=1', '/login', '/foo\r\nX: 1', '/',
+    ];
+    for (const raw of inputs) {
+      const out = safeCallbackUrl(raw, FALLBACK);
+      expect(new URL(out, `${ORIGIN}/login`).origin).toBe(ORIGIN);
+      expect(safeCallbackUrl(out, FALLBACK)).toBe(out);
+    }
+  });
+});

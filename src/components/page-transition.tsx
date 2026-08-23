@@ -42,15 +42,31 @@ import { useSyncExternalStore } from 'react';
  * Net: a partial JS failure degrades to "no page transition" instead of
  * "invisible website", and the descendant reveal animations are untouched.
  *
- * Scope note, so this is not oversold as a no-JS guarantee: under
- * `cacheComponents: true` the prerendered shell is head/metadata only, and the
- * page body arrives as streamed Suspense content that React swaps in with its
- * own inline scripts. With client JS fully disabled the body stays empty
- * regardless of what this component renders. What this gate actually buys is
- * the case that took the site down -- React's nonce'd inline scripts DID run
- * and placed real content in the DOM (measured on production: 4322 chars of
- * HTML inside the wrapper), while the un-nonced /_next chunks never executed,
- * so framer never animated and that content sat at opacity 0 forever.
+ * SCOPE -- do not oversell this as a no-JS guarantee. Two limits:
+ *
+ * 1. Under `cacheComponents: true` the prerendered shell is head/metadata
+ *    only; the page body arrives as streamed Suspense content that React
+ *    swaps in with its own inline scripts. With client JS fully disabled the
+ *    body stays empty regardless of what this component renders.
+ *
+ * 2. This gate covers THIS wrapper only. Several page components still
+ *    server-render their own `opacity: 0` and depend on hydration to reveal
+ *    it -- notably contact-client.tsx:61, which wraps the whole of /contact
+ *    in `initial={{ opacity: 0, y: 20 }}` + `animate`, plus hero wrappers in
+ *    faq-client, services-client, about-client, home-client and every tile in
+ *    gallery-grid. If client JS stops executing again, those routes go blank
+ *    exactly as before; only this wrapper degrades cleanly.
+ *
+ * Fixing that class properly means sharing the hydration gate below as a
+ * `useHydrated()` hook and applying it there too -- which trades away their
+ * first-load entrance animations, a visible design change, so it is left as a
+ * deliberate decision rather than folded in here.
+ *
+ * What this gate DOES buy is precisely the failure that took the site down:
+ * React's nonce'd inline scripts ran and placed real content in the DOM
+ * (measured on production: 4322 chars inside this wrapper), while the
+ * un-nonced /_next chunks never executed -- so framer never animated and that
+ * content sat at opacity 0 forever.
  */
 /**
  * Hydration probe. The store never changes, so `subscribe` is a no-op; React

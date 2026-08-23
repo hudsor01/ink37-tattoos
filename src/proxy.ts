@@ -2,7 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSessionCookie } from 'better-auth/cookies';
 
 const protectedPrefixes = ['/dashboard', '/portal'];
-const authPages = ['/login', '/register'];
+
+/**
+ * Segment-boundary match, not a bare `startsWith`.
+ *
+ * `pathname.startsWith('/dashboard')` also matches `/dashboardxyz`, so any
+ * future public route that merely shares a prefix would be silently pulled
+ * behind the auth gate. That directly contradicts safe-callback.ts, which
+ * documents `/login-help` and `/registered-users` as legitimate destinations
+ * and exact-matches to avoid exactly this -- previously safeCallbackUrl would
+ * certify such a path as a valid post-sign-in target and the proxy would then
+ * bounce the user off it, with no error surfaced anywhere.
+ */
+function isUnder(pathname: string, prefix: string): boolean {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
 
 /**
  * Build the per-request Content-Security-Policy header.
@@ -48,7 +62,13 @@ function buildCSP(nonce: string): string {
   const isDev = process.env.NODE_ENV === 'development';
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' https://app.cal.com${isDev ? " 'unsafe-eval'" : ''}`,
+    // Dev also needs https://va.vercel-scripts.com: <Analytics /> and
+    // <SpeedInsights /> are mounted unconditionally in providers.tsx. In
+    // production both resolve to same-origin /_vercel/... paths that 'self'
+    // covers, but in development they load script.debug.js from that host, so
+    // without it `bun run dev` logs two "Refused to load the script" errors
+    // per page load and track() calls never reach the debug endpoint.
+    `script-src 'self' 'nonce-${nonce}' https://app.cal.com${isDev ? " 'unsafe-eval' https://va.vercel-scripts.com" : ''}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' blob: data: https://*.public.blob.vercel-storage.com",
     "font-src 'self'",
@@ -130,7 +150,7 @@ export function proxy(request: NextRequest) {
   // Protected routes: redirect to login if no session cookie. Use the
   // path+search variant so a deep-linked /dashboard/orders?status=open
   // round-trips through the auth flow with the query intact.
-  if (protectedPrefixes.some((prefix) => pathname.startsWith(prefix))) {
+  if (protectedPrefixes.some((prefix) => isUnder(pathname, prefix))) {
     if (!sessionToken) {
       // Clone nextUrl rather than resolving against request.url: with
       // `output: 'standalone'` behind a TLS-terminating proxy the two can
@@ -158,21 +178,37 @@ export function proxy(request: NextRequest) {
     }
   }
 
-  // Auth pages: redirect to dashboard if already logged in
-  if (authPages.some((page) => pathname.startsWith(page))) {
-    if (sessionToken) {
-      // See the 303 rationale above; same reasoning applies here.
-      const dashboardUrl = request.nextUrl.clone();
-      dashboardUrl.pathname = '/dashboard';
-      dashboardUrl.search = '';
-      const redirectResponse = NextResponse.redirect(dashboardUrl, 303);
-      // See comment above: CSP on 3xx is defense-in-depth, the actual
-      // policy that governs /dashboard rendering comes from its own
-      // proxy pass.
-      redirectResponse.headers.set('Content-Security-Policy', cspHeader);
-      return redirectResponse;
-    }
-  }
+  // NO auth-page bounce here. Deliberate -- do not re-add one.
+  //
+  // The obvious companion to the block above is "if the user already has a
+  // session cookie, redirect them off /login to /dashboard". That produces an
+  // unbreakable redirect loop the moment a cookie is present but the session
+  // behind it is not valid -- revoked, expired, user banned via the admin
+  // plugin, session row dropped by a db:push, or BETTER_AUTH_SECRET rotated:
+  //
+  //   GET /dashboard -> proxy sees a cookie, passes through
+  //     -> (dashboard)/layout.tsx -> requireAuthSession() finds no session
+  //     -> redirect('/login?callbackUrl=/dashboard')
+  //   GET /login     -> proxy sees the same cookie -> 303 /dashboard
+  //     -> ERR_TOO_MANY_REDIRECTS, with /login unreachable so the user can
+  //        never sign in again to clear it. A secret rotation locks out
+  //        every user at once.
+  //
+  // getSessionCookie() only PARSES the jar (better-auth cookies/index.mjs):
+  // no HMAC verification, no expiry check, no DB lookup. The proxy therefore
+  // cannot tell a live session from a dead one, and deliberately does not try
+  // -- validating here would mean a DB round trip on every request.
+  //
+  // The asymmetry is intentional and safe: the block above is optimistic in
+  // the *safe* direction (no cookie -> definitely not signed in -> redirect),
+  // while a stale cookie merely gets forwarded to the segment layout, which
+  // does the real `auth.api.getSession` check and redirects properly.
+  //
+  // Sending an already-authenticated user away from /login is handled by
+  // login/page.tsx, which reads a VALIDATED session and routes on real role
+  // (`isAdmin ? '/dashboard' : '/portal'`) via safeCallbackUrl -- so it also
+  // honors the callbackUrl and never strands a portal client on an
+  // admin-only route, both of which a blanket proxy bounce got wrong.
 
   // Forward x-nonce so server components can read it via headers().
   // Set CSP on the response so the browser enforces it.

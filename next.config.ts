@@ -49,6 +49,27 @@ const nextConfig: NextConfig = {
    */
   images: {
     qualities: [75, 90, 95],
+
+    /**
+     * Vercel Blob is where every admin upload lands, and five dashboard
+     * components render those URLs through `next/image`
+     * (sortable-image-grid, products/columns, design-approval-card,
+     * product-form, session-detail-client).
+     *
+     * Without an entry here `remotePatterns` is `[]`, and next/image refuses
+     * any remote host outright: it throws E231 "hostname is not configured
+     * under images" outside production, and the /_next/image optimizer 400s
+     * the unmatched host in production. The net effect was an upload that
+     * succeeded followed by a thumbnail that never loaded. proxy.ts already
+     * whitelists this host in `img-src`, so the CSP half was in place and
+     * only this half was missing.
+     */
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.public.blob.vercel-storage.com',
+      },
+    ],
   },
 
   /**
