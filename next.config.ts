@@ -80,8 +80,13 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
+        // `||`, not `??`: clearing the var in the Vercel dashboard (rather
+        // than deleting it) yields an empty string, which `??` would pass
+        // through as a hostname matching nothing -- every dashboard thumbnail
+        // would then 400 from the optimizer with no build-time error, which is
+        // the exact symptom this block exists to fix.
         hostname:
-          process.env.BLOB_IMAGE_HOSTNAME ?? '*.public.blob.vercel-storage.com',
+          process.env.BLOB_IMAGE_HOSTNAME || '*.public.blob.vercel-storage.com',
       },
     ],
   },

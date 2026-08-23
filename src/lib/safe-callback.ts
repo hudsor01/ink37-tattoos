@@ -48,8 +48,16 @@
  *  `.invalid` is reserved by RFC 2606 and can never be a real host. */
 const SENTINEL_ORIGIN = 'https://callback.invalid';
 
-/** Auth pages a callbackUrl must never point at, or sign-in loops. */
-const AUTH_PATHS = ['/login', '/register'];
+/**
+ * Auth pages a callbackUrl must never point at, or sign-in loops.
+ *
+ * Exported so (auth)/layout.tsx's "already signed in" redirect gates exactly
+ * these paths. The same group also holds /forgot-password and
+ * /reset-password, which must stay reachable while signed in -- a user
+ * clicking an emailed reset link still has a live session, and bouncing them
+ * consumes nothing and expires the single-use token.
+ */
+export const AUTH_PATHS = ['/login', '/register'];
 
 export function safeCallbackUrl(
   raw: string | null | undefined,

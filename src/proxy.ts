@@ -193,11 +193,12 @@ export function proxy(request: NextRequest) {
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = '/login';
       loginUrl.search = '';
-      // clone() copies the fragment too. Without this the login redirect
-      // carries the ORIGINAL page's hash (/dashboard/orders#invoice-42 ->
-      // /login?callbackUrl=...#invoice-42), landing the user on /login
-      // scrolled to a fragment from a different page.
-      loginUrl.hash = '';
+      // No `loginUrl.hash = ''` here, despite looking prudent: fragments are
+      // dereferenced client-side and never sent in a request line (RFC 3986
+      // 3.5), so nextUrl.hash is always empty and clearing it is a no-op.
+      // It would also be counterproductive -- per WHATWG Fetch's
+      // HTTP-redirect step, a Location with a NULL fragment is exactly the
+      // case where the UA re-applies the original URL's fragment.
       loginUrl.searchParams.set('callbackUrl', pathWithSearch);
       // 303, not the NextResponse.redirect default of 307.
       //

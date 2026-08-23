@@ -1,4 +1,9 @@
 import * as Sentry from '@sentry/nextjs';
+import {
+  dropFrameworkSignals,
+  FRAMEWORK_SIGNAL_NAMES,
+  NETWORK_NOISE,
+} from '@/instrumentation';
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -12,20 +17,48 @@ Sentry.init({
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1.0,
 
-  // Filter out noisy errors
+  /**
+   * Shares the server's filter set instead of keeping a local copy.
+   *
+   * The hardcoded list this replaces had already drifted: it was missing
+   * `NEXT_HTTP_ERROR_FALLBACK`, which is how Next 16 actually constructs
+   * notFound() throws (see the long note in src/instrumentation.ts), and it
+   * had no `beforeSend`. That mattered the moment this file started running:
+   * every client-side notFound()/unauthorized()/forbidden() navigation would
+   * be reported as a real error, and HANGING_PROMISE_REJECTION carries its
+   * digest in a separate property that `ignoreErrors` cannot see at all --
+   * which is the entire reason dropFrameworkSignals exists.
+   */
   ignoreErrors: [
-    'NEXT_NOT_FOUND',
-    'NEXT_REDIRECT',
-    'AbortError',
-    'NetworkError',
+    ...FRAMEWORK_SIGNAL_NAMES,
+    ...NETWORK_NOISE,
     'ResizeObserver loop',
     'Non-Error promise rejection',
   ],
+  beforeSend: dropFrameworkSignals,
 
   integrations: [
     Sentry.replayIntegration({
-      maskAllText: false,
-      blockAllMedia: false,
+      /**
+       * Masking is ON. These were `false` while this file was dead code --
+       * harmless then, not now.
+       *
+       * Renaming sentry.client.config.ts -> instrumentation-client.ts makes
+       * Sentry.init() actually run in the browser for the first time, which
+       * activates Session Replay at 10% of all sessions and 100% of error
+       * sessions. Unmasked, that uploads full-DOM recordings of
+       * /dashboard/customers, /dashboard/orders, /dashboard/payments and the
+       * client /portal -- real customer names, emails, phones, addresses and
+       * appointment notes -- to a third-party processor, and connect-src was
+       * widened to https://*.sentry.io in the same change, so nothing blocks
+       * the upload.
+       *
+       * true/true matches Sentry's own defaults. Replays stay useful for
+       * layout and interaction debugging (which is what the blank-page
+       * outage needed) without exfiltrating customer records.
+       */
+      maskAllText: true,
+      blockAllMedia: true,
     }),
   ],
 });

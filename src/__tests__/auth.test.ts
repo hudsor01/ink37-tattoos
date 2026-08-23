@@ -28,13 +28,21 @@ describe('Auth configuration', () => {
     expect(content).toContain('POST');
   });
 
-  it('proxy.ts protects dashboard and portal routes', async () => {
-    const fs = await import('node:fs');
-    const content = fs.readFileSync('src/proxy.ts', 'utf-8');
-    expect(content).toContain('export function proxy');
-    expect(content).toContain('/dashboard');
-    expect(content).toContain('/portal');
-  });
+  /**
+   * There is deliberately no `proxy.ts protects dashboard and portal routes`
+   * source-text test here any more.
+   *
+   * It asserted `toContain('export function proxy')`, `toContain('/dashboard')`
+   * and `toContain('/portal')`. Both path literals now appear roughly fifteen
+   * times inside proxy.ts's explanatory comments, so deleting
+   * `protectedPrefixes` and the entire gate would leave a test NAMED for that
+   * security contract passing on prose alone -- a worse signal than no test,
+   * because it reports coverage of a protection that no longer exists.
+   *
+   * csp.test.ts ("proxy session cookie recognition") asserts the real thing:
+   * it drives proxy() and checks the actual redirect decisions for gated and
+   * ungated paths, with and without a session cookie.
+   */
 
   /**
    * There is deliberately NO source-text assertion about the session cookie

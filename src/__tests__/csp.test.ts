@@ -41,12 +41,22 @@ import { proxy } from '../proxy';
  * browser is actually enforcing `'self'`.
  */
 function parseCSP(header: string | null): Record<string, string> {
-  if (!header) return {};
-  const out: Record<string, string> = {};
+  // Object.create(null) + Object.hasOwn, NOT `{}` + `in`.
+  //
+  // With a plain object literal, `'constructor' in out` (and 'toString',
+  // 'valueOf', '__proto__') are all TRUE against a fresh object, so a
+  // directive by any of those names would be silently dropped by the
+  // first-wins `continue` -- and `csp['constructor']` would then return the
+  // Object constructor, making assertions like
+  // `expect(csp[d] ?? '').not.toContain(...)` compare against a function's
+  // stringification instead of the policy. Assigning `out['__proto__']` on a
+  // literal also hits the prototype setter and vanishes without error.
+  const out: Record<string, string> = Object.create(null);
+  if (!header) return out;
   for (const directive of header.split(';')) {
     const [name, ...rest] = directive.trim().split(' ');
     if (!name) continue;
-    if (name in out) continue; // first wins, as browsers do
+    if (Object.hasOwn(out, name)) continue; // first wins, as browsers do
     out[name] = rest.join(' ');
   }
   return out;
@@ -64,7 +74,18 @@ function parseCSP(header: string | null): Record<string, string> {
 function cspAllowsHost(sourceList: string | undefined, host: string): boolean {
   if (!sourceList) return false;
   return sourceList.split(/\s+/).some((source) => {
-    const bare = source.replace(/^https?:\/\//, '').replace(/:\d+$/, '');
+    // Keyword and scheme sources are not host-sources and never match a
+    // hostname here. Returning false for them is correct, but callers must
+    // not read a false as "this host is denied" -- `'self'` genuinely
+    // authorizes same-origin hosts, and this helper cannot know the origin.
+    // It answers one question only: does an explicit host-source cover `host`?
+    if (source.startsWith("'") || /^[a-z][a-z0-9+.-]*:$/i.test(source)) {
+      return false;
+    }
+    const bare = source
+      .replace(/^https?:\/\//, '')
+      .replace(/\/.*$/, '') // strip any path, e.g. https://vercel.com/api/blob
+      .replace(/:\d+$/, '');
     if (!bare) return false;
     if (bare.startsWith('*.')) return host.endsWith(bare.slice(1));
     return host === bare;
@@ -256,6 +277,49 @@ describe('proxy CSP + nonce', () => {
    * contact-client.tsx embeds a Google Maps iframe for the studio location.
    * frame-src must allow it or the map renders as an empty bordered box.
    */
+  /**
+   * font-src, media-src and img-src had no coverage at all while every new
+   * connect-src and frame-src host got a dedicated test. The cal.com entry in
+   * particular is load-bearing and easy to lose in a merge on the buildCSP
+   * array: @calcom/embed-core runs in the PARENT document and injects
+   * `@font-face{font-family:Cal Sans;src:url(https://cal.com/cal.ttf)}`, so
+   * dropping it silently falls back to a system face on every /booking load.
+   * Note cal.com is a DIFFERENT host from the app.cal.com allowlisted in
+   * script-src/frame-src/connect-src.
+   */
+  it('font-src allows the Cal.com webfont injected into the parent document', () => {
+    const csp = parseCSP(
+      proxy(makeRequest('/')).headers.get('content-security-policy')
+    );
+    expect(csp['font-src']).toContain("'self'");
+    expect(cspAllowsHost(csp['font-src'], 'cal.com')).toBe(true);
+  });
+
+  it('img-src allows the Vercel Blob host uploads land on', () => {
+    const csp = parseCSP(
+      proxy(makeRequest('/')).headers.get('content-security-policy')
+    );
+    expect(
+      cspAllowsHost(csp['img-src'], 'abc123.public.blob.vercel-storage.com')
+    ).toBe(true);
+  });
+
+  /**
+   * media-src has no fallback of its own beyond default-src, so without an
+   * explicit directive blob-hosted video is unplayable -- and both uploaders
+   * accept video/mp4 to that host.
+   */
+  it('media-src covers self and the Vercel Blob host', () => {
+    const csp = parseCSP(
+      proxy(makeRequest('/')).headers.get('content-security-policy')
+    );
+    expect(csp['media-src']).toBeDefined();
+    expect(csp['media-src']).toContain("'self'");
+    expect(
+      cspAllowsHost(csp['media-src'], 'abc123.public.blob.vercel-storage.com')
+    ).toBe(true);
+  });
+
   it('frame-src allows the Google Maps embed used on /contact', () => {
     const res = proxy(makeRequest('/'));
     const csp = parseCSP(res.headers.get('content-security-policy'));
