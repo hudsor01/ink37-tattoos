@@ -50,11 +50,38 @@ describe('proxy CSP + nonce', () => {
     expect(csp['script-src']).toContain(`'nonce-${sentinel}'`);
   });
 
-  it('script-src includes strict-dynamic and Cal.com', () => {
+  it('script-src allows self and Cal.com', () => {
     const res = proxy(makeRequest('/'));
     const csp = parseCSP(res.headers.get('content-security-policy'));
-    expect(csp['script-src']).toContain("'strict-dynamic'");
+    expect(csp['script-src']).toContain("'self'");
     expect(csp['script-src']).toContain('https://app.cal.com');
+  });
+
+  /**
+   * Regression guard: `'strict-dynamic'` took the entire public site down.
+   *
+   * Per CSP Level 3, `'strict-dynamic'` makes the browser ignore every
+   * host-source expression in script-src -- both `'self'` and
+   * `https://app.cal.com` go inert, leaving only nonce'd/hashed scripts.
+   * But `cacheComponents: true` (Cache Components / PPR) means each route
+   * ships a statically prerendered shell whose `/_next/static/chunks/*.js`
+   * bootstrap tags are emitted at build time and therefore carry no nonce.
+   * Next's docs state the incompatibility directly: "Partial Prerendering
+   * (PPR) is also incompatible with nonce-based CSP because static shell
+   * scripts cannot access the nonce."
+   *
+   * Result in production: every chunk downloaded, none executed, React never
+   * hydrated, and PageTransition stayed pinned at its SSR'd `opacity: 0` --
+   * a completely blank site with a fully-formed DOM. The Cal.com booking
+   * embed was silently blocked by the same rule.
+   *
+   * Re-adding `'strict-dynamic'` is only safe if PPR/ISR is fully disabled
+   * (`await connection()` on every page). Until then, this must stay absent.
+   */
+  it('script-src does NOT contain strict-dynamic (blank-page regression)', () => {
+    const res = proxy(makeRequest('/'));
+    const csp = parseCSP(res.headers.get('content-security-policy'));
+    expect(csp['script-src']).not.toContain("'strict-dynamic'");
   });
 
   it('script-src does NOT contain unsafe-inline or unsafe-eval in production', () => {

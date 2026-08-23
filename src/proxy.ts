@@ -5,17 +5,49 @@ const authPages = ['/login', '/register'];
 
 /**
  * Build the per-request Content-Security-Policy header.
- * Uses a nonce on script-src so only scripts marked with the matching
+ * Uses a nonce on script-src so inline scripts marked with the matching
  * `nonce` attribute (set by layout.tsx and BreadcrumbNav for JSON-LD,
  * and by next-themes for its theme-bootstrap script) execute. Style-src
  * keeps `'unsafe-inline'` because Next.js still emits inline styles for
  * the route announcer and the chart helpers (next.js issues #18557, #83764).
+ *
+ * DO NOT add `'strict-dynamic'` here. It looks like a security upgrade and
+ * is what Next's own with-strict-csp example uses, but it is fundamentally
+ * incompatible with this app's rendering model and takes the whole site down:
+ *
+ *   1. Per CSP Level 3, when `'strict-dynamic'` is present the browser
+ *      IGNORES every host-source expression in script-src -- that means
+ *      `'self'` AND `https://app.cal.com` become inert. Only nonce'd (or
+ *      hashed) scripts, plus scripts those trusted scripts inject at
+ *      runtime, are allowed to execute.
+ *   2. `cacheComponents: true` in next.config.ts turns on Cache Components /
+ *      PPR, so every route ships a statically prerendered shell. That shell's
+ *      bootstrap `<script src="/_next/static/chunks/*.js">` tags are emitted
+ *      at BUILD time, when no per-request nonce exists, so they carry no
+ *      nonce attribute. Next's docs say this outright: "Partial Prerendering
+ *      (PPR) is also incompatible with nonce-based CSP because static shell
+ *      scripts cannot access the nonce."
+ *      https://nextjs.org/docs/app/guides/content-security-policy
+ *   3. Net effect: the browser downloads every JS chunk but refuses to run
+ *      any of them (the turbopack runtime included). React never hydrates.
+ *      PageTransition then stays pinned at its server-rendered
+ *      `initial={{ opacity: 0 }}` and the entire site renders BLANK --
+ *      DOM present, zero visible text. It also silently killed the Cal.com
+ *      booking embed, since rule 1 made `https://app.cal.com` inert too.
+ *
+ * Keeping plain `'self'` is the correct policy for a prerendered app: it is
+ * the standard Next.js CSP, it still blocks arbitrary inline/injected script,
+ * and it does not force every page to become dynamic. Making `'strict-dynamic'`
+ * work would mean giving up PPR/ISR entirely (`await connection()` on every
+ * page) -- a large, permanent perf regression to buy a marginal hardening on a
+ * site that loads no third-party script beyond Cal.com.
+ * Regression coverage lives in src/__tests__/csp.test.ts.
  */
 function buildCSP(nonce: string): string {
   const isDev = process.env.NODE_ENV === 'development';
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://app.cal.com${isDev ? " 'unsafe-eval'" : ''}`,
+    `script-src 'self' 'nonce-${nonce}' https://app.cal.com${isDev ? " 'unsafe-eval'" : ''}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' blob: data: https://*.public.blob.vercel-storage.com",
     "font-src 'self'",
