@@ -73,11 +73,33 @@ export function safeCallbackUrl(
   // Anything the parser pulls off the sentinel origin is an open redirect.
   if (resolved.origin !== SENTINEL_ORIGIN) return fallback;
 
+  const out = `${resolved.pathname}${resolved.search}${resolved.hash}`;
+
+  // THE load-bearing check: the hazard is in the OUTPUT, not the input.
+  //
+  // Dot segments let a value stay on the sentinel origin while resolving to a
+  // pathname that is itself protocol-relative. Verified:
+  //
+  //   new URL('/..//evil.com', 'https://callback.invalid/login')
+  //     -> origin 'https://callback.invalid'  (passes the check above)
+  //        pathname '//evil.com'              (protocol-relative!)
+  //
+  // and `'/..//evil.com'.startsWith('//')` is false, so an input-side guard
+  // never sees it. Returning that pathname hands the caller `//evil.com`,
+  // which dereferences to https://evil.com/ the moment it reaches
+  // window.location.href. `/.//`, `/a/..//`, `/%2e%2e//` and `/..///` all do
+  // the same. `/..//` degenerates to `'//'`, which throws Invalid URL in any
+  // consumer that re-parses it.
+  //
+  // Checking the resolved output covers every one of those, and subsumes the
+  // input-side check above.
+  if (out.startsWith('//')) return fallback;
+
   // Compare case-insensitively and ignore a trailing slash: `/login/` and
   // `/LOGIN` are the same loop, while `/login-help` and `/registered-users`
   // are legitimate destinations and must survive (hence no prefix test).
   const normalizedPath = resolved.pathname.replace(/\/+$/, '').toLowerCase();
   if (AUTH_PATHS.includes(normalizedPath || '/')) return fallback;
 
-  return `${resolved.pathname}${resolved.search}${resolved.hash}`;
+  return out;
 }

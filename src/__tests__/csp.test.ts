@@ -441,7 +441,8 @@ describe('proxy session cookie recognition', () => {
    *        locked out with no way to clear the cookie.
    *
    * Routing an authenticated user away from /login belongs in
-   * login/page.tsx, which reads a validated session and routes on real role.
+   * src/app/(auth)/layout.tsx, which runs a real auth.api.getSession lookup
+   * and routes on actual role -- a validated answer cannot produce the loop.
    */
   it('does NOT bounce a cookie-bearing request off /login (loop guard)', () => {
     const res = proxy(makeRequest('/login', SECURE));

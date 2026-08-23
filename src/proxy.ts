@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSessionCookie } from 'better-auth/cookies';
 
 const protectedPrefixes = ['/dashboard', '/portal'];
 
@@ -21,8 +20,11 @@ function isUnder(pathname: string, prefix: string): boolean {
 /**
  * Build the per-request Content-Security-Policy header.
  * Uses a nonce on script-src so inline scripts marked with the matching
- * `nonce` attribute (set by layout.tsx and BreadcrumbNav for JSON-LD,
- * and by next-themes for its theme-bootstrap script) execute. Style-src
+ * `nonce` attribute execute -- in practice next-themes' theme-bootstrap
+ * script and the RSC payload / Suspense-completion scripts Next renders at
+ * request time. NOT the JSON-LD blocks: those are data blocks, which HTML
+ * exempts from the CSP inline check, so json-ld.tsx carries no nonce (see
+ * the note further down this file). Style-src
  * keeps `'unsafe-inline'` because Next.js still emits inline styles for
  * the route announcer and the chart helpers (next.js issues #18557, #83764).
  *
@@ -71,7 +73,19 @@ function buildCSP(nonce: string): string {
     `script-src 'self' 'nonce-${nonce}' https://app.cal.com${isDev ? " 'unsafe-eval' https://va.vercel-scripts.com" : ''}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' blob: data: https://*.public.blob.vercel-storage.com",
-    "font-src 'self'",
+    // https://cal.com (NOT app.cal.com -- a different host): @calcom/embed-core
+    // runs in the PARENT document, not the iframe, and injects
+    // `@font-face{font-family:Cal Sans;src:url(https://cal.com/cal.ttf)}` into
+    // this page's stylesheet. cal-embed.tsx uses it via getCalApi(), so
+    // without this the booking widget renders in a fallback face and logs a
+    // CSP violation on every /booking load.
+    "font-src 'self' https://cal.com",
+    // media-src has no fallback of its own beyond default-src 'self', so
+    // blob-hosted video was unplayable even though media-uploader.tsx and
+    // media-page-client.tsx both accept video/mp4 uploads to that exact host.
+    // The image half of this gap (img-src + images.remotePatterns) was closed
+    // earlier; this is the video half.
+    "media-src 'self' blob: https://*.public.blob.vercel-storage.com",
     // https://vercel.com -- @vercel/blob's client-side `upload()` POSTs to
     //   https://vercel.com/api/blob (see @vercel/blob dist:
     //   `defaultVercelBlobApiUrl = "https://vercel.com/api/blob"`). Five
@@ -81,9 +95,15 @@ function buildCSP(nonce: string): string {
     // https://*.sentry.io rather than https://*.ingest.sentry.io -- a CSP
     //   host wildcard is a suffix match, so `*.ingest.sentry.io` matches
     //   `oNNN.ingest.sentry.io` but NOT the regional `oNNN.ingest.us.sentry.io`
-    //   form Sentry issues for newer projects. Getting this wrong silently
-    //   drops browser error reports, which is precisely how the blank-page
-    //   outage stayed invisible for so long.
+    //   form Sentry issues for newer projects, which would silently drop
+    //   every browser error report and Session Replay upload.
+    //
+    //   Note this was NOT what hid the blank-page outage, despite the tempting
+    //   story: browser Sentry was not running at all. Its init lived in
+    //   sentry.client.config.ts, a filename only @sentry/nextjs's WEBPACK
+    //   config reads, and this project builds with Turbopack. It has since
+    //   moved to src/instrumentation-client.ts, which Next actually loads --
+    //   so this allowlist entry only started mattering once that was fixed.
     // Dev adds bare `ws:`/`wss:` scheme-sources rather than
     // `ws://localhost:*`. next.config.ts's allowedDevOrigins deliberately
     // permits LAN (192.168.*.*), Tailscale CGNAT (100.*.*.*), MagicDNS
@@ -133,10 +153,25 @@ export function proxy(request: NextRequest) {
   // /portal 307'd to /login, and login/page.tsx sent them straight back --
   // an unbreakable redirect loop that only reproduced on https.
   //
-  // getSessionCookie() checks `__Secure-`-prefixed and bare names, and both
-  // the `.` and `-` separators, so it stays correct across environments and
-  // any future prefix change.
-  const sessionToken = getSessionCookie(request);
+  // Checking both names inline rather than importing better-auth's
+  // getSessionCookie(). That helper is correct, but `better-auth/cookies`
+  // pulls in `../db/schema` -> `@better-auth/core/db` -> zod, and Turbopack
+  // does not shake it out of the middleware bundle: the emitted chunk
+  // measured 313KB with 419 zod references, parsed and evaluated on every
+  // cold middleware instance, to read one header and do two Map lookups.
+  //
+  // NextRequest has already parsed the Cookie header into a Map, so this also
+  // avoids re-parsing the raw string on every request -- including for `/`,
+  // `/gallery` and other paths that never consult the result.
+  //
+  // Only the `.` separator is checked: the `-` variant getSessionCookie also
+  // tries applies to a non-default `cookiePrefix`, and auth.ts sets none.
+  // If `advanced.cookiePrefix` or `useSecureCookies` is ever configured,
+  // update both names here. Covered by csp.test.ts
+  // ("proxy session cookie recognition").
+  const sessionToken =
+    request.cookies.get('__Secure-better-auth.session_token') ??
+    request.cookies.get('better-auth.session_token');
   // Combine path + query so AuthGuards can preserve filter/sort state
   // when redirecting through the auth flow (e.g. /dashboard/orders?status=open
   // → user signs in → lands back with the filter intact). Using a single
@@ -158,6 +193,11 @@ export function proxy(request: NextRequest) {
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = '/login';
       loginUrl.search = '';
+      // clone() copies the fragment too. Without this the login redirect
+      // carries the ORIGINAL page's hash (/dashboard/orders#invoice-42 ->
+      // /login?callbackUrl=...#invoice-42), landing the user on /login
+      // scrolled to a fragment from a different page.
+      loginUrl.hash = '';
       loginUrl.searchParams.set('callbackUrl', pathWithSearch);
       // 303, not the NextResponse.redirect default of 307.
       //
@@ -204,11 +244,18 @@ export function proxy(request: NextRequest) {
   // while a stale cookie merely gets forwarded to the segment layout, which
   // does the real `auth.api.getSession` check and redirects properly.
   //
-  // Sending an already-authenticated user away from /login is handled by
-  // login/page.tsx, which reads a VALIDATED session and routes on real role
-  // (`isAdmin ? '/dashboard' : '/portal'`) via safeCallbackUrl -- so it also
-  // honors the callbackUrl and never strands a portal client on an
-  // admin-only route, both of which a blanket proxy bounce got wrong.
+  // Sending an already-authenticated user away from /login is handled in
+  // src/app/(auth)/layout.tsx, which runs a REAL `auth.api.getSession`
+  // lookup and routes on actual role (admin -> /dashboard, else /portal).
+  //
+  // That placement is what makes it safe: a validated lookup returns "no
+  // session" for a stale cookie, so the visitor just gets the login form and
+  // the loop above is structurally impossible. A proxy-level bounce cannot
+  // reach that answer without a DB round trip on every request.
+  //
+  // (login/page.tsx does NOT do this -- it is a 'use client' form that only
+  // routes inside signIn.email's onSuccess. An earlier revision of this
+  // comment claimed otherwise and was wrong; the guard had to be written.)
 
   // Forward x-nonce so server components can read it via headers().
   // Set CSP on the response so the browser enforces it.

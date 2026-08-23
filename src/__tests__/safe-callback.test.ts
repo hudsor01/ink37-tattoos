@@ -185,3 +185,60 @@ describe('safeCallbackUrl -- returns the normalized path, not raw input', () => 
     }
   });
 });
+
+/**
+ * Dot-segment escapes.
+ *
+ * These stay on the sentinel origin (so an origin-only check passes) while
+ * resolving to a pathname that is ITSELF protocol-relative:
+ *
+ *   new URL('/..//evil.com', 'https://callback.invalid/login')
+ *     -> origin  'https://callback.invalid'   (passes)
+ *        pathname '//evil.com'                (hazard)
+ *
+ * and `'/..//evil.com'.startsWith('//')` is false, so an input-side guard
+ * never sees them. Returning that pathname is a live open redirect.
+ */
+describe('safeCallbackUrl -- dot-segment protocol-relative escapes', () => {
+  const FALLBACK = '/dashboard';
+
+  it.each([
+    '/..//evil.com',
+    '/.//evil.com',
+    '/a/..//evil.com',
+    '/%2e%2e//evil.com',
+    '/..///evil.com',
+    '/../..//evil.com',
+  ])('rejects %o', (raw) => {
+    expect(safeCallbackUrl(raw, FALLBACK)).toBe(FALLBACK);
+  });
+
+  it('rejects the degenerate /..// which would otherwise return "//"', () => {
+    expect(safeCallbackUrl('/..//', FALLBACK)).toBe(FALLBACK);
+  });
+
+  /**
+   * Property test over the whole hostile corpus. Anything returned must:
+   *   - never be protocol-relative
+   *   - dereference same-origin
+   *   - be re-parseable (no Invalid URL in a downstream consumer)
+   *   - be idempotent under revalidation
+   */
+  it('output is never protocol-relative, always same-origin and re-parseable', () => {
+    const ORIGIN = 'https://ink37tattoos.com';
+    const hostile = [
+      '//evil.com', '///evil.com', '/\\evil.com', '/\\/evil.com',
+      '/..//evil.com', '/.//evil.com', '/a/..//evil.com', '/%2e%2e//evil.com',
+      '/..///evil.com', '/..//', '/../..//evil.com', '//callback.invalid/x',
+      'https://evil.com', 'javascript:alert(1)', '/foo\r\nX: 1',
+      '/dashboard/orders?a=1#f', '/', '/login', '/login-help',
+    ];
+    for (const raw of hostile) {
+      const out = safeCallbackUrl(raw, FALLBACK);
+      expect(out.startsWith('//')).toBe(false);
+      expect(() => new URL(out, `${ORIGIN}/login`)).not.toThrow();
+      expect(new URL(out, `${ORIGIN}/login`).origin).toBe(ORIGIN);
+      expect(safeCallbackUrl(out, FALLBACK)).toBe(out);
+    }
+  });
+});

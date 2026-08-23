@@ -60,10 +60,34 @@ describe('JsonLd', () => {
    * boundary below the root -- so a throw there would fail the prerender for
    * every route at build time.
    */
-  it.each([undefined, null, () => {}, Symbol('x')])(
-    'does not throw on non-serializable input (%o)',
+  it.each([undefined, () => {}, Symbol('x')])(
+    'renders nothing for input that does not serialize to a string (%o)',
     (data) => {
       expect(() => render(data)).not.toThrow();
+      expect(render(data)).toBe('');
     }
   );
+
+  /**
+   * JSON.stringify THROWS on these rather than returning undefined, so a
+   * result-type check alone never runs. JsonLd sits in layout.tsx's <body>
+   * with no Suspense boundary below the root, so under cacheComponents an
+   * escaping throw fails the prerender for every route at build time.
+   */
+  it('renders nothing for a circular structure instead of throwing', () => {
+    const circular: Record<string, unknown> = { a: 1 };
+    circular.self = circular;
+    expect(() => render(circular)).not.toThrow();
+    expect(render(circular)).toBe('');
+  });
+
+  it('renders nothing for BigInt instead of throwing', () => {
+    expect(() => render({ n: 1n })).not.toThrow();
+    expect(render({ n: 1n })).toBe('');
+  });
+
+  it('still renders null explicitly passed as data', () => {
+    // `null` IS serializable, so it round-trips rather than being dropped.
+    expect(render(null)).toContain('application/ld+json');
+  });
 });

@@ -22,28 +22,43 @@
  * literal. Do not pass raw user input -- the JSON is emitted verbatim via
  * dangerouslySetInnerHTML, which is the canonical pattern for JSON-LD per the
  * Next.js docs. `<` is escaped to < so a `</script>` substring in the
- * data cannot terminate the tag early (see the JsonLd tests in csp.test.ts).
+ * data cannot terminate the tag early (see src/__tests__/json-ld.test.tsx,
+ * which renders this component rather than re-implementing the escape).
  */
 export function JsonLd({ data }: { data: unknown }) {
-  // JSON.stringify returns the VALUE undefined -- not a string -- for
-  // undefined, functions and symbols, so calling .replace() on it throws
-  // TypeError. `data ?? null` is NOT sufficient: a function is neither null
-  // nor undefined but still stringifies to undefined. Checking the result
-  // covers every case.
+  // Serializing defensively, because `data: unknown` accepts anything and a
+  // failure here is unusually expensive.
   //
-  // This matters more than it looks: `data: unknown` means an optional schema
-  // typechecks clean at the call site, and JsonLd now renders directly in
-  // layout.tsx's <body> with no Suspense boundary below the root -- under
-  // cacheComponents a throw there fails the prerender for EVERY route at
-  // build time rather than degrading one streamed hole.
-  const json = JSON.stringify(data);
-  const safe = typeof json === 'string' ? json : 'null';
+  // JsonLd renders directly in layout.tsx's <body> with no Suspense boundary
+  // below the root, so under `cacheComponents: true` a throw fails the
+  // prerender for EVERY route at build time. Two distinct failure modes:
+  //
+  //   - JSON.stringify RETURNS the value undefined (not a string) for
+  //     undefined, functions and symbols -- `.replace` on that throws
+  //     TypeError. `data ?? null` does not help: a function is neither null
+  //     nor undefined.
+  //   - JSON.stringify THROWS outright on circular references
+  //     ("Converting circular structure to JSON") and on BigInt
+  //     ("Do not know how to serialize a BigInt"), so it never reaches any
+  //     result check at all.
+  //
+  // Rendering nothing beats emitting `<script type="application/ld+json">
+  // null</script>`, which Google's structured-data parser reports as an
+  // error.
+  let json: string;
+  try {
+    const serialized = JSON.stringify(data);
+    if (typeof serialized !== 'string') return null;
+    json = serialized;
+  } catch {
+    return null;
+  }
 
   return (
     <script
       type="application/ld+json"
       dangerouslySetInnerHTML={{
-        __html: safe.replace(/</g, '\\u003c'),
+        __html: json.replace(/</g, '\\u003c'),
       }}
     />
   );

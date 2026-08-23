@@ -26,7 +26,15 @@ import { PageTransition } from '@/components/page-transition';
  * every one of those failure modes.
  */
 function wrapperStyle(html: string): Record<string, string> {
-  const attr = html.match(/^<div[^>]*?\sstyle="([^"]*)"/)?.[1] ?? '';
+  const match = html.match(/^<div[^>]*?\sstyle="([^"]*)"/);
+  // Fail loudly rather than returning {}. With a `?? ''` fallback, a change to
+  // framer's attribute order or an extra element above the wrapper would make
+  // every guard below vacuous: parseFloat(undefined ?? '1') is 1 (> 0 passes)
+  // and (undefined ?? 'none') never matches /translate/, so the blank-page
+  // checks would silently pass on markup they never inspected.
+  expect(match, `no wrapper style attribute found in: ${html.slice(0, 120)}`)
+    .not.toBeNull();
+  const attr = match![1];
   const out: Record<string, string> = {};
   for (const decl of attr.split(';')) {
     if (!decl.trim()) continue;
@@ -114,6 +122,9 @@ describe('PageTransition server-rendered visibility', () => {
     // The wrapper stays visible...
     expect(parseFloat(wrapperStyle(html).opacity ?? '1')).toBeGreaterThan(0);
     // ...while the descendant keeps its own hidden initial state.
-    expect(html).toMatch(/<div[^>]*style="[^"]*\bopacity:\s*0\b/);
+    // `\bopacity:\s*0\b` would also match `opacity:0.5` -- `0` and `.` are a
+    // word boundary -- which is the same false-positive family this file's
+    // header comment rejects. Require the value to END at 0.
+    expect(html).toMatch(/<div[^>]*style="[^"]*opacity:\s*0\s*(?:[;"]|$)/);
   });
 });

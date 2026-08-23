@@ -63,11 +63,25 @@ const nextConfig: NextConfig = {
      * succeeded followed by a thumbnail that never loaded. proxy.ts already
      * whitelists this host in `img-src`, so the CSP half was in place and
      * only this half was missing.
+     *
+     * SECURITY -- this wildcard is wider than it looks. Vercel Blob hostnames
+     * are `<storeId>.public.blob.vercel-storage.com` and store IDs are not
+     * secret, so ANY pattern that accepts an arbitrary label here lets a
+     * stranger call
+     *   /_next/image?url=https://<their-store>.public.blob.vercel-storage.com/x.jpg
+     * and have this site fetch, optimize, cache and serve third-party content
+     * under its own domain, billed to this project's optimization quota.
+     * (`**.host` is not narrower than `*.host` -- Next compiles both to the
+     * same regex.) Set BLOB_IMAGE_HOSTNAME to this project's own
+     * `<storeId>.public.blob.vercel-storage.com` to close it; the wildcard is
+     * only the fallback so builds without that env var still render images.
+     * The matching `img-src` entry in src/proxy.ts has the same caveat.
      */
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**.public.blob.vercel-storage.com',
+        hostname:
+          process.env.BLOB_IMAGE_HOSTNAME ?? '*.public.blob.vercel-storage.com',
       },
     ],
   },
