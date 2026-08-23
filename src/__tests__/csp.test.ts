@@ -50,6 +50,38 @@ describe('proxy CSP + nonce', () => {
     expect(csp['script-src']).toContain(`'nonce-${sentinel}'`);
   });
 
+  /**
+   * Regression guard for the nonce delivery mechanism.
+   *
+   * Next.js does not invent a nonce -- it reads one off the *request*
+   * Content-Security-Policy header and applies it to the inline scripts it
+   * renders (see app-render.js: `headers['content-security-policy']` ->
+   * `getScriptNonceFromHeader`). proxy.ts setting that header on
+   * requestHeaders is therefore load-bearing, not informational.
+   *
+   * If it is ever dropped, Next emits those inline scripts with no nonce
+   * attribute and the response-side policy blocks them -- next-themes'
+   * theme bootstrap and the JSON-LD blocks silently stop executing. The
+   * nonce must also match Next's CSP_NONCE_SOURCE_REGEX to be picked up.
+   */
+  it('forwards the CSP on the request so Next can extract the nonce', () => {
+    const res = proxy(makeRequest('/'));
+    const forwarded = res.headers.get(
+      'x-middleware-request-content-security-policy'
+    );
+    expect(forwarded).toBeTruthy();
+
+    const nonce = res.headers.get('x-middleware-request-x-nonce');
+    expect(forwarded).toContain(`'nonce-${nonce}'`);
+
+    // Must be extractable by Next's own regex, or the nonce is dropped.
+    const scriptSrc = parseCSP(forwarded)['script-src'];
+    const source = scriptSrc
+      .split(' ')
+      .find((s) => s.startsWith("'nonce-"));
+    expect(source).toMatch(/^'nonce-([A-Za-z0-9+/_-]+={0,2})'$/);
+  });
+
   it('script-src allows self and Cal.com', () => {
     const res = proxy(makeRequest('/'));
     const csp = parseCSP(res.headers.get('content-security-policy'));

@@ -125,12 +125,24 @@ export function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-nonce', nonce);
   requestHeaders.set('x-pathname', pathWithSearch);
-  // CSP on the *request* headers is functionally inert as far as the
-  // browser is concerned -- only the response-side header below
-  // governs script execution. We set it on the request too so server
-  // components can read the policy via headers() if they ever need to
-  // (e.g., to mirror it on a Response constructed in a route handler).
-  // Don't remove without auditing for header() readers.
+  // LOAD-BEARING -- do not remove. This is not merely informational.
+  //
+  // Next.js reads the nonce off the *request* CSP header and applies it to
+  // every inline script it renders (the RSC payload flush scripts, and any
+  // component that reads x-nonce). See app-render.js:
+  //
+  //   const csp = headers['content-security-policy']
+  //             || headers['content-security-policy-report-only'];
+  //   const nonce = typeof csp === 'string'
+  //     ? getScriptNonceFromHeader(csp) : undefined;
+  //
+  // Drop this line and Next renders those scripts with no nonce attribute,
+  // so the response-side policy below blocks them -- next-themes' theme
+  // bootstrap and the JSON-LD blocks stop executing.
+  //
+  // Note the nonce must satisfy Next's CSP_NONCE_SOURCE_REGEX
+  // (/^'nonce-([A-Za-z0-9+/_-]+={0,2})'$/); a malformed value is silently
+  // ignored and yields no nonce rather than an error.
   requestHeaders.set('Content-Security-Policy', cspHeader);
 
   const response = NextResponse.next({

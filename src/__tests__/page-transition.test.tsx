@@ -25,12 +25,25 @@ import { PageTransition } from '@/components/page-transition';
  * state. These assertions fail if that prop is ever removed.
  */
 describe('PageTransition server-rendered visibility', () => {
-  const markup = () =>
-    renderToStaticMarkup(
+  /**
+   * Asserts the component actually produced markup before returning it.
+   *
+   * Every check below is a *negative* assertion, and a negative assertion is
+   * vacuously true against an empty string -- if PageTransition ever rendered
+   * nothing at all, `''.not.toMatch(/opacity:0/)` would happily pass and the
+   * regression guard would be silently dead. (Vitest does throw on
+   * `undefined`, so only the empty/degenerate-render case needs guarding.)
+   * Pinning the sentinel here makes every caller self-validating.
+   */
+  const markup = () => {
+    const html = renderToStaticMarkup(
       <PageTransition>
         <p>sentinel page content</p>
       </PageTransition>
     );
+    expect(html).toContain('sentinel page content');
+    return html;
+  };
 
   it('renders its children into the server markup', () => {
     expect(markup()).toContain('sentinel page content');
@@ -43,5 +56,14 @@ describe('PageTransition server-rendered visibility', () => {
 
   it('does NOT server-render a translated/hidden wrapper', () => {
     expect(markup()).not.toMatch(/translateY\(8px\)/);
+  });
+
+  /**
+   * The wrapper must be positively visible, not merely "not invisible".
+   * framer resolves the first mount to the `animate` variant, so the
+   * settled state is what ships: opacity:1 with no transform offset.
+   */
+  it('server-renders the settled, visible variant', () => {
+    expect(markup()).toMatch(/opacity:\s*1/);
   });
 });
