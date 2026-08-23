@@ -256,11 +256,28 @@ describe('proxy CSP + nonce', () => {
     expect(a['script-src']).not.toBe(b['script-src']);
   });
 
-  it('connect-src includes ws://localhost:* in development', () => {
+  /**
+   * Dev uses bare ws:/wss: scheme-sources, not `ws://localhost:*`.
+   * next.config.ts's allowedDevOrigins permits LAN, Tailscale CGNAT, MagicDNS
+   * and Cloudflare-tunnelled dev hosts; a localhost-only connect-src blocks
+   * the HMR websocket from all of them, so the dev server loads but hot
+   * reload is silently dead.
+   */
+  it('connect-src allows dev websockets from non-localhost origins', () => {
     vi.stubEnv('NODE_ENV', 'development');
     const res = proxy(makeRequest('/'));
     const csp = parseCSP(res.headers.get('content-security-policy'));
-    expect(csp['connect-src']).toContain('ws://localhost:*');
+    expect(csp['connect-src']).toContain('ws:');
+    expect(csp['connect-src']).toContain('wss:');
+    vi.unstubAllEnvs();
+  });
+
+  it('connect-src has no websocket sources in production', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const res = proxy(makeRequest('/'));
+    const csp = parseCSP(res.headers.get('content-security-policy'));
+    expect(csp['connect-src']).not.toContain('ws:');
+    expect(csp['connect-src']).not.toContain('wss:');
     vi.unstubAllEnvs();
   });
 });

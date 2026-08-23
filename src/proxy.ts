@@ -64,7 +64,14 @@ function buildCSP(nonce: string): string {
     //   form Sentry issues for newer projects. Getting this wrong silently
     //   drops browser error reports, which is precisely how the blank-page
     //   outage stayed invisible for so long.
-    `connect-src 'self' https://*.sentry.io https://app.cal.com https://api.cal.com https://vercel.com${isDev ? ' ws://localhost:*' : ''}`,
+    // Dev adds bare `ws:`/`wss:` scheme-sources rather than
+    // `ws://localhost:*`. next.config.ts's allowedDevOrigins deliberately
+    // permits LAN (192.168.*.*), Tailscale CGNAT (100.*.*.*), MagicDNS
+    // (*.tail367f2e.ts.net) and Cloudflare-tunnelled (*.thehudsonfam.com)
+    // dev hosts, but a localhost-only connect-src blocks the HMR websocket
+    // from every one of them -- dev server reachable, hot reload silently
+    // dead. Scheme-sources are dev-only and never reach production.
+    `connect-src 'self' https://*.sentry.io https://app.cal.com https://api.cal.com https://vercel.com${isDev ? ' ws: wss:' : ''}`,
     // https://www.google.com -- contact-client.tsx renders a Google Maps
     // embed iframe for the studio location; without it the map is a blank
     // bordered box.
