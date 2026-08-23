@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getSessionCookie } from 'better-auth/cookies';
 
 const protectedPrefixes = ['/dashboard', '/portal'];
 const authPages = ['/login', '/register'];
@@ -51,8 +52,23 @@ function buildCSP(nonce: string): string {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' blob: data: https://*.public.blob.vercel-storage.com",
     "font-src 'self'",
-    `connect-src 'self' https://*.ingest.sentry.io https://app.cal.com https://api.cal.com${isDev ? ' ws://localhost:*' : ''}`,
-    "frame-src 'self' https://app.cal.com",
+    // https://vercel.com -- @vercel/blob's client-side `upload()` POSTs to
+    //   https://vercel.com/api/blob (see @vercel/blob dist:
+    //   `defaultVercelBlobApiUrl = "https://vercel.com/api/blob"`). Five
+    //   dashboard components call it (media-uploader, sortable-image-grid,
+    //   media-page-client, profile-client, session-detail-client); without
+    //   this every admin image upload fails with an opaque network error.
+    // https://*.sentry.io rather than https://*.ingest.sentry.io -- a CSP
+    //   host wildcard is a suffix match, so `*.ingest.sentry.io` matches
+    //   `oNNN.ingest.sentry.io` but NOT the regional `oNNN.ingest.us.sentry.io`
+    //   form Sentry issues for newer projects. Getting this wrong silently
+    //   drops browser error reports, which is precisely how the blank-page
+    //   outage stayed invisible for so long.
+    `connect-src 'self' https://*.sentry.io https://app.cal.com https://api.cal.com https://vercel.com${isDev ? ' ws://localhost:*' : ''}`,
+    // https://www.google.com -- contact-client.tsx renders a Google Maps
+    // embed iframe for the studio location; without it the map is a blank
+    // bordered box.
+    "frame-src 'self' https://app.cal.com https://www.google.com",
     "worker-src 'self' blob:",
     "object-src 'none'",
     "base-uri 'self'",
@@ -74,7 +90,26 @@ export const config = {
 
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
-  const sessionToken = request.cookies.get('better-auth.session_token');
+  // Use Better Auth's own reader rather than an exact cookie-name lookup.
+  //
+  // Better Auth derives the cookie name from baseURL at runtime
+  // (cookies/index.mjs): `secureCookiePrefix = baseURL.startsWith('https://')
+  // ? '__Secure-' : ''`. auth.ts sets `baseURL: process.env.BETTER_AUTH_URL`
+  // and never sets `advanced.useSecureCookies`, so the real cookie is:
+  //
+  //   production  (https) -> __Secure-better-auth.session_token
+  //   local dev   (http)  -> better-auth.session_token
+  //
+  // `request.cookies.get('better-auth.session_token')` is an exact Map
+  // lookup with no prefix handling, so it matched in dev and NEVER matched
+  // in production: every signed-in user read as logged out, /dashboard and
+  // /portal 307'd to /login, and login/page.tsx sent them straight back --
+  // an unbreakable redirect loop that only reproduced on https.
+  //
+  // getSessionCookie() checks `__Secure-`-prefixed and bare names, and both
+  // the `.` and `-` separators, so it stays correct across environments and
+  // any future prefix change.
+  const sessionToken = getSessionCookie(request);
   // Combine path + query so AuthGuards can preserve filter/sort state
   // when redirecting through the auth flow (e.g. /dashboard/orders?status=open
   // → user signs in → lands back with the filter intact). Using a single
@@ -90,9 +125,23 @@ export function proxy(request: NextRequest) {
   // round-trips through the auth flow with the query intact.
   if (protectedPrefixes.some((prefix) => pathname.startsWith(prefix))) {
     if (!sessionToken) {
-      const loginUrl = new URL('/login', request.url);
+      // Clone nextUrl rather than resolving against request.url: with
+      // `output: 'standalone'` behind a TLS-terminating proxy the two can
+      // disagree on protocol/host, and nextUrl is the normalized one.
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = '/login';
+      loginUrl.search = '';
       loginUrl.searchParams.set('callbackUrl', pathWithSearch);
-      const redirectResponse = NextResponse.redirect(loginUrl);
+      // 303, not the NextResponse.redirect default of 307.
+      //
+      // 307 preserves the method and body. Server Actions POST to the URL of
+      // the page they were invoked from, so a session expiring mid-form would
+      // 307 that POST -- payload and all, including multipart uploads -- at
+      // /login, a route that only handles GET, and leave a callbackUrl
+      // pointing at a POST-only target. 303 See Other is the correct
+      // semantic for an auth gate: it tells the UA to GET the login page
+      // instead. Plain GET navigations behave identically under both.
+      const redirectResponse = NextResponse.redirect(loginUrl, 303);
       // CSP on a 302 is functionally inert (browsers don't render bodies of
       // redirects); the follow-up /login request is a fresh proxy invocation
       // with its own nonce + CSP. Keep the header here as defense-in-depth so
@@ -105,7 +154,11 @@ export function proxy(request: NextRequest) {
   // Auth pages: redirect to dashboard if already logged in
   if (authPages.some((page) => pathname.startsWith(page))) {
     if (sessionToken) {
-      const redirectResponse = NextResponse.redirect(new URL('/dashboard', request.url));
+      // See the 303 rationale above; same reasoning applies here.
+      const dashboardUrl = request.nextUrl.clone();
+      dashboardUrl.pathname = '/dashboard';
+      dashboardUrl.search = '';
+      const redirectResponse = NextResponse.redirect(dashboardUrl, 303);
       // See comment above: CSP on 3xx is defense-in-depth, the actual
       // policy that governs /dashboard rendering comes from its own
       // proxy pass.
@@ -138,7 +191,13 @@ export function proxy(request: NextRequest) {
   //
   // Drop this line and Next renders those scripts with no nonce attribute,
   // so the response-side policy below blocks them -- next-themes' theme
-  // bootstrap and the JSON-LD blocks stop executing.
+  // bootstrap stops executing, and React's own boundary-completion scripts
+  // (the ones that swap streamed Suspense content into place) go with it.
+  //
+  // Not the JSON-LD blocks, despite the obvious guess: a <script> whose type
+  // is not a JS MIME type is a data block, and HTML's "prepare the script
+  // element" returns at type determination, before the CSP inline check. See
+  // src/components/public/json-ld.tsx, which carries no nonce for that reason.
   //
   // Note the nonce must satisfy Next's CSP_NONCE_SOURCE_REGEX
   // (/^'nonce-([A-Za-z0-9+/_-]+={0,2})'$/); a malformed value is silently
