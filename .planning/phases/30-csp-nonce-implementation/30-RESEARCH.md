@@ -1,3 +1,28 @@
+
+> [!CAUTION]
+> **SUPERSEDED (2026-08-23): the `'strict-dynamic'` parts of this document are wrong and must not be re-applied.**
+>
+> Shipping `'strict-dynamic'` took the entire public site down. Per CSP Level 3
+> it makes the browser ignore every host-source expression in `script-src`, so
+> `'self'` and `https://app.cal.com` both went inert and only nonce'd scripts
+> could run. But `cacheComponents: true` (PPR) means each route ships a
+> statically prerendered shell whose `/_next/static/chunks/*.js` tags are
+> emitted at build time and carry no nonce. Measured in production: 14 nonce'd
+> inline scripts executed, all 18 chunk scripts (turbopack runtime included)
+> were downloaded and refused. React never hydrated and every page rendered
+> blank. The Cal.com booking embed was blocked by the same rule.
+>
+> Next's docs state the incompatibility directly: "Partial Prerendering (PPR)
+> is also incompatible with nonce-based CSP because static shell scripts cannot
+> access the nonce."
+>
+> In particular, any acceptance criterion below requiring
+> `proxy.ts contains 'strict-dynamic'` is INVERTED: `src/__tests__/csp.test.ts`
+> now asserts `'strict-dynamic'` is ABSENT. The nonce itself is still correct
+> and still in use. Re-adding `'strict-dynamic'` is only safe if PPR/ISR is
+> fully disabled (`await connection()` on every page). See the comment block
+> in src/proxy.ts.
+
 # Phase 30: CSP Nonce Implementation - Research
 
 **Researched:** 2026-04-05
@@ -8,9 +33,9 @@
 
 Phase 30 closes INFRA-02, the only **unsatisfied** requirement from the v3.0 milestone audit. The proxy.ts file (27 lines) currently contains only auth redirect logic -- no nonce generation, no CSP header, no x-nonce propagation. Meanwhile, layout.tsx already reads `(await headers()).get('x-nonce')` and passes `nonce={nonce}` to the JSON-LD script, but the value is always `undefined` because no middleware sets it.
 
-The implementation follows the official Next.js 16 proxy.ts pattern: generate a cryptographic nonce per request via `Buffer.from(crypto.randomUUID()).toString('base64')`, set it on both request headers (for downstream server components to read via `headers()`) and response headers (for browser CSP enforcement). The CSP header uses `'strict-dynamic'` in script-src so that scripts loaded by nonced scripts are automatically trusted, covering dynamically loaded chunks. For style-src, `'unsafe-inline'` must remain because Next.js injects inline styles for route announcer and client components (including chart.tsx which uses `<style dangerouslySetInnerHTML>`), and nonces cannot reliably cover all client-rendered inline styles in the current Next.js architecture.
+The implementation follows the official Next.js 16 proxy.ts pattern: generate a cryptographic nonce per request via `Buffer.from(crypto.randomUUID()).toString('base64')`, set it on both request headers (for downstream server components to read via `headers()`) and response headers (for browser CSP enforcement). The CSP header uses `'strict-dynamic'` in script-src so that scripts loaded by nonced scripts are automatically trusted, covering dynamically loaded chunks. For style-src, `'unsafe-inline'` must remain because Next.js injects inline styles for route announcer and client components (including chart.tsx which uses `<style dangerouslySetInnerHTML>`), and nonces cannot reliably cover all client-rendered inline styles in the current Next.js architecture.  <!-- SUPERSEDED 2026-08-23: strict-dynamic blanked the site under PPR; csp.test.ts now asserts it is ABSENT. See banner at top. -->
 
-**Primary recommendation:** Extend proxy.ts with nonce generation and dynamic CSP header emission. Use nonce-based script-src with `'strict-dynamic'`. Keep `'unsafe-inline'` in style-src as a pragmatic concession. Pass nonce to Providers/ThemeProvider. Remove static CSP from next.config.ts to avoid header duplication.
+**Primary recommendation:** Extend proxy.ts with nonce generation and dynamic CSP header emission. Use nonce-based script-src with `'strict-dynamic'`. Keep `'unsafe-inline'` in style-src as a pragmatic concession. Pass nonce to Providers/ThemeProvider. Remove static CSP from next.config.ts to avoid header duplication.  <!-- SUPERSEDED 2026-08-23: strict-dynamic blanked the site under PPR; csp.test.ts now asserts it is ABSENT. See banner at top. -->
 
 <phase_requirements>
 ## Phase Requirements
@@ -107,11 +132,11 @@ The following CSP directives are needed based on the project's actual third-part
 
 ```
 default-src 'self';
-script-src 'self' 'nonce-{NONCE}' 'strict-dynamic' https://app.cal.com;
+script-src 'self' 'nonce-{NONCE}' https://app.cal.com;
 style-src 'self' 'unsafe-inline';
 img-src 'self' blob: data: https://*.public.blob.vercel-storage.com;
 font-src 'self';
-connect-src 'self' https://*.ingest.sentry.io https://app.cal.com https://api.cal.com;
+connect-src 'self' https://*.sentry.io https://app.cal.com https://api.cal.com;
 frame-src 'self' https://app.cal.com;
 worker-src 'self' blob:;
 object-src 'none';
@@ -124,11 +149,11 @@ frame-ancestors 'none';
 
 | Directive | Value | Reason |
 |-----------|-------|--------|
-| `script-src` | `'self' 'nonce-{N}' 'strict-dynamic' https://app.cal.com` | Nonce covers inline scripts; `strict-dynamic` trusts scripts loaded by nonced scripts (covers chunks); Cal.com embed loads external script [VERIFIED: embed source code] |
+| `script-src` | `'self' 'nonce-{N}' https://app.cal.com` | Nonce covers inline scripts; `strict-dynamic` trusts scripts loaded by nonced scripts (covers chunks); Cal.com embed loads external script [VERIFIED: embed source code] |  <!-- SUPERSEDED 2026-08-23: strict-dynamic blanked the site under PPR; csp.test.ts now asserts it is ABSENT. See banner at top. -->
 | `style-src` | `'self' 'unsafe-inline'` | **Cannot use nonce-only for styles** -- Next.js route announcer injects inline styles at runtime; chart.tsx client component uses `<style dangerouslySetInnerHTML>`; Tailwind style attributes on elements. Nonce cannot cover all these in current Next.js [CITED: https://github.com/vercel/next.js/issues/18557, https://github.com/vercel/next.js/issues/83764] |
 | `img-src` | `'self' blob: data: https://*.public.blob.vercel-storage.com` | Vercel Blob for image storage; data: for inline SVGs; blob: for canvas operations |
 | `font-src` | `'self'` | next/font/google self-hosts fonts at build time -- no external CDN needed [VERIFIED: src/styles/fonts.ts uses next/font/google] |
-| `connect-src` | `'self' https://*.ingest.sentry.io https://app.cal.com https://api.cal.com` | Sentry error reporting; Cal.com API calls for booking embed [CITED: https://docs.sentry.io/platforms/javascript/guides/nextjs/security-policy-reporting/] |
+| `connect-src` | `'self' https://*.sentry.io https://app.cal.com https://api.cal.com` | Sentry error reporting; Cal.com API calls for booking embed [CITED: https://docs.sentry.io/platforms/javascript/guides/nextjs/security-policy-reporting/] |
 | `frame-src` | `'self' https://app.cal.com` | Cal.com booking embed renders inside iframe [VERIFIED: @calcom/embed-react creates iframe] |
 | `worker-src` | `'self' blob:` | Service worker (sw.js); Sentry Replay uses web workers [CITED: Sentry Session Replay docs] |
 | `object-src` | `'none'` | No plugins needed; blocks Flash/Java applets |
@@ -138,7 +163,7 @@ frame-ancestors 'none';
 
 | Directive | Production | Development |
 |-----------|-----------|-------------|
-| `script-src` | `'self' 'nonce-{N}' 'strict-dynamic' https://app.cal.com` | Add `'unsafe-eval'` (React Fast Refresh, eval-based HMR) |
+| `script-src` | `'self' 'nonce-{N}' https://app.cal.com` | Add `'unsafe-eval'` (React Fast Refresh, eval-based HMR) |
 | `style-src` | `'self' 'unsafe-inline'` | Same (already permissive) |
 | `connect-src` | As above | Add `ws://localhost:*` (HMR WebSocket) |
 
@@ -158,10 +183,10 @@ frame-ancestors 'none';
 | File | Why Safe |
 |------|----------|
 | `src/components/ui/chart.tsx` | Client component using `<style dangerouslySetInnerHTML>` -- covered by `'unsafe-inline'` in style-src; attempting nonce propagation here would add complexity without security benefit since style-src already allows inline |
-| `sentry.client.config.ts` | Sentry SDK is bundled, not loaded via external script; `'strict-dynamic'` covers dynamically loaded chunks |
+| `sentry.client.config.ts` | Sentry SDK is bundled, not loaded via external script; `'strict-dynamic'` covers dynamically loaded chunks |  <!-- SUPERSEDED 2026-08-23: strict-dynamic blanked the site under PPR; csp.test.ts now asserts it is ABSENT. See banner at top. -->
 | `sentry.edge.config.ts` | Same as above |
-| `src/components/web-vitals.tsx` | Client component loaded through bundle; covered by `'strict-dynamic'` |
-| `src/components/public/cal-embed.tsx` | Cal.com domain explicitly in script-src and frame-src; embed script loaded via getCalApi() which is covered by bundle + strict-dynamic |
+| `src/components/web-vitals.tsx` | Client component loaded through bundle; covered by `'strict-dynamic'` |  <!-- SUPERSEDED 2026-08-23: strict-dynamic blanked the site under PPR; csp.test.ts now asserts it is ABSENT. See banner at top. -->
+| `src/components/public/cal-embed.tsx` | Cal.com domain explicitly in script-src and frame-src; embed script loaded via getCalApi() which is covered by bundle + strict-dynamic |  <!-- SUPERSEDED 2026-08-23: strict-dynamic blanked the site under PPR; csp.test.ts now asserts it is ABSENT. See banner at top. -->
 
 ### Anti-Patterns to Avoid
 
@@ -244,11 +269,11 @@ export function proxy(request: NextRequest) {
   const isDev = process.env.NODE_ENV === 'development';
   const cspHeader = [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://app.cal.com${isDev ? " 'unsafe-eval'" : ''}`,
+    `script-src 'self' 'nonce-${nonce}' https://app.cal.com${isDev ? " 'unsafe-eval'" : ''}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' blob: data: https://*.public.blob.vercel-storage.com",
     "font-src 'self'",
-    `connect-src 'self' https://*.ingest.sentry.io https://app.cal.com https://api.cal.com${isDev ? ' ws://localhost:*' : ''}`,
+    `connect-src 'self' https://*.sentry.io https://app.cal.com https://api.cal.com${isDev ? ' ws://localhost:*' : ''}`,
     "frame-src 'self' https://app.cal.com",
     "worker-src 'self' blob:",
     "object-src 'none'",
@@ -373,7 +398,7 @@ export default async function FAQPage() {
 | Old Approach | Current Approach | When Changed | Impact |
 |--------------|------------------|--------------|--------|
 | `middleware.ts` for request interception | `proxy.ts` named export | Next.js 16 (2025) | File and function rename; runtime changed from Edge to Node.js [CITED: https://nextjs.org/docs/messages/middleware-to-proxy] |
-| `'unsafe-inline'` in script-src | Nonce-based script-src with `'strict-dynamic'` | CSP Level 3 (widely adopted 2024+) | Blocks XSS via inline script injection |
+| `'unsafe-inline'` in script-src | Nonce-based script-src with `'strict-dynamic'` | CSP Level 3 (widely adopted 2024+) | Blocks XSS via inline script injection |  <!-- SUPERSEDED 2026-08-23: strict-dynamic blanked the site under PPR; csp.test.ts now asserts it is ABSENT. See banner at top. -->
 | Google Fonts CDN in CSP (`fonts.googleapis.com`) | Self-hosted via `next/font` | Next.js 13+ (2022) | No external font requests; simpler CSP [VERIFIED: src/styles/fonts.ts] |
 | Static CSP in next.config.ts | Dynamic CSP in proxy.ts | Next.js 16 (proxy-based) | Per-request nonces require dynamic generation |
 
@@ -472,7 +497,7 @@ Step 2.6: SKIPPED (no external dependencies identified). This phase modifies onl
 
 | Pattern | STRIDE | Standard Mitigation |
 |---------|--------|---------------------|
-| Inline script injection (XSS) | Tampering | Nonce-based script-src; `'strict-dynamic'` for trusted script chains |
+| Inline script injection (XSS) | Tampering | Nonce-based script-src; `'strict-dynamic'` for trusted script chains |  <!-- SUPERSEDED 2026-08-23: strict-dynamic blanked the site under PPR; csp.test.ts now asserts it is ABSENT. See banner at top. -->
 | Style injection (CSS exfiltration) | Information Disclosure | `'unsafe-inline'` in style-src is pragmatic concession; nonce-based would be ideal but not feasible with current Next.js |
 | Clickjacking | Spoofing | `frame-ancestors 'none'` (replaces X-Frame-Options: DENY) |
 | Plugin-based attacks | Tampering | `object-src 'none'` blocks Flash/Java applets |

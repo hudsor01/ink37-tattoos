@@ -1,3 +1,25 @@
+
+> [!CAUTION]
+> **SUPERSEDED (2026-08-23): the `'strict-dynamic'` guidance in this document is wrong and must not be re-applied.**
+>
+> Shipping `'strict-dynamic'` blanked the entire public site. Per CSP Level 3 it
+> makes the browser ignore every host-source expression in `script-src`, so
+> `'self'` and `https://app.cal.com` both went inert and only nonce'd scripts
+> could run. But `cacheComponents: true` (PPR) means each route ships a
+> statically prerendered shell whose `/_next/static/chunks/*.js` tags are
+> emitted at build time and carry no nonce. Measured in production: 14 nonce'd
+> inline scripts executed, all 18 chunk scripts (turbopack runtime included)
+> were downloaded and refused. React never hydrated; every page rendered blank.
+>
+> Next's docs state it directly: "Partial Prerendering (PPR) is also
+> incompatible with nonce-based CSP because static shell scripts cannot access
+> the nonce." The claim below that `'strict-dynamic'` "covers dynamically
+> loaded chunks" is the exact inversion of what happens.
+>
+> Any acceptance criterion here requiring `'strict-dynamic'` in script-src is
+> INVERTED: src/__tests__/csp.test.ts now asserts it is ABSENT. The nonce
+> itself remains correct and in use. See the comment block in src/proxy.ts.
+
 # Phase 25: Database + Security Hardening - Research
 
 **Researched:** 2026-03-30
@@ -172,12 +194,12 @@ export function proxy(request: NextRequest) {
   // Build CSP header with per-request nonce
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://app.cal.com${isDev ? " 'unsafe-eval'" : ''};
+    script-src 'self' 'nonce-${nonce}' https://app.cal.com${isDev ? " 'unsafe-eval'" : ''};
     style-src 'self' 'nonce-${nonce}'${isDev ? " 'unsafe-inline'" : ''};
     font-src 'self';
     img-src 'self' data: blob: https:;
     frame-src 'self' https://app.cal.com;
-    connect-src 'self' https://api.cal.com https://*.sentry.io https://*.ingest.sentry.io;
+    connect-src 'self' https://api.cal.com https://*.sentry.io https://*.sentry.io;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
@@ -203,7 +225,7 @@ export function proxy(request: NextRequest) {
 3. Next.js **automatically** attaches the nonce to framework scripts, page bundles, and inline styles/scripts
 4. For custom inline scripts (like JSON-LD in layout.tsx), the nonce must be applied manually
 
-**Key: `'strict-dynamic'` in script-src.** This tells the browser that any script loaded by a nonced script is also trusted, which covers dynamically loaded chunks.
+**Key: `'strict-dynamic'` in script-src.** This tells the browser that any script loaded by a nonced script is also trusted, which covers dynamically loaded chunks.  <!-- SUPERSEDED 2026-08-23: strict-dynamic blanked the site under PPR; csp.test.ts now asserts it is ABSENT. See banner at top. -->
 
 ### Rate Limiting Pattern
 
@@ -282,7 +304,7 @@ export async function GET(request: Request) {
 ### Pitfall 6: Sentry SDK and CSP
 **What goes wrong:** Sentry's client-side SDK may inject inline scripts for session replay or error capture that get blocked by CSP.
 **Why it happens:** Sentry Replay records DOM mutations and may use inline styles/scripts.
-**How to avoid:** `'strict-dynamic'` in script-src covers Sentry's dynamically loaded scripts. Keep `https://*.sentry.io` and `https://*.ingest.sentry.io` in `connect-src`. If Sentry Replay uses inline styles, they need nonces -- but Next.js should handle this if the scripts are loaded through the bundle.
+**How to avoid:** `'strict-dynamic'` in script-src covers Sentry's dynamically loaded scripts. Keep `https://*.sentry.io` in `connect-src`. If Sentry Replay uses inline styles, they need nonces -- but Next.js should handle this if the scripts are loaded through the bundle.  <!-- SUPERSEDED 2026-08-23: strict-dynamic blanked the site under PPR; csp.test.ts now asserts it is ABSENT. See banner at top. -->
 **Warning signs:** Sentry error reporting stops working in production; Sentry Replay fails to initialize.
 
 ### Pitfall 7: Merge Conflicts in Route Files

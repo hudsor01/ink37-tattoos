@@ -26,6 +26,25 @@ export const auth = betterAuth({
   ],
   emailAndPassword: {
     enabled: true,
+    /**
+     * Explicitly false -- Better Auth defaults this to TRUE.
+     *
+     * With auto sign-in, submitting /register while already authenticated
+     * calls setSessionCookie and overwrites the caller's session with one for
+     * the newly created account. The admin plugin's defaultRole is 'user', so
+     * an admin who lands on /register (stale bookmark, the browser back
+     * button, a mistyped URL) and submits it silently demotes themselves onto
+     * a brand-new user-role account, losing their dashboard access with no
+     * error shown.
+     *
+     * The (auth)/layout.tsx redirect is a UX guard only: under
+     * `cacheComponents: true` a redirect() thrown inside a Suspense boundary
+     * degrades to a 1-second `<meta http-equiv="refresh">`, so the form is
+     * live and submittable in the meantime. This flag is the actual
+     * enforcement. Trade-off: new users sign in after registering rather than
+     * being logged straight in.
+     */
+    autoSignIn: false,
     sendResetPassword: async ({ user, url }) => {
       void import('@/lib/email/resend').then(({ sendPasswordResetEmail }) =>
         sendPasswordResetEmail({ to: user.email, url })

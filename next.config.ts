@@ -49,6 +49,46 @@ const nextConfig: NextConfig = {
    */
   images: {
     qualities: [75, 90, 95],
+
+    /**
+     * Vercel Blob is where every admin upload lands, and five dashboard
+     * components render those URLs through `next/image`
+     * (sortable-image-grid, products/columns, design-approval-card,
+     * product-form, session-detail-client).
+     *
+     * Without an entry here `remotePatterns` is `[]`, and next/image refuses
+     * any remote host outright: it throws E231 "hostname is not configured
+     * under images" outside production, and the /_next/image optimizer 400s
+     * the unmatched host in production. The net effect was an upload that
+     * succeeded followed by a thumbnail that never loaded. proxy.ts already
+     * whitelists this host in `img-src`, so the CSP half was in place and
+     * only this half was missing.
+     *
+     * SECURITY -- this wildcard is wider than it looks. Vercel Blob hostnames
+     * are `<storeId>.public.blob.vercel-storage.com` and store IDs are not
+     * secret, so ANY pattern that accepts an arbitrary label here lets a
+     * stranger call
+     *   /_next/image?url=https://<their-store>.public.blob.vercel-storage.com/x.jpg
+     * and have this site fetch, optimize, cache and serve third-party content
+     * under its own domain, billed to this project's optimization quota.
+     * (`**.host` is not narrower than `*.host` -- Next compiles both to the
+     * same regex.) Set BLOB_IMAGE_HOSTNAME to this project's own
+     * `<storeId>.public.blob.vercel-storage.com` to close it; the wildcard is
+     * only the fallback so builds without that env var still render images.
+     * The matching `img-src` entry in src/proxy.ts has the same caveat.
+     */
+    remotePatterns: [
+      {
+        protocol: 'https',
+        // `||`, not `??`: clearing the var in the Vercel dashboard (rather
+        // than deleting it) yields an empty string, which `??` would pass
+        // through as a hostname matching nothing -- every dashboard thumbnail
+        // would then 400 from the optimizer with no build-time error, which is
+        // the exact symptom this block exists to fix.
+        hostname:
+          process.env.BLOB_IMAGE_HOSTNAME || '*.public.blob.vercel-storage.com',
+      },
+    ],
   },
 
   /**

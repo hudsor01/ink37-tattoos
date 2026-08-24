@@ -66,13 +66,13 @@ export function dropFrameworkSignals(
 // nextNavigationErrorUtils still tests for this shape, and an older Next
 // path or Sentry-internal re-construction could surface it. Don't strip
 // without confirming both Sentry and the deployed Next version agree.
-const FRAMEWORK_SIGNAL_NAMES = [
+export const FRAMEWORK_SIGNAL_NAMES = [
   'NEXT_NOT_FOUND',
   'NEXT_REDIRECT',
   'NEXT_HTTP_ERROR_FALLBACK',
 ] as const;
 
-const NETWORK_NOISE = ['AbortError', 'NetworkError'] as const;
+export const NETWORK_NOISE = ['AbortError', 'NetworkError'] as const;
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
