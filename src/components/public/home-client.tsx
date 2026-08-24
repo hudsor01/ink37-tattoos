@@ -4,6 +4,7 @@ import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useHydrated } from '@/hooks/use-hydrated';
 
 const tattooImages = [
   '/images/japanese.jpg',
@@ -13,6 +14,7 @@ const tattooImages = [
 ];
 
 function HomeClient() {
+  const hydrated = useHydrated();
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
   const [isPaused, setIsPaused] = React.useState(false);
 
@@ -148,7 +150,7 @@ function HomeClient() {
                       index === currentImageIndex && (
                         <motion.div
                           key={src}
-                          initial={{ opacity: 0 }}
+                          initial={hydrated ? { opacity: 0 } : false}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
                           transition={{ duration: 2.5, ease: 'easeInOut' }}

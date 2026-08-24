@@ -2,7 +2,7 @@
 
 import { LazyMotion, domAnimation, m, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
-import { useSyncExternalStore } from 'react';
+import { useHydrated } from '@/hooks/use-hydrated';
 
 /**
  * Wraps children in a fade/slide page transition using framer-motion.
@@ -57,10 +57,10 @@ import { useSyncExternalStore } from 'react';
  *    gallery-grid. If client JS stops executing again, those routes go blank
  *    exactly as before; only this wrapper degrades cleanly.
  *
- * Fixing that class properly means sharing the hydration gate below as a
- * `useHydrated()` hook and applying it there too -- which trades away their
- * first-load entrance animations, a visible design change, so it is left as a
- * deliberate decision rather than folded in here.
+ * That gate now lives in `useHydrated()` (src/hooks/use-hydrated.ts) and is
+ * applied to every mount-animated element across the public surface, so this
+ * component is no longer the only one that degrades cleanly. `whileInView`
+ * scroll reveals are deliberately NOT gated -- see the hook's docblock.
  *
  * What this gate DOES buy is precisely the failure that took the site down:
  * React's nonce'd inline scripts ran and placed real content in the DOM
@@ -68,22 +68,9 @@ import { useSyncExternalStore } from 'react';
  * un-nonced /_next chunks never executed -- so framer never animated and that
  * content sat at opacity 0 forever.
  */
-/**
- * Hydration probe. The store never changes, so `subscribe` is a no-op; React
- * simply serves getServerSnapshot() during SSR and hydration, then switches to
- * getSnapshot() once the tree is interactive.
- */
-const subscribeToNothing = () => () => {};
-const getHydratedSnapshot = () => true;
-const getServerSnapshot = () => false;
-
 export function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const hydrated = useSyncExternalStore(
-    subscribeToNothing,
-    getHydratedSnapshot,
-    getServerSnapshot
-  );
+  const hydrated = useHydrated();
 
   return (
     <LazyMotion features={domAnimation}>

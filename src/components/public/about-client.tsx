@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useHydrated } from '@/hooks/use-hydrated';
 import {
   ArrowRight, Calendar, Heart, Shield, Star, Users, Award,
   Clock, Target, Brush, Palette, Sparkles, CheckCircle, Eye,
@@ -76,6 +77,7 @@ const specializations = [
 ];
 
 export default function AboutClient() {
+  const hydrated = useHydrated();
   return (
     <div>
       {/* Hero Section */}
@@ -83,7 +85,7 @@ export default function AboutClient() {
         <div className="container mx-auto px-4">
           <motion.div
             className="text-center max-w-4xl mx-auto"
-            initial="hidden"
+            initial={hydrated ? 'hidden' : false}
             animate="visible"
             variants={fadeInUp}
           >

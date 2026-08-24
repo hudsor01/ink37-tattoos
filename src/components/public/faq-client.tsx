@@ -9,6 +9,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { HelpCircle, Clock, DollarSign, Palette } from 'lucide-react';
+import { useHydrated } from '@/hooks/use-hydrated';
 
 const faqData = [
   {
@@ -110,12 +111,13 @@ const faqData = [
 ];
 
 export default function FAQClient() {
+  const hydrated = useHydrated();
   return (
     <div className="container mx-auto px-6 py-8">
       {/* Header */}
       <motion.div
         className="text-center mb-16"
-        initial={{ opacity: 0, y: 20 }}
+        initial={hydrated ? { opacity: 0, y: 20 } : false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
@@ -134,7 +136,7 @@ export default function FAQClient() {
         {faqData.map((category, categoryIndex) => (
           <motion.section
             key={category.category}
-            initial={{ opacity: 0, y: 30 }}
+            initial={hydrated ? { opacity: 0, y: 30 } : false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: categoryIndex * 0.1 }}
             className="space-y-6"
@@ -173,7 +175,7 @@ export default function FAQClient() {
       {/* Contact CTA */}
       <motion.section
         className="mt-16 text-center"
-        initial={{ opacity: 0, y: 20 }}
+        initial={hydrated ? { opacity: 0, y: 20 } : false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4 }}
       >

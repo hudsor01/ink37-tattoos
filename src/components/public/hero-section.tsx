@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { LazyMotion, domAnimation, m } from "framer-motion";
+import { useHydrated } from '@/hooks/use-hydrated';
 
 export function HeroSection() {
+  const hydrated = useHydrated();
   return (
     <LazyMotion features={domAnimation}>
     <section className="relative flex min-h-[70vh] items-center justify-center bg-neutral-950 px-4">
       <m.div
         className="mx-auto max-w-4xl text-center"
-        initial={{ opacity: 0, y: 20 }}
+        initial={hydrated ? { opacity: 0, y: 20 } : false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
       >
