@@ -11,6 +11,7 @@ import { GalleryVideoCard } from '@/components/public/gallery-video-card';
 import { GALLERY_VIDEOS } from '@/lib/gallery-videos';
 import type { GalleryDesign } from '@/lib/gallery-designs';
 import dynamic from 'next/dynamic';
+import { useHydrated } from '@/hooks/use-hydrated';
 
 const containerVariants = {
   hidden: {},
@@ -42,6 +43,7 @@ interface GalleryClientProps {
 }
 
 export function GalleryClient({ initialDesigns }: GalleryClientProps) {
+  const hydrated = useHydrated();
   const [filters] = useQueryStates(galleryFilterParsers);
   const [lightboxIndex, setLightboxIndex] = useState<number>(-1);
 
@@ -103,7 +105,7 @@ export function GalleryClient({ initialDesigns }: GalleryClientProps) {
           <m.div
             className="columns-1 md:columns-2 lg:columns-3 gap-5"
             variants={containerVariants}
-            initial="hidden"
+            initial={hydrated ? 'hidden' : false}
             animate="visible"
             key={`${filters.style}-${filters.placement}-${filters.size}`}
           >

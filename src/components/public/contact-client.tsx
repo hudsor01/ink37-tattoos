@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ContactForm } from '@/components/public/contact-form';
+import { useHydrated } from '@/hooks/use-hydrated';
 import {
   Mail, MapPin, Clock, ChevronRight, Phone,
   Info, HelpCircle
@@ -56,17 +57,18 @@ const faqItems = [
 ];
 
 export default function ContactClient() {
+  const hydrated = useHydrated();
   return (
     <div className="container mx-auto px-4 py-8">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={hydrated ? { opacity: 0, y: 20 } : false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
         {/* Page Title */}
         <motion.div
           className="mb-16 text-center"
-          initial="hidden"
+          initial={hydrated ? 'hidden' : false}
           animate="visible"
           variants={fadeInUp}
         >
@@ -81,7 +83,7 @@ export default function ContactClient() {
           {/* Contact Form Section */}
           <motion.div
             className="lg:col-span-2 order-2 lg:order-1"
-            initial={{ opacity: 0 }}
+            initial={hydrated ? { opacity: 0 } : false}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
@@ -103,7 +105,7 @@ export default function ContactClient() {
           {/* Contact Info Section */}
           <motion.div
             className="order-1 lg:order-2"
-            initial={{ opacity: 0 }}
+            initial={hydrated ? { opacity: 0 } : false}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
@@ -192,7 +194,7 @@ export default function ContactClient() {
                 <motion.div
                   className="space-y-5"
                   variants={staggerContainer}
-                  initial="hidden"
+                  initial={hydrated ? 'hidden' : false}
                   animate="visible"
                 >
                   {faqItems.map((faq) => (

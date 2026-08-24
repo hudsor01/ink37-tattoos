@@ -9,6 +9,7 @@ import {
   Calendar, Users, ArrowRight
 } from 'lucide-react';
 import type { ComponentType } from 'react';
+import { useHydrated } from '@/hooks/use-hydrated';
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -163,6 +164,7 @@ const processSteps = [
 ];
 
 export default function ServicesClient() {
+  const hydrated = useHydrated();
   return (
     <div>
       {/* Hero Section */}
@@ -170,7 +172,7 @@ export default function ServicesClient() {
         <div className="container relative mx-auto px-4 text-center">
           <motion.div
             variants={fadeInUp}
-            initial="hidden"
+            initial={hydrated ? 'hidden' : false}
             animate="visible"
             className="max-w-4xl mx-auto"
           >
