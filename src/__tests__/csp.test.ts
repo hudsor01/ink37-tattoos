@@ -295,6 +295,50 @@ describe('proxy CSP + nonce', () => {
     expect(cspAllowsHost(csp['font-src'], 'cal.com')).toBe(true);
   });
 
+  /**
+   * The blob host is pinned to this project's own store when
+   * BLOB_IMAGE_HOSTNAME is set. Store IDs are not secret and blob hostnames
+   * are `<storeId>.public.blob.vercel-storage.com`, so the wildcard fallback
+   * authorizes EVERY Vercel customer's store -- a stranger's bucket could
+   * render under this origin (and, via the matching remotePatterns entry,
+   * burn this project's image-optimization quota).
+   *
+   * proxy.ts reads the variable at module scope, so these tests re-import it
+   * under a stubbed env rather than calling the already-bound buildCSP.
+   */
+  describe('blob host pinning', () => {
+    async function cspWith(hostname: string | undefined) {
+      vi.resetModules();
+      if (hostname === undefined) {
+        vi.stubEnv('BLOB_IMAGE_HOSTNAME', '');
+      } else {
+        vi.stubEnv('BLOB_IMAGE_HOSTNAME', hostname);
+      }
+      const mod = await import('../proxy');
+      const res = mod.proxy(makeRequest('/'));
+      return parseCSP(res.headers.get('content-security-policy'));
+    }
+
+    it('pins img-src and media-src to the configured store', async () => {
+      const store = 'Ck8VzI8PbgIQ78pV.public.blob.vercel-storage.com';
+      const csp = await cspWith(store);
+      expect(csp['img-src']).toContain(`https://${store}`);
+      expect(csp['media-src']).toContain(`https://${store}`);
+      // ...and no longer authorizes anyone else's store.
+      expect(cspAllowsHost(csp['img-src'], 'attacker.public.blob.vercel-storage.com')).toBe(false);
+      expect(cspAllowsHost(csp['media-src'], 'attacker.public.blob.vercel-storage.com')).toBe(false);
+    });
+
+    it('falls back to the wildcard when the variable is unset or empty', async () => {
+      // `||` not `??`: an empty string must fall back, or every thumbnail
+      // 400s from a host that matches nothing.
+      const csp = await cspWith(undefined);
+      expect(
+        cspAllowsHost(csp['img-src'], 'anystore.public.blob.vercel-storage.com')
+      ).toBe(true);
+    });
+  });
+
   it('img-src allows the Vercel Blob host uploads land on', () => {
     const csp = parseCSP(
       proxy(makeRequest('/')).headers.get('content-security-policy')

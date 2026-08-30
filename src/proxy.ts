@@ -60,6 +60,31 @@ function isUnder(pathname: string, prefix: string): boolean {
  * site that loads no third-party script beyond Cal.com.
  * Regression coverage lives in src/__tests__/csp.test.ts.
  */
+/**
+ * The Vercel Blob host that admin uploads land on.
+ *
+ * Pinned to this project's own store when BLOB_IMAGE_HOSTNAME is set,
+ * otherwise a wildcard so a fresh clone or an unconfigured preview still
+ * renders images rather than failing closed.
+ *
+ * The wildcard is wider than it looks: blob hostnames are
+ * `<storeId>.public.blob.vercel-storage.com` and store IDs are not secret,
+ * so `*.public.blob...` authorizes EVERY Vercel customer's store. Pinning it
+ * stops a stranger's bucket from rendering under this origin. The matching
+ * `images.remotePatterns` entry in next.config.ts reads the same variable --
+ * that one governs `/_next/image` (where the abuse also costs this project's
+ * optimization quota), this one governs what the browser will paint.
+ *
+ * `||` not `??`: clearing the variable in the Vercel dashboard rather than
+ * deleting it yields an empty string, and an empty host would match nothing.
+ *
+ * Case matters. Store IDs are mixed-case and both this policy and Next's
+ * picomatch matcher compare case-sensitively, so the value must be the exact
+ * `<storeId>.public.blob.vercel-storage.com`.
+ */
+const BLOB_HOST =
+  process.env.BLOB_IMAGE_HOSTNAME || '*.public.blob.vercel-storage.com';
+
 function buildCSP(nonce: string): string {
   const isDev = process.env.NODE_ENV === 'development';
   return [
@@ -72,7 +97,7 @@ function buildCSP(nonce: string): string {
     // per page load and track() calls never reach the debug endpoint.
     `script-src 'self' 'nonce-${nonce}' https://app.cal.com${isDev ? " 'unsafe-eval' https://va.vercel-scripts.com" : ''}`,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' blob: data: https://*.public.blob.vercel-storage.com",
+    `img-src 'self' blob: data: https://${BLOB_HOST}`,
     // https://cal.com (NOT app.cal.com -- a different host): @calcom/embed-core
     // runs in the PARENT document, not the iframe, and injects
     // `@font-face{font-family:Cal Sans;src:url(https://cal.com/cal.ttf)}` into
@@ -85,7 +110,7 @@ function buildCSP(nonce: string): string {
     // media-page-client.tsx both accept video/mp4 uploads to that exact host.
     // The image half of this gap (img-src + images.remotePatterns) was closed
     // earlier; this is the video half.
-    "media-src 'self' blob: https://*.public.blob.vercel-storage.com",
+    `media-src 'self' blob: https://${BLOB_HOST}`,
     // https://vercel.com -- @vercel/blob's client-side `upload()` POSTs to
     //   https://vercel.com/api/blob (see @vercel/blob dist:
     //   `defaultVercelBlobApiUrl = "https://vercel.com/api/blob"`). Five
