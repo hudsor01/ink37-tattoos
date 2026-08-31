@@ -158,6 +158,67 @@ describe('proxy CSP + nonce', () => {
     expect(getScriptNonceFromHeader(forwarded!)).toBe(nonce);
   });
 
+  /**
+   * Violation reporting.
+   *
+   * Six CSP breakages shipped to production in this codebase before anyone
+   * noticed -- strict-dynamic blanking the site, the Cal.com embed and its
+   * webfont blocked, blob uploads failing, the Maps embed empty, dev HMR dead
+   * -- every one found by a human rather than a signal. The tests in this file
+   * assert the CURRENT allowlist; they cannot catch the next forgotten host.
+   * These directives are what generalizes, so they must not quietly vanish.
+   */
+  describe('violation reporting', () => {
+    it('declares both report-uri and report-to', () => {
+      const csp = parseCSP(
+        proxy(makeRequest('/')).headers.get('content-security-policy')
+      );
+      // Both spellings: report-uri is deprecated but is the only one Safari
+      // and older Firefox honor; report-to is what Chrome prefers. Browsers
+      // that understand report-to ignore report-uri, so no double-reporting.
+      expect(csp['report-uri']).toBe('/api/csp-report');
+      expect(csp['report-to']).toBe('csp-endpoint');
+    });
+
+    /**
+     * Chrome ignores `report-to` unless a matching group is declared in a
+     * Reporting-Endpoints header. Without this the modern half of reporting
+     * silently does nothing -- the same quiet failure the endpoint exists to
+     * surface.
+     */
+    it('sends a Reporting-Endpoints header naming that group', () => {
+      const res = proxy(makeRequest('/'));
+      const header = res.headers.get('reporting-endpoints');
+      expect(header).toBe('csp-endpoint="/api/csp-report"');
+
+      const csp = parseCSP(res.headers.get('content-security-policy'));
+      // The group name in the policy must match the one declared here.
+      expect(header).toContain(`${csp['report-to']}=`);
+    });
+
+    it('also reports on auth redirect responses', () => {
+      const res = proxy(makeRequest('/dashboard'));
+      expect(res.status).toBe(303);
+      expect(res.headers.get('reporting-endpoints')).toBe(
+        'csp-endpoint="/api/csp-report"'
+      );
+    });
+
+    /**
+     * The report endpoint must be reachable under the policy it reports on.
+     * `default-src 'self'` covers same-origin POSTs via connect-src, but a
+     * future tightening of connect-src to an explicit allowlist would break
+     * reporting without this staying true.
+     */
+    it('keeps the report endpoint same-origin so connect-src allows it', () => {
+      const csp = parseCSP(
+        proxy(makeRequest('/')).headers.get('content-security-policy')
+      );
+      expect(csp['report-uri'].startsWith('/')).toBe(true);
+      expect(csp['connect-src']).toContain("'self'");
+    });
+  });
+
   it('script-src allows self and Cal.com', () => {
     const res = proxy(makeRequest('/'));
     const csp = parseCSP(res.headers.get('content-security-policy'));
