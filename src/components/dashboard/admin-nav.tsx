@@ -122,6 +122,14 @@ export function AdminNav() {
               tooltip="Sign Out"
               onClick={async () => {
                 await signOut();
+                // Full page load is deliberate on SIGN OUT; router.push() would be a
+                // privacy regression. The TanStack Query cache holds customers,
+                // appointments, sessions, media and notifications, and nothing
+                // clears it on sign-out -- a client-side nav would leave the
+                // previous user's records in memory for whoever uses the browser
+                // next. A document navigation destroys the query cache, the Next
+                // router cache and all Zustand state in one step.
+                // eslint-disable-next-line @next/next/no-location-assign-relative-destination
                 window.location.href = '/login';
               }}
             >
