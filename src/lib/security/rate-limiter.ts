@@ -129,6 +129,16 @@ export const rateLimiters = {
   admin: createLimiter(60, '1 m', 'rl:admin'),
   /** Upload routes (/api/upload/*): 20 requests per minute */
   upload: createLimiter(20, '1 m', 'rl:upload'),
+  /**
+   * CSP violation reports: 30 per minute.
+   *
+   * Deliberately generous -- a genuinely broken directive fires one report
+   * per blocked resource per page load, and throttling too hard would hide
+   * the very outage this endpoint exists to catch. Still bounded, because
+   * the endpoint is unauthenticated by necessity (browsers send these with
+   * no credentials) and would otherwise be a free log-write amplifier.
+   */
+  cspReport: createLimiter(30, '1 m', 'rl:csp'),
 } as const;
 
 // ---------------------------------------------------------------------------

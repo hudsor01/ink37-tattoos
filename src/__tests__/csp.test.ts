@@ -22,7 +22,7 @@ import { NextRequest } from 'next/server';
 // future Next minor moves it, this import fails loudly instead of silently
 // asserting nothing.
 import { getScriptNonceFromHeader } from 'next/dist/server/app-render/get-script-nonce-from-header';
-import { proxy } from '../proxy';
+import { config, proxy } from '../proxy';
 
 /**
  * Phase 30: CSP nonce + Content-Security-Policy header tests.
@@ -156,6 +156,67 @@ describe('proxy CSP + nonce', () => {
     // a strict subset of that class, with no '+', '/' or '='. It also skipped
     // Next's directive-selection and default-src fallback logic entirely.
     expect(getScriptNonceFromHeader(forwarded!)).toBe(nonce);
+  });
+
+  /**
+   * Violation reporting.
+   *
+   * Six CSP breakages shipped to production in this codebase before anyone
+   * noticed -- strict-dynamic blanking the site, the Cal.com embed and its
+   * webfont blocked, blob uploads failing, the Maps embed empty, dev HMR dead
+   * -- every one found by a human rather than a signal. The tests in this file
+   * assert the CURRENT allowlist; they cannot catch the next forgotten host.
+   * These directives are what generalizes, so they must not quietly vanish.
+   */
+  describe('violation reporting', () => {
+    it('declares both report-uri and report-to', () => {
+      const csp = parseCSP(
+        proxy(makeRequest('/')).headers.get('content-security-policy')
+      );
+      // Both spellings: report-uri is deprecated but is the only one Safari
+      // and older Firefox honor; report-to is what Chrome prefers. Browsers
+      // that understand report-to ignore report-uri, so no double-reporting.
+      expect(csp['report-uri']).toBe('/api/csp-report');
+      expect(csp['report-to']).toBe('csp-endpoint');
+    });
+
+    /**
+     * Chrome ignores `report-to` unless a matching group is declared in a
+     * Reporting-Endpoints header. Without this the modern half of reporting
+     * silently does nothing -- the same quiet failure the endpoint exists to
+     * surface.
+     */
+    it('sends a Reporting-Endpoints header naming that group', () => {
+      const res = proxy(makeRequest('/'));
+      const header = res.headers.get('reporting-endpoints');
+      expect(header).toBe('csp-endpoint="/api/csp-report"');
+
+      const csp = parseCSP(res.headers.get('content-security-policy'));
+      // The group name in the policy must match the one declared here.
+      expect(header).toContain(`${csp['report-to']}=`);
+    });
+
+    it('also reports on auth redirect responses', () => {
+      const res = proxy(makeRequest('/dashboard'));
+      expect(res.status).toBe(303);
+      expect(res.headers.get('reporting-endpoints')).toBe(
+        'csp-endpoint="/api/csp-report"'
+      );
+    });
+
+    /**
+     * The report endpoint must be reachable under the policy it reports on.
+     * `default-src 'self'` covers same-origin POSTs via connect-src, but a
+     * future tightening of connect-src to an explicit allowlist would break
+     * reporting without this staying true.
+     */
+    it('keeps the report endpoint same-origin so connect-src allows it', () => {
+      const csp = parseCSP(
+        proxy(makeRequest('/')).headers.get('content-security-policy')
+      );
+      expect(csp['report-uri'].startsWith('/')).toBe(true);
+      expect(csp['connect-src']).toContain("'self'");
+    });
   });
 
   it('script-src allows self and Cal.com', () => {
@@ -449,6 +510,63 @@ describe('proxy CSP + nonce', () => {
       expect(csp['connect-src']).not.toContain('wss:');
     }
   );
+});
+
+/**
+ * Which requests the proxy actually runs on.
+ *
+ * The matcher is the one part of this file's behavior that no other test can
+ * reach -- proxy() is called directly everywhere else, so a matcher that stops
+ * covering /dashboard would ship a site with no CSP and no auth gate while
+ * every existing test stayed green. This asserts the compiled regex itself.
+ */
+describe('proxy matcher', () => {
+  const matcher = new RegExp(`^${config.matcher[0]}$`);
+  const runsOn = (p: string) => matcher.test(p);
+
+  it.each([
+    '/',
+    '/gallery',
+    '/booking',
+    '/login',
+    '/dashboard',
+    '/dashboard/orders',
+    '/portal',
+    '/store/some-product',
+  ])('runs on the HTML route %s (needs CSP + nonce)', (p) => {
+    expect(runsOn(p)).toBe(true);
+  });
+
+  /**
+   * API routes: a CSP is inert on JSON and nothing under src/app/api reads
+   * x-nonce or x-pathname, so proxying them was pure overhead per webhook,
+   * cron tick and upload. No gating is lost -- the proxy only ever gated
+   * /dashboard and /portal.
+   */
+  it.each([
+    '/api/webhooks/stripe',
+    '/api/cron/no-show-followup',
+    '/api/csp-report',
+    '/api/auth/session',
+  ])('skips the API route %s', (p) => {
+    expect(runsOn(p)).toBe(false);
+  });
+
+  /**
+   * sw.js is excluded because a CSP delivered with a service-worker script
+   * governs the worker's own fetches, which this policy is not written for.
+   */
+  it.each([
+    '/_next/static/chunks/x.js',
+    '/favicon.ico',
+    '/robots.txt',
+    '/sw.js',
+    '/images/tattoo.png',
+    '/videos/reel.mp4',
+    '/fonts/x.woff2',
+  ])('skips the static asset %s', (p) => {
+    expect(runsOn(p)).toBe(false);
+  });
 });
 
 describe('proxy x-pathname forwarding', () => {

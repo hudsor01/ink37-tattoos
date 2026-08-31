@@ -146,17 +146,56 @@ function buildCSP(nonce: string): string {
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
+    // Both spellings on purpose. `report-uri` is deprecated but is still the
+    // only one Safari and older Firefox honor; `report-to` is the modern
+    // Reporting API and is what Chrome prefers. Browsers that understand
+    // `report-to` ignore `report-uri`, so there is no double-reporting.
+    // /api/csp-report accepts both payload shapes.
+    'report-uri /api/csp-report',
+    'report-to csp-endpoint',
   ].join('; ');
 }
 
 /**
- * Skip the proxy on static assets and Next.js internals. CSP only needs to
- * guard rendered HTML responses; running the proxy on every image / font /
- * favicon / _next/static chunk wastes CPU per request with no security benefit.
+ * Named endpoint group referenced by the CSP `report-to` directive.
+ *
+ * Chrome will not act on `report-to` unless a matching group is declared in a
+ * `Reporting-Endpoints` response header, so this must be sent alongside the
+ * policy or the modern half of reporting silently does nothing -- the same
+ * class of quiet failure this whole mechanism exists to surface.
+ */
+const REPORTING_ENDPOINTS = 'csp-endpoint="/api/csp-report"';
+
+/**
+ * Skip the proxy on static assets, Next.js internals, and API routes. CSP only
+ * needs to guard rendered HTML responses; running the proxy on every image /
+ * font / favicon / _next/static chunk wastes CPU per request with no security
+ * benefit.
+ *
+ * Three exclusions beyond the obvious static ones, each deliberate:
+ *
+ *   - `api/` -- a CSP is inert on a JSON response, and nothing under
+ *     src/app/api reads `x-nonce` or `x-pathname` (verified), so the whole
+ *     proxy body was pure overhead on every webhook, cron tick and upload.
+ *     No auth gating is lost: the proxy only gates /dashboard and /portal,
+ *     and API routes do their own checks (requireRole, verifyCronAuth).
+ *   - `sw.js` -- a CSP delivered alongside a service-worker script governs
+ *     the worker's OWN fetches, which is not what this policy is written for.
+ *     next.config.ts already sets that file's headers.
+ *   - video/audio/pdf extensions -- these were being proxied because the old
+ *     list only covered images and fonts, so every range request for the
+ *     gallery's mp4s ran the full handler.
+ *
+ * Known limit, left as-is: a path that merely ENDS in a static extension but
+ * actually renders HTML (e.g. the 404 at /dashboard/x.png) is skipped and so
+ * ships no CSP. Not exploitable -- browsers cannot set custom headers on a
+ * navigation, and every `x-pathname` consumer routes through safeCallbackUrl,
+ * which rejects anything off-origin. Closing it would mean dropping the
+ * extension exclusion entirely and proxying every static asset.
  */
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon\\.ico|robots\\.txt|sitemap\\.xml|manifest\\.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf)$).*)',
+    '/((?!api/|_next/static|_next/image|favicon\\.ico|robots\\.txt|sitemap\\.xml|manifest\\.webmanifest|sw\\.js|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|woff|woff2|ttf|mp4|webm|mp3|pdf)$).*)',
   ],
 };
 
@@ -240,6 +279,7 @@ export function proxy(request: NextRequest) {
       // with its own nonce + CSP. Keep the header here as defense-in-depth so
       // any user-agent that does inspect 3xx headers gets the policy too.
       redirectResponse.headers.set('Content-Security-Policy', cspHeader);
+      redirectResponse.headers.set('Reporting-Endpoints', REPORTING_ENDPOINTS);
       return redirectResponse;
     }
   }
@@ -324,5 +364,6 @@ export function proxy(request: NextRequest) {
     request: { headers: requestHeaders },
   });
   response.headers.set('Content-Security-Policy', cspHeader);
+  response.headers.set('Reporting-Endpoints', REPORTING_ENDPOINTS);
   return response;
 }
