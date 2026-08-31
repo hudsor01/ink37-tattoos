@@ -146,8 +146,25 @@ function buildCSP(nonce: string): string {
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
+    // Both spellings on purpose. `report-uri` is deprecated but is still the
+    // only one Safari and older Firefox honor; `report-to` is the modern
+    // Reporting API and is what Chrome prefers. Browsers that understand
+    // `report-to` ignore `report-uri`, so there is no double-reporting.
+    // /api/csp-report accepts both payload shapes.
+    'report-uri /api/csp-report',
+    'report-to csp-endpoint',
   ].join('; ');
 }
+
+/**
+ * Named endpoint group referenced by the CSP `report-to` directive.
+ *
+ * Chrome will not act on `report-to` unless a matching group is declared in a
+ * `Reporting-Endpoints` response header, so this must be sent alongside the
+ * policy or the modern half of reporting silently does nothing -- the same
+ * class of quiet failure this whole mechanism exists to surface.
+ */
+const REPORTING_ENDPOINTS = 'csp-endpoint="/api/csp-report"';
 
 /**
  * Skip the proxy on static assets and Next.js internals. CSP only needs to
@@ -240,6 +257,7 @@ export function proxy(request: NextRequest) {
       // with its own nonce + CSP. Keep the header here as defense-in-depth so
       // any user-agent that does inspect 3xx headers gets the policy too.
       redirectResponse.headers.set('Content-Security-Policy', cspHeader);
+      redirectResponse.headers.set('Reporting-Endpoints', REPORTING_ENDPOINTS);
       return redirectResponse;
     }
   }
@@ -324,5 +342,6 @@ export function proxy(request: NextRequest) {
     request: { headers: requestHeaders },
   });
   response.headers.set('Content-Security-Policy', cspHeader);
+  response.headers.set('Reporting-Endpoints', REPORTING_ENDPOINTS);
   return response;
 }
