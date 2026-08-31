@@ -32,12 +32,33 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   /**
-   * Output mode. `'standalone'` emits `.next/standalone/server.js` plus the
-   * traced subset of `node_modules` needed to run, suitable for Docker and
-   * lightweight self-hosting.
+   * Output mode -- standalone for self-hosting, native tracing on Vercel.
+   *
+   * `'standalone'` emits `.next/standalone/server.js` plus the traced subset
+   * of node_modules needed to run it. The Dockerfile depends on exactly that
+   * (`COPY .next/standalone ./` then `CMD ["node","server.js"]`), so it must
+   * stay on for non-Vercel builds.
+   *
+   * On Vercel it is both redundant and, as of Next 16.3, actively broken.
+   * Vercel's Build Output API does its own file tracing, so standalone just
+   * duplicates that work -- and the combination fails the deploy outright:
+   *
+   *   ✓ Compiled successfully
+   *   Running onBuildComplete from Vercel
+   *   Error: ENOENT: no such file or directory, open
+   *     '/vercel/path0/.next/next-server.js.nft.json'
+   *
+   * The Next build itself succeeds; Vercel's post-build packaging hook is
+   * what cannot find the trace file it expects for a standalone build. GitHub
+   * CI never runs that hook, which is why CI stayed green while every deploy
+   * failed. Same signature reported upstream on 16.2.6 -> 16.3.1:
+   * https://community.vercel.com/t/next-js-16-3-1-preview-packaging-fails-in-onbuildcomplete-with-missing-next-server-js-nft-json/48121
+   *
+   * Gating on VERCEL (which Vercel sets to "1" for every build) keeps Docker
+   * self-hosting intact while letting the platform use the path it prefers.
    * Docs: https://nextjs.org/docs/app/api-reference/config/next-config-js/output
    */
-  output: 'standalone',
+  output: process.env.VERCEL ? undefined : 'standalone',
 
   /**
    * `next/image` configuration. In Next 16, declaring `images.qualities`
