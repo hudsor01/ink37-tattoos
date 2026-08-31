@@ -133,17 +133,19 @@ const nextConfig: NextConfig = {
    */
   cacheComponents: true,
 
-  /**
-   * Experimental flags. Subject to change between minor releases per the
-   * Next.js docs; do not rely on these for production-critical behavior.
+  /*
+   * No `experimental` block.
    *
-   * - `viewTransition`: enables Next.js integration with React 19.2's
-   *   `<ViewTransition>` component for animated route navigations.
-   *   Docs: https://nextjs.org/docs/app/api-reference/config/next-config-js/viewTransition
+   * This held `viewTransition: true`, which Next 16.3 removed -- the key is
+   * rejected both under `experimental` and at the top level (verified against
+   * the installed types), so it is gone rather than promoted.
+   *
+   * Removing it is a no-op here: nothing in src/ ever imported
+   * `<ViewTransition>`, so the flag was enabling an unused feature. Route
+   * animations come from framer-motion via PageTransition, which is
+   * unaffected. If React's ViewTransition is wanted later, check the Next
+   * docs for the current config shape first.
    */
-  experimental: {
-    viewTransition: true,
-  },
 
   /**
    * Custom HTTP response headers per request path.
