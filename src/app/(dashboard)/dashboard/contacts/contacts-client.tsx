@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useTransition, useRef, useEffect, useCallback } from 'react';
-import { type ColumnDef } from '@tanstack/react-table';
+
 import { formatDistance } from 'date-fns';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Mail, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { DataTable } from '@/components/dashboard/data-table';
+import { DataTable, type ColumnDef } from '@/components/dashboard/data-table';
 import { SearchInput } from '@/components/dashboard/search-input';
 import { StatusBadge } from '@/components/dashboard/status-badge';
 import { Button } from '@/components/ui/button';
