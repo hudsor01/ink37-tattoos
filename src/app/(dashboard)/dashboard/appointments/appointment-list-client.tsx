@@ -2,13 +2,14 @@
 
 import { useState, useMemo, useOptimistic, useTransition, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { type ColumnDef } from '@tanstack/react-table';
+
 import { format, differenceInDays, differenceInHours } from 'date-fns';
 import { MoreHorizontal, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryState, parseAsString } from 'nuqs';
 
 import { ResponsiveDataTable, type MobileField } from '@/components/dashboard/responsive-data-table';
+import type { ColumnDef } from '@/components/dashboard/data-table';
 import { StatusBadge } from '@/components/dashboard/status-badge';
 import { AppointmentForm } from '@/components/dashboard/appointment-form';
 import { Button } from '@/components/ui/button';

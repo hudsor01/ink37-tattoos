@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { type ColumnDef } from '@tanstack/react-table';
+
 import { formatDistance } from 'date-fns';
 import { Gift } from 'lucide-react';
 import { toast } from 'sonner';
@@ -9,7 +9,7 @@ import { useForm, type UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import { DataTable } from '@/components/dashboard/data-table';
+import { DataTable, type ColumnDef } from '@/components/dashboard/data-table';
 import { StatusBadge } from '@/components/dashboard/status-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
