@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, act } from '@testing-library/react';
+import { render, act, waitFor } from '@testing-library/react';
 
 /**
  * RUNTIME coverage for `whileInView` scroll reveals.
@@ -149,13 +149,16 @@ describe('whileInView scroll reveals (runtime)', () => {
     // framer must have registered an observer for whileInView to work at all.
     expect(observers.length).toBeGreaterThan(0);
 
-    await act(async () => {
-      scrollEverythingIntoView();
-      // let the animation run past its 0.6s duration
-      await new Promise((r) => setTimeout(r, 900));
-    });
+    act(() => scrollEverythingIntoView());
 
-    expect(opacityOf(el)).toBeGreaterThan(0);
+    // waitFor, not a fixed sleep. The assertion is satisfied as soon as the
+    // animation STARTS -- a few frames after the observer fires -- so sleeping
+    // past the 0.6s duration only burned wall-clock on every run, and would
+    // have flipped to a flake if framer ever scheduled the start later than
+    // the hardcoded wait.
+    await waitFor(() => expect(opacityOf(el)).toBeGreaterThan(0), {
+      timeout: 1500,
+    });
   });
 
   it('reveals a staggered container and its children', async () => {
@@ -178,11 +181,20 @@ describe('whileInView scroll reveals (runtime)', () => {
     const parent = container.querySelector('[data-testid="container"]')!;
     expect(opacityOf(parent)).toBe(0);
 
-    await act(async () => {
-      scrollEverythingIntoView();
-      await new Promise((r) => setTimeout(r, 1200));
-    });
+    const child = container.querySelector('[data-testid="child"]')!;
+    expect(opacityOf(child)).toBe(0);
 
-    expect(opacityOf(parent)).toBeGreaterThan(0);
+    act(() => scrollEverythingIntoView());
+
+    await waitFor(() => expect(opacityOf(parent)).toBeGreaterThan(0), {
+      timeout: 1500,
+    });
+    // The child assertion is the point of this case -- the parent revealing
+    // proves nothing about variant inheritance or staggerChildren. Without
+    // it, a regression that left staggered children hidden would pass a test
+    // literally named "and its children".
+    await waitFor(() => expect(opacityOf(child)).toBeGreaterThan(0), {
+      timeout: 1500,
+    });
   });
 });
