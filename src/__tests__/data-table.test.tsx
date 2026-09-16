@@ -1,8 +1,16 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, within, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { DataTable, type ColumnDef } from '@/components/dashboard/data-table';
+
+const exportToCsvSpy = vi.fn();
+vi.mock('@/lib/utils/csv-export', () => ({
+  exportToCsv: (...args: unknown[]) => exportToCsvSpy(...args),
+}));
+
+const { DataTable } = await import('@/components/dashboard/data-table');
+type ColumnDef<TData, TValue = unknown> =
+  import('@/components/dashboard/data-table').ColumnDef<TData, TValue>;
 
 /**
  * Behavioral baseline for the shared DataTable.
@@ -154,5 +162,133 @@ describe('DataTable', () => {
     render(<DataTable columns={columns} data={data} pageSize={10} />);
     expect(bodyRows()).toHaveLength(3);
     expect(screen.getByRole('button', { name: /next page/i })).toHaveProperty('disabled', true);
+  });
+
+  /**
+   * Row selection and CSV export were the two paths this file did not cover
+   * when the v9 migration landed. Both lean on exactly what v9 relocated:
+   * selection on `rowSelectionFeature` + `getFilteredSelectedRowModel()`, CSV
+   * on `getFilteredRowModel()` + `getVisibleFlatColumns()`.
+   */
+  describe('row selection', () => {
+    const selectableColumns: ColumnDef<Row>[] = [
+      {
+        id: 'select',
+        header: 'Select',
+        cell: ({ row }) => (
+          <input
+            type="checkbox"
+            aria-label={`Select ${row.original.name}`}
+            checked={row.getIsSelected()}
+            onChange={(e) => row.toggleSelected(e.target.checked)}
+          />
+        ),
+      },
+      ...columns,
+    ];
+
+    it('reports the selected row through onRowSelectionChange', async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      render(
+        <DataTable
+          columns={selectableColumns}
+          data={data}
+          enableRowSelection
+          onRowSelectionChange={onSelect}
+        />
+      );
+
+      await user.click(screen.getByRole('checkbox', { name: 'Select Alice' }));
+
+      await waitFor(() => {
+        const last = onSelect.mock.calls.at(-1)?.[0] as Row[] | undefined;
+        expect(last?.map((r) => r.name)).toEqual(['Alice']);
+      });
+    });
+
+    it('accumulates and then clears selections', async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      render(
+        <DataTable
+          columns={selectableColumns}
+          data={data}
+          enableRowSelection
+          onRowSelectionChange={onSelect}
+        />
+      );
+
+      await user.click(screen.getByRole('checkbox', { name: 'Select Alice' }));
+      await user.click(screen.getByRole('checkbox', { name: 'Select Bob' }));
+      await waitFor(() => {
+        const names = (onSelect.mock.calls.at(-1)?.[0] as Row[]).map((r) => r.name);
+        expect(names.sort()).toEqual(['Alice', 'Bob']);
+      });
+
+      await user.click(screen.getByRole('checkbox', { name: 'Select Alice' }));
+      await waitFor(() => {
+        const names = (onSelect.mock.calls.at(-1)?.[0] as Row[]).map((r) => r.name);
+        expect(names).toEqual(['Bob']);
+      });
+    });
+  });
+
+  describe('CSV export', () => {
+    beforeEach(() => exportToCsvSpy.mockClear());
+
+    it('exports every row when nothing is filtered', async () => {
+      const user = userEvent.setup();
+      render(
+        <DataTable columns={columns} data={data} enableCsvExport csvFilename="rows.csv" />
+      );
+
+      await user.click(screen.getByRole('button', { name: /export to csv/i }));
+
+      expect(exportToCsvSpy).toHaveBeenCalledTimes(1);
+      const [filename, rows] = exportToCsvSpy.mock.calls[0] as [string, Record<string, unknown>[]];
+      expect(filename).toBe('rows.csv');
+      expect(rows).toHaveLength(3);
+    });
+
+    /**
+     * The export reads getFilteredRowModel(), so it must follow the active
+     * search rather than dumping the raw data array.
+     */
+    it('exports only the filtered rows', async () => {
+      const user = userEvent.setup();
+      render(
+        <DataTable
+          columns={columns}
+          data={data}
+          globalSearch
+          searchPlaceholder="Search..."
+          enableCsvExport
+        />
+      );
+
+      await user.type(screen.getByPlaceholderText('Search...'), 'alice');
+      await waitFor(() => expect(bodyRows()).toHaveLength(1));
+
+      await user.click(screen.getByRole('button', { name: /export to csv/i }));
+
+      const rows = exportToCsvSpy.mock.calls.at(-1)?.[1] as Record<string, unknown>[];
+      expect(rows).toHaveLength(1);
+      expect(JSON.stringify(rows)).toContain('Alice');
+    });
+
+    it('routes through csvTransform when one is supplied', async () => {
+      const user = userEvent.setup();
+      const csvTransform = vi.fn((rows: Row[]) => rows.map((r) => ({ who: r.name })));
+      render(
+        <DataTable columns={columns} data={data} enableCsvExport csvTransform={csvTransform} />
+      );
+
+      await user.click(screen.getByRole('button', { name: /export to csv/i }));
+
+      expect(csvTransform).toHaveBeenCalledTimes(1);
+      const rows = exportToCsvSpy.mock.calls[0][1] as Record<string, unknown>[];
+      expect(rows[0]).toHaveProperty('who');
+    });
   });
 });
