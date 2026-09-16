@@ -7,7 +7,11 @@
  * minor releases per the Next.js docs.
  */
 import type { NextConfig } from 'next';
-import { withSentryConfig } from '@sentry/nextjs';
+// Imported from '@sentry/nextjs/config', not the package root. The root
+// re-export is deprecated and, per the build-time warning, stops working in
+// v11. The subpath exports exactly one symbol (withSentryConfig) and keeps
+// the SDK's runtime entrypoint out of the config module's import graph.
+import { withSentryConfig } from '@sentry/nextjs/config';
 
 /** Security headers applied to every response. See:
  *  - X-Frame-Options:        https://developer.mozilla.org/docs/Web/HTTP/Headers/X-Frame-Options
