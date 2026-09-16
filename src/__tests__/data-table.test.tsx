@@ -9,8 +9,11 @@ vi.mock('@/lib/utils/csv-export', () => ({
 }));
 
 const { DataTable } = await import('@/components/dashboard/data-table');
-type ColumnDef<TData, TValue = unknown> =
-  import('@/components/dashboard/data-table').ColumnDef<TData, TValue>;
+// v9 constrains TData to RowData; the local alias has to carry it through.
+type ColumnDef<
+  TData extends import('@tanstack/react-table').RowData,
+  TValue = unknown,
+> = import('@/components/dashboard/data-table').ColumnDef<TData, TValue>;
 
 /**
  * Behavioral baseline for the shared DataTable.
