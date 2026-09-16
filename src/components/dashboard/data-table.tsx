@@ -2,20 +2,58 @@
 
 import { useState, useEffect } from 'react';
 import {
-  type ColumnDef,
+  type ColumnDef as TanstackColumnDef,
+  type RowData,
+  type TableState,
   type SortingState,
   type ColumnFiltersState,
-  type VisibilityState,
   type RowSelectionState,
   flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getPaginationRowModel,
-  useReactTable,
+  filterFns,
+  tableFeatures,
+  stockFeatures,
+  createCoreRowModel,
+  createSortedRowModel,
+  createFilteredRowModel,
+  createFacetedRowModel,
+  createFacetedUniqueValues,
+  createPaginatedRowModel,
+  useTable,
 } from '@tanstack/react-table';
+
+/**
+ * TanStack Table v9 requires features to be declared explicitly -- v8 shipped
+ * them all automatically. `stockFeatures` is the compatibility bundle: every
+ * feature enabled, matching v8 semantics at the cost of a larger bundle than
+ * a hand-picked set.
+ *
+ * Declared at module scope, not inside the component: `tableFeatures()`
+ * returns a new object each call, and a fresh `features` identity on every
+ * render would rebuild the table instance and drop its state.
+ *
+ * `typeof tableFeats` is what the generics below thread through -- in v9
+ * `ColumnDef` and friends take TFeatures as their FIRST type parameter.
+ */
+const tableFeats = tableFeatures({
+  ...stockFeatures,
+  // Row models are slots on the features object in v9, not table options.
+  // Note the pagination factory is `createPaginatedRowModel` -- the
+  // symmetrical `createPaginationRowModel` does not exist (verified against
+  // the package's exports).
+  coreRowModel: createCoreRowModel(),
+  sortedRowModel: createSortedRowModel(),
+  filteredRowModel: createFilteredRowModel(),
+  facetedRowModel: createFacetedRowModel(),
+  facetedUniqueValues: createFacetedUniqueValues(),
+  paginatedRowModel: createPaginatedRowModel(),
+});
+
+/**
+ * v9 replaced `VisibilityState` with a feature-scoped type. Column visibility
+ * is a plain id -> boolean map in both versions, so declaring it locally keeps
+ * this file independent of that rename.
+ */
+type ColumnVisibilityState = Record<string, boolean>;
 import {
   Table,
   TableBody,
@@ -42,7 +80,7 @@ interface FacetFilter {
   title: string;
 }
 
-interface DataTableProps<TData, TValue> {
+interface DataTableProps<TData extends RowData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   searchKey?: string;
@@ -59,7 +97,7 @@ interface DataTableProps<TData, TValue> {
   enablePageJump?: boolean;
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends RowData, TValue>({
   columns,
   data,
   searchKey,
@@ -77,26 +115,24 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({});
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [globalFilter, setGlobalFilter] = useState('');
   const [showAll, setShowAll] = useState(false);
   const [pageJumpValue, setPageJumpValue] = useState('');
 
-  const table = useReactTable({
+  const table = useTable<typeof tableFeats, TData, TableState<typeof tableFeats>>({
+    features: tableFeats,
     data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    getPaginationRowModel: getPaginationRowModel(),
+    // Widened at the boundary: v9's table instance types column values as
+    // `unknown` because a column set is heterogeneous by nature. DataTable's
+    // TValue exists only so callers can keep the v8-style two-arg ColumnDef.
+    columns: columns as ColumnDef<TData, unknown>[],
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: 'includesString',
+    globalFilterFn: filterFns.includesString,
     enableRowSelection: enableRowSelection ?? false,
     onRowSelectionChange: setRowSelection,
     state: {
@@ -108,6 +144,8 @@ export function DataTable<TData, TValue>({
     },
     initialState: {
       pagination: {
+        // v9 requires the full PaginationState; v8 allowed a partial.
+        pageIndex: 0,
         pageSize,
       },
     },
@@ -364,7 +402,7 @@ export function DataTable<TData, TValue>({
             Previous
           </Button>
           <span className="text-sm text-muted-foreground">
-            Page {table.getState().pagination.pageIndex + 1} of{' '}
+            Page {table.state.pagination.pageIndex + 1} of{' '}
             {table.getPageCount()}
           </span>
           {enablePageJump && table.getPageCount() > 1 && (
@@ -408,4 +446,18 @@ export function DataTable<TData, TValue>({
   );
 }
 
-export { type ColumnDef } from '@tanstack/react-table';
+/**
+ * Re-exported with TFeatures PRE-BOUND, so consumers keep the v8-style
+ * two-argument call: `ColumnDef<PaymentRow, unknown>`.
+ *
+ * v9 made TFeatures the first generic (`ColumnDef<TFeatures, TData, TValue>`).
+ * Binding it here means the 10 files that define columns did not have to
+ * change at all -- without this, every one of the 22 ColumnDef sites would
+ * need to import `tableFeats` and spell out three type arguments, for no
+ * benefit: they all use the same feature set anyway.
+ */
+export type ColumnDef<TData extends RowData, TValue = unknown> = TanstackColumnDef<
+  typeof tableFeats,
+  TData,
+  TValue
+>;

@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useMemo, type ReactNode } from 'react';
-import { type ColumnDef } from '@tanstack/react-table';
-import { DataTable } from '@/components/dashboard/data-table';
+import type { RowData } from '@tanstack/react-table';
+import { DataTable, type ColumnDef } from '@/components/dashboard/data-table';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Card, CardContent } from '@/components/ui/card';
 import { SearchInput } from '@/components/dashboard/search-input';
@@ -18,7 +18,7 @@ interface FacetFilter {
   title: string;
 }
 
-interface ResponsiveDataTableProps<TData, TValue> {
+interface ResponsiveDataTableProps<TData extends RowData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   searchKey?: string;
@@ -37,7 +37,7 @@ interface ResponsiveDataTableProps<TData, TValue> {
   enablePageJump?: boolean;
 }
 
-export function ResponsiveDataTable<TData, TValue>({
+export function ResponsiveDataTable<TData extends RowData, TValue>({
   columns,
   data,
   searchKey,

@@ -2,14 +2,14 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { type ColumnDef } from '@tanstack/react-table';
+
 import { format } from 'date-fns';
 import { MoreHorizontal, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { useQueryState, parseAsString } from 'nuqs';
 
-import { DataTable } from '@/components/dashboard/data-table';
+import { DataTable, type ColumnDef } from '@/components/dashboard/data-table';
 import { SearchInput } from '@/components/dashboard/search-input';
 import { CustomerForm } from '@/components/dashboard/customer-form';
 import { BulkActionToolbar } from '@/components/dashboard/bulk-action-toolbar';
