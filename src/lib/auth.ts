@@ -18,6 +18,32 @@ if (typeof globalThis.WebSocket === 'undefined') {
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
+/**
+ * REQUIRED, not defensive. A pg-style Pool is an EventEmitter, and Node's
+ * EventEmitter contract escalates an unhandled 'error' event into an uncaught
+ * exception -- which in a serverless function takes the whole instance down.
+ *
+ * The neon-serverless driver talks to Postgres over a WebSocket, so an idle
+ * connection dropping (Neon scale-to-zero, a cold start, an ordinary network
+ * blip) is routine rather than exceptional. Without this listener each drop
+ * surfaced as:
+ *
+ *   Error: Connection terminated unexpectedly
+ *     at #onSocketClose (node:internal/deps/undici/undici)
+ *   level: fatal   handled: no   mechanism: auto.node.onuncaughtexception
+ *
+ * observed twice in production within a day of error reporting going live
+ * (INK37-TATTOOS-3). @neondatabase/serverless documents `pool.on('error')`
+ * for exactly this.
+ *
+ * Logging and swallowing is correct here: the pool discards the dead client
+ * and the next query acquires a fresh one, so there is nothing to recover --
+ * the only real failure mode was the crash itself.
+ */
+pool.on('error', (err: Error) => {
+  logger.error({ err, component: 'better-auth-pool' }, 'Neon pool client error');
+});
+
 export const auth = betterAuth({
   database: pool,
   plugins: [
