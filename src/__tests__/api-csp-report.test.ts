@@ -180,4 +180,73 @@ describe('POST /api/csp-report', () => {
     expect(res.status).toBe(204);
     expect(mockError).toHaveBeenCalled();
   });
+
+  /**
+   * Regression guard for INK37-TATTOOS-4.
+   *
+   * Browsers that send the legacy `violated-directive` include the whole
+   * directive WITH its value, which for this policy embeds the per-request
+   * nonce. Passing that straight into the Sentry message put the nonce in the
+   * issue fingerprint, so every violation minted a brand-new issue --
+   * unbounded growth that burns quota and buries real errors.
+   */
+  describe('issue grouping', () => {
+    const withDirective = (violated: string, blocked = 'https://x/y.js') =>
+      post({ 'csp-report': { 'violated-directive': violated, 'blocked-uri': blocked } });
+
+    it('reduces a full directive with a nonce to its bare name', async () => {
+      await POST(
+        withDirective("script-src 'self' 'nonce-ABC123XYZ' https://app.cal.com")
+      );
+      const [msg, opts] = mockCaptureMessage.mock.calls[0] as [
+        string,
+        { tags: Record<string, string>; fingerprint: string[] },
+      ];
+      expect(msg).not.toContain('nonce-');
+      expect(opts.tags.csp_directive).toBe('script-src');
+      expect(opts.fingerprint).toEqual(['csp', 'script-src', 'https://x/y.js']);
+    });
+
+    /**
+     * The actual defect: two reports differing only by nonce must land on ONE
+     * issue, not two.
+     */
+    it('groups two reports that differ only by nonce', async () => {
+      await POST(withDirective("script-src 'self' 'nonce-AAA' https://app.cal.com"));
+      await POST(withDirective("script-src 'self' 'nonce-BBB' https://app.cal.com"));
+
+      const fingerprints = mockCaptureMessage.mock.calls.map(
+        (c) => JSON.stringify((c[1] as { fingerprint: string[] }).fingerprint)
+      );
+      expect(fingerprints).toHaveLength(2);
+      expect(new Set(fingerprints).size).toBe(1);
+    });
+
+    it('labels an empty blocked-uri on a script directive as inline', async () => {
+      await POST(
+        post({ 'csp-report': { 'violated-directive': "script-src 'self' 'nonce-Q'", 'blocked-uri': '' } })
+      );
+      const [msg, opts] = mockCaptureMessage.mock.calls[0] as [
+        string,
+        { tags: Record<string, string> },
+      ];
+      // Previously produced a trailing "blocked " and a null tag.
+      expect(msg).toBe('CSP: script-src blocked inline');
+      expect(opts.tags.csp_blocked_uri).toBe('inline');
+    });
+
+    it('still prefers effective-directive when the browser sends it', async () => {
+      await POST(
+        post({
+          'csp-report': {
+            'effective-directive': 'font-src',
+            'violated-directive': "font-src 'self' https://cal.com",
+            'blocked-uri': 'https://cal.com/cal.ttf',
+          },
+        })
+      );
+      const opts = mockCaptureMessage.mock.calls[0][1] as { tags: Record<string, string> };
+      expect(opts.tags.csp_directive).toBe('font-src');
+    });
+  });
 });

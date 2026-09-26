@@ -88,6 +88,39 @@ function isExtensionNoise(v: CspViolation): boolean {
   return EXTENSION_SCHEMES.some((s) => uri.startsWith(s) || src.startsWith(s));
 }
 
+/**
+ * Reduce a report's directive to its NAME.
+ *
+ * Per CSP, `effective-directive` is the bare name ("script-src") but the older
+ * `violated-directive` carries the whole directive INCLUDING its value --
+ * which for this policy embeds the per-request nonce:
+ *
+ *   script-src 'self' 'nonce-MjVmODU0YmUt...' https://app.cal.com
+ *
+ * Feeding that into the Sentry message made the nonce part of the issue
+ * fingerprint, so every violation minted a BRAND-NEW issue. Left alone that
+ * grows without bound, burns the event quota, and buries real errors -- the
+ * Neon pool crash was found in a list this would have flooded
+ * (INK37-TATTOOS-4).
+ */
+function directiveName(v: CspViolation): string {
+  const raw = v.effectiveDirective || v.violatedDirective || '';
+  const name = raw.trim().split(/\s+/)[0];
+  return name || 'unknown';
+}
+
+/**
+ * Browsers send an empty `blocked-uri` for some inline violations, which
+ * produced messages ending in a bare "blocked " and a null tag. Normalizing
+ * keeps the fingerprint stable and the message readable.
+ */
+function blockedTarget(v: CspViolation): string {
+  const raw = (v.blockedUri ?? '').trim();
+  if (raw) return raw;
+  // An empty blocked-uri on a script/style directive means an inline block.
+  return /^(script|style)-src/.test(directiveName(v)) ? 'inline' : 'unknown';
+}
+
 export async function POST(request: Request): Promise<NextResponse> {
   try {
     const ip = getRequestIp(request);
@@ -127,18 +160,22 @@ export async function POST(request: Request): Promise<NextResponse> {
       // events, not thrown errors, and grouping by directive + blocked host
       // keeps one misconfigured host to a single issue instead of one per
       // page view.
-      Sentry.captureMessage(
-        `CSP: ${v.effectiveDirective ?? v.violatedDirective ?? 'unknown'} blocked ${v.blockedUri ?? 'unknown'}`,
-        {
-          level: 'warning',
-          tags: {
-            csp_directive: v.effectiveDirective ?? v.violatedDirective ?? 'unknown',
-            csp_blocked_uri: v.blockedUri ?? 'unknown',
-            csp_disposition: v.disposition ?? 'enforce',
-          },
-          extra: { ...v },
-        }
-      );
+      const directive = directiveName(v);
+      const blocked = blockedTarget(v);
+
+      Sentry.captureMessage(`CSP: ${directive} blocked ${blocked}`, {
+        level: 'warning',
+        tags: {
+          csp_directive: directive,
+          csp_blocked_uri: blocked,
+          csp_disposition: v.disposition ?? 'enforce',
+        },
+        // Pin the fingerprint to directive + target so a per-request nonce in
+        // the raw report can never split one recurring violation across many
+        // issues. The unnormalized values stay in `extra` for debugging.
+        fingerprint: ['csp', directive, blocked],
+        extra: { ...v },
+      });
     }
 
     return new NextResponse(null, { status: 204 });
