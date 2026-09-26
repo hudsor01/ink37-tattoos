@@ -2,7 +2,7 @@ import 'server-only';
 import { betterAuth } from 'better-auth';
 import { nextCookies } from 'better-auth/next-js';
 import { admin } from 'better-auth/plugins';
-import { Pool, neonConfig } from '@neondatabase/serverless';
+import { Pool, neonConfig, type Client } from '@neondatabase/serverless';
 import ws from 'ws';
 import { db } from '@/lib/db';
 import * as schema from '@/lib/db/schema';
@@ -42,6 +42,30 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
  */
 pool.on('error', (err: Error) => {
   logger.error({ err, component: 'better-auth-pool' }, 'Neon pool client error');
+});
+/**
+ * Second listener, and it is not redundant with pool.on('error').
+ *
+ * pg-pool attaches its own `idleListener` to each client, but removes it the
+ * moment the client is checked out (pg-pool/index.js: `client.removeListener
+ * ('error', idleListener)`). So for the entire duration of a query the client
+ * has NO error listener, and a socket death there reaches Node as:
+ *
+ *   Error: Unhandled error. ()
+ *     at Connection.reportStreamError -> client.emit('error')
+ *   level: fatal   mechanism: auto.node.onuncaughtexception
+ *
+ * That is INK37-TATTOOS-5, which arrived AFTER the pool-level handler shipped
+ * -- the pool handler only ever covered idle clients.
+ *
+ * Attaching here, on the pool's 'connect' event, gives every client a listener
+ * for its whole lifetime. pg-pool removes only its own `idleListener` by
+ * reference, so this one survives checkout.
+ */
+pool.on('connect', (client: Client) => {
+  client.on('error', (err: Error) => {
+    logger.error({ err, component: 'better-auth-pool-client' }, 'Neon client error');
+  });
 });
 
 export const auth = betterAuth({
